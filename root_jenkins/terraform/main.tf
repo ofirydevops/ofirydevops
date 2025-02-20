@@ -1,6 +1,10 @@
 terraform {
-  backend "local" {
-    path = "/home/terraform.tfstate"
+  backend "s3" {
+    bucket         = "ofirydevops-root-terraform-state"
+    key            = "root-infra.tfstate"
+    region         = "eu-central-1"
+    encrypt        = "true"
+    profile        = "OFIRYDEVOPS"
   }
 
   required_providers {
@@ -8,15 +12,21 @@ terraform {
       source  = "integrations/github"
       version = "~> 6.0"
     }
+    aws = "~> 5.0" 
   }
 }
 
-locals {
-    secrets = yamldecode(file("${path.module}/../secrets.yaml"))
+provider "aws" {
+  profile = "OFIRYDEVOPS"
+  region  = "eu-central-1"
 }
 
 provider "github" {
     token = local.secrets["github_token"]
+}
+
+locals {
+    secrets = yamldecode(file("${path.module}/../secrets.yaml"))
 }
 
 resource "github_repository" "example" {
