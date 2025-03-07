@@ -53,7 +53,23 @@ locals {
     arch = "arm64"
 }
 
+resource "local_sensitive_file" "rendered_jcasc_config" {
+  filename = "${path.module}/jcasc_config_tmp.yaml"
+  content  = templatefile("${path.module}/../jcasc/main.yaml.tpl", {
+    instance_profile = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
+    sg_name = aws_security_group.sgs["root_jenkins_worker"].name
+    subnet_id = local.default_public_subnets[0]
+    jenkins_admin_password = local.secrets["jenkins_admin_password"]
+    ami_id_amd64 = local.jenkins_root_30GB_amd64_ami_id
+    ami_id_arm64 = local.jenkins_root_30GB_arm64_ami_id
+    github_username = local.secrets["github_username"]
+    github_token = local.secrets["github_token"]
+    workers_ssh_key = indent(20, "\n${file("${path.module}/../../root/key_pair/root_jenkins.secret.key")}")
+  })
+}
+
 resource "null_resource" "docker_build_and_push" {
+  depends_on = [local_sensitive_file.rendered_jcasc_config]
   triggers = {
     always_run = timestamp()
   }
@@ -263,10 +279,10 @@ resource "aws_ecs_task_definition" "root_jenkins_task" {
   requires_compatibilities = ["EC2"]
   cpu                      = "1800"
   memory                   = "3800"
-  volume {
-    name      = "jenkins_data_volume"
-    host_path = "/var/jenkins_home"
-  }
+  # volume {
+  #   name      = "jenkins_data_volume"
+  #   host_path = "/var/jenkins_home"
+  # }
   container_definitions = jsonencode([
     {
       name      = "root_jenkins"
@@ -275,12 +291,12 @@ resource "aws_ecs_task_definition" "root_jenkins_task" {
       environment = [
         { "name": "CASC_JENKINS_CONFIG", "value": "${local.jenkins_casc_config_dir}/" }
       ]
-      mountPoints = [
-        {
-          "sourceVolume": "jenkins_data_volume",
-          "containerPath": "/var/jenkins_home"
-        }
-      ]
+      # mountPoints = [
+      #   {
+      #     "sourceVolume": "jenkins_data_volume",
+      #     "containerPath": "/var/jenkins_home"
+      #   }
+      # ]
       portMappings = [{
         containerPort = 8443
         hostPort      = 443
@@ -328,75 +344,60 @@ resource "null_resource" "root_jenkins_ecs_setup" {
     }
 }
 
-resource "aws_volume_attachment" "root_jenkins_attachment" {
-  device_name = "/dev/xvdh"
-  volume_id   = local.root_jenkins_volume_id
-  instance_id = aws_instance.root_jenkins.id
-}
+# resource "aws_volume_attachment" "root_jenkins_attachment" {
+#   device_name = "/dev/xvdh"
+#   volume_id   = local.root_jenkins_volume_id
+#   instance_id = aws_instance.root_jenkins.id
+# }
 
-resource "null_resource" "root_jenkins_volume_mount" {
-    triggers = {
-      always_run = timestamp()
-    }
-    depends_on = [aws_volume_attachment.root_jenkins_attachment]
-    provisioner "remote-exec" {
-      connection {
-        type        = "ssh"
-        host        = aws_instance.root_jenkins.public_ip
-        user        = "ec2-user"
-        private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
-      }
-      inline = [
-        "sudo mkdir -p /var/jenkins_home",
-        "sudo mount /dev/xvdh /var/jenkins_home",
-        "sudo chown -R 1000:1000 /var/jenkins_home",
-        "echo '/dev/xvdh /var/jenkins_home ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab"
-      ]
-    }
-}
+# resource "null_resource" "root_jenkins_volume_mount" {
+#     triggers = {
+#       always_run = timestamp()
+#     }
+#     depends_on = [aws_volume_attachment.root_jenkins_attachment]
+#     provisioner "remote-exec" {
+#       connection {
+#         type        = "ssh"
+#         host        = aws_instance.root_jenkins.public_ip
+#         user        = "ec2-user"
+#         private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
+#       }
+#       inline = [
+#         "sudo mkdir -p /var/jenkins_home",
+#         "sudo mount /dev/xvdh /var/jenkins_home",
+#         "sudo chown -R 1000:1000 /var/jenkins_home",
+#         "echo '/dev/xvdh /var/jenkins_home ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab"
+#       ]
+#     }
+# }
 
 
-resource "local_sensitive_file" "rendered_jcasc_config" {
-  filename = "${path.module}/jcasc_config_tmp.yaml"
-  content  = templatefile("${path.module}/../jcasc/main.yaml.tpl", {
-    instance_profile = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
-    sg_name = aws_security_group.sgs["root_jenkins_worker"].name
-    subnet_id = local.default_public_subnets[0]
-    jenkins_admin_password = local.secrets["jenkins_admin_password"]
-    ami_id_amd64 = local.jenkins_root_30GB_amd64_ami_id
-    ami_id_arm64 = local.jenkins_root_30GB_arm64_ami_id
-    github_username = local.secrets["github_username"]
-    github_token = local.secrets["github_token"]
-    workers_ssh_key = indent(20, "\n${file("${path.module}/../../root/key_pair/root_jenkins.secret.key")}")
-  })
-}
+# resource "null_resource" "root_jenkins_jcasc_update" {
 
-resource "null_resource" "root_jenkins_jcasc_update" {
-
-    depends_on = [null_resource.root_jenkins_volume_mount]
-    triggers = {
-      jcasc_config_file_hash = local_sensitive_file.rendered_jcasc_config.content_sha256
-    }
-    provisioner "file" {
-        connection {
-            type        = "ssh"
-            host        = aws_instance.root_jenkins.public_ip
-            user        = "ec2-user"
-            private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
-        }
-        source      = local_sensitive_file.rendered_jcasc_config.filename
-        destination = "${local.jenkins_casc_config_dir}/main.yaml"
-    }
-    provisioner "remote-exec" {
-        connection {
-            type        = "ssh"
-            host        = aws_instance.root_jenkins.public_ip
-            user        = "ec2-user"
-            private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
-        }
-        inline = [
-            "sudo chmod -R 600 ${local.jenkins_casc_config_dir}",
-            "sudo chown -R 1000:1000 ${local.jenkins_casc_config_dir}"
-        ]
-    }
-}
+#     depends_on = [null_resource.root_jenkins_volume_mount]
+#     triggers = {
+#       jcasc_config_file_hash = local_sensitive_file.rendered_jcasc_config.content_sha256
+#     }
+#     provisioner "file" {
+#         connection {
+#             type        = "ssh"
+#             host        = aws_instance.root_jenkins.public_ip
+#             user        = "ec2-user"
+#             private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
+#         }
+#         source      = local_sensitive_file.rendered_jcasc_config.filename
+#         destination = "${local.jenkins_casc_config_dir}/main.yaml"
+#     }
+#     provisioner "remote-exec" {
+#         connection {
+#             type        = "ssh"
+#             host        = aws_instance.root_jenkins.public_ip
+#             user        = "ec2-user"
+#             private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
+#         }
+#         inline = [
+#             "sudo chmod -R 600 ${local.jenkins_casc_config_dir}",
+#             "sudo chown -R 1000:1000 ${local.jenkins_casc_config_dir}"
+#         ]
+#     }
+# }
