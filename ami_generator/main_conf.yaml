@@ -1,0 +1,15 @@
+root_amd64:
+  packer_hcl_path: ami_generator/main.pkr.hcl
+  arch: amd64
+  images:
+    jenkins_root_amd64_30_GB:
+      volume_size: 30
+      ami_id_ssm_key: jenkinsRoot30GBAmd64AmiId
+      
+root_arm64:
+  packer_hcl_path: ami_generator/main.pkr.hcl
+  arch: arm64
+  images:
+    jenkins_root_arm64_30_GB:
+      volume_size: 30
+      ami_id_ssm_key: jenkinsRoot30GBArm64AmiId

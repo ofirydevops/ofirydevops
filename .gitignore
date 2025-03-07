@@ -170,3 +170,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 **/.terraform*
+
+**/jcasc_config_tmp.yaml
+**/*.zip
