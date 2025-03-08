@@ -2,27 +2,54 @@ locals {
     secrets = yamldecode(file("${path.module}/../../secrets.yaml"))
     global_conf = jsondecode(file("${path.module}/../../global_conf.json"))
     region = local.global_conf["region"]
-    name = "github_aws_runners"
+    name = "ofirydevops"
+
+    lambdas = [
+      {
+        name = "webhook"
+        tag  = "v6.3.0"
+      },
+      {
+        name = "runners"
+        tag  = "v6.3.0"
+      },
+      {
+        name = "runner-binaries-syncer"
+        tag  = "v6.3.0"
+      },
+      {
+        name = "ami-housekeeper"
+        tag  = "v6.3.0"
+      },
+      {
+        name = "termination-watcher"
+        tag  = "v6.3.0"
+      }
+    ]
+}
+
+
+module "github_runners_s3_bucket" {
+  source = "terraform-aws-modules/s3-bucket/aws"
+  version = "v4.6.0"
+  bucket = "ofirydevops-github-aws-runners"
+}
+
+resource "aws_s3_object" "lambdas_zips" {
+  depends_on = [module.download_lambda]
+  for_each = toset([for lambda in local.lambdas : lambda.name])
+  key        = "${each.key}.zip"
+  bucket     = module.github_runners_s3_bucket.s3_bucket_id
+  source     = "${each.key}.zip"
 }
 
 module "download_lambda" {
   source = "github-aws-runners/github-runner/aws//modules/download-lambda"
   version = "v6.3.0"
-  lambdas = [
-    {
-      name = "webhook"
-      tag  = "v6.3.0"
-    },
-    {
-      name = "runners"
-      tag  = "v6.3.0"
-    },
-    {
-      name = "runner-binaries-syncer"
-      tag  = "v6.3.0"
-    }
-  ]
+  lambdas = local.lambdas
 }
+
+
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -54,6 +81,14 @@ module "runners" {
   source = "github-aws-runners/github-runner/aws"
   version = "v6.3.0"
 
+  lambda_s3_bucket = module.github_runners_s3_bucket.s3_bucket_id
+  syncer_lambda_s3_key = aws_s3_object.lambdas_zips["runner-binaries-syncer"].key
+  webhook_lambda_s3_key = aws_s3_object.lambdas_zips["webhook"].key
+  runners_lambda_s3_key = aws_s3_object.lambdas_zips["runners"].key
+  # ami_housekeeper_lambda_s3_key = aws_s3_object.lambdas_zips["ami-housekeeper"].key
+
+  scale_up_reserved_concurrent_executions = -1
+
   create_service_linked_role_spot = true
   aws_region = local.region
   vpc_id     = module.vpc.vpc_id
@@ -69,19 +104,10 @@ module "runners" {
     id             = local.secrets["aws_github_runner_app_id"]
     webhook_secret = random_id.random.hex
   }
-
-  webhook_lambda_zip                = "${path.module}/../webhook.zip"
-  runner_binaries_syncer_lambda_zip = "${path.module}/../runner-binaries-syncer.zip"
-  runners_lambda_zip                = "${path.module}/../runners.zip"
-
   enable_organization_runners = false
   runner_extra_labels         = ["default", "example"]
-
-  # enable access to the runners via SSM
   enable_ssm_on_runners = true
-
-  instance_types = ["t3.xlarge"]
-
+  instance_types = ["t3.large"]
   delay_webhook_event   = 5
   runners_maximum_count = 2
   scale_down_schedule_expression = "cron(* * * * ? *)"
@@ -91,7 +117,7 @@ module "runners" {
     enable = false
   }
 
-  enable_ami_housekeeper = true
+  enable_ami_housekeeper = false
   ami_housekeeper_cleanup_config = {
     ssmParameterNames = ["*/ami-id"]
     minimumDaysOld    = 10
@@ -104,7 +130,8 @@ module "runners" {
   }
 
   instance_termination_watcher = {
-    enable = true
+    enable = false
+    s3_key = aws_s3_object.lambdas_zips["termination-watcher"].key
   }
 }
 
