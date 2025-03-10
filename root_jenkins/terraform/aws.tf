@@ -13,9 +13,6 @@ locals {
       "root_jenkins_key_pair" : {
           key = "rootJenkinsKeyPair"
       }
-      "root_jenkins_ecr_repo_url" : {
-          key = "rootJenkinsEcrRepoUrl"
-      }
 
       "jenkins_root_30GB_amd64_ami_id" : {
           key = "jenkinsRoot30GBAmd64AmiId"
@@ -26,12 +23,16 @@ locals {
       }
     }
 
+    ecr_repos = {
+        "root_jenkins" : {}
+    }
+
     image_tag = "timestamp_${replace(tostring(timestamp()), ":", "")}"
     root_jenkins_volume_id = "vol-00564c77e367707c6"
 
     hosted_zone_id = data.aws_ssm_parameter.params["hosted_zone_id"].value
     root_jenkins_key_pair = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
-    root_jenkins_ecr_repo_url = data.aws_ssm_parameter.params["root_jenkins_ecr_repo_url"].value
+    root_jenkins_ecr_repo_url = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
     jenkins_root_30GB_amd64_ami_id = data.aws_ssm_parameter.params["jenkins_root_30GB_amd64_ami_id"].value
     jenkins_root_30GB_arm64_ami_id = data.aws_ssm_parameter.params["jenkins_root_30GB_arm64_ami_id"].value
 
@@ -53,8 +54,23 @@ locals {
     arch = "arm64"
 }
 
+resource "aws_ecr_repository" "ecr_repos" {
+    for_each = local.ecr_repos
+    name     = each.key
+    image_tag_mutability = "MUTABLE"
+    force_delete = true
+}
+
+resource "aws_ecr_lifecycle_policy" "ecr_repos" {
+    for_each = local.ecr_repos
+    repository = aws_ecr_repository.ecr_repos[each.key].name
+    policy = file("${path.module}/policies/ecr_lifecycle_policy.json")
+}
+
+
 resource "local_sensitive_file" "rendered_jcasc_config" {
   filename = "${path.module}/jcasc_config_tmp.yaml"
+  file_permission = "0755"
   content  = templatefile("${path.module}/../jcasc/main.yaml.tpl", {
     instance_profile = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
     sg_name = aws_security_group.sgs["root_jenkins_worker"].name
@@ -69,7 +85,10 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
 }
 
 resource "null_resource" "docker_build_and_push" {
-  depends_on = [local_sensitive_file.rendered_jcasc_config]
+  depends_on = [
+    local_sensitive_file.rendered_jcasc_config,
+    aws_ecr_repository.ecr_repos
+    ]
   triggers = {
     always_run = timestamp()
   }
@@ -81,7 +100,7 @@ resource "null_resource" "docker_build_and_push" {
       DOCKER_IMAGE_REPO     = local.ecr_repo_name
       DOCKER_IMAGE_TAG      = local.image_tag
     }
-    command = "aws ecr get-login-password --region ${local.region} --profile OFIRYDEVOPS | docker login --username AWS --password-stdin $DOCKER_REGISTRY && docker compose -f ${path.module}/../docker/docker-compose.yml build main --push"
+    command = "aws ecr get-login-password --region ${local.region} --profile OFIRYDEVOPS | docker login --username AWS --password-stdin $DOCKER_REGISTRY && docker compose -f ${path.module}/../docker/docker-compose.yml build main --push -q"
   }
 }
 
