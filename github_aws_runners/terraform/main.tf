@@ -85,7 +85,6 @@ module "runners" {
   syncer_lambda_s3_key = aws_s3_object.lambdas_zips["runner-binaries-syncer"].key
   webhook_lambda_s3_key = aws_s3_object.lambdas_zips["webhook"].key
   runners_lambda_s3_key = aws_s3_object.lambdas_zips["runners"].key
-  # ami_housekeeper_lambda_s3_key = aws_s3_object.lambdas_zips["ami-housekeeper"].key
 
   scale_up_reserved_concurrent_executions = -1
 
@@ -118,20 +117,9 @@ module "runners" {
   }
 
   enable_ami_housekeeper = false
-  ami_housekeeper_cleanup_config = {
-    ssmParameterNames = ["*/ami-id"]
-    minimumDaysOld    = 10
-    amiFilters = [
-      {
-        Name   = "name"
-        Values = ["*al2023*"]
-      }
-    ]
-  }
 
   instance_termination_watcher = {
     enable = false
-    s3_key = aws_s3_object.lambdas_zips["termination-watcher"].key
   }
 }
 
@@ -146,4 +134,8 @@ module "webhook_github_app" {
     webhook_secret = random_id.random.hex
   }
   webhook_endpoint = module.runners.webhook.endpoint
+}
+
+output "webhhok" {
+  value = module.runners.webhook
 }

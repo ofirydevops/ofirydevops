@@ -14,7 +14,5 @@ COPY ./root_jenkins/jcasc/plugins.txt /var/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /var/plugins.txt
 
 COPY ./root_jenkins/terraform/jcasc_config_tmp.yaml /var/jenkins_home/jcasc/main.yaml
-# RUN chmod -R 600 /var/jenkins_home/jcasc/
-# RUN chown -R 1000:1000 /var/jenkins_home/jcasc/
 
 ENV JENKINS_OPTS --httpPort=-1 --httpsPort=8443 --httpsKeyStore=/var/jenkins.jks --httpsKeyStorePassword=changeme
