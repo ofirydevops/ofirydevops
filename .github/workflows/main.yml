@@ -1,0 +1,13 @@
+name: my main workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  main:
+    runs-on:
+      - default
+    steps:
+      - name: Test
+        run: |
+          echo "Hello World"

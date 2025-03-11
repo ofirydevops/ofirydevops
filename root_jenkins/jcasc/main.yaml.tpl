@@ -1,0 +1,100 @@
+x-worker_config': &worker_config
+  amiType:
+    unixData:
+      sshPort: 22
+  associatePublicIp: true
+  connectBySSHProcess: false
+  connectionStrategy: PRIVATE_IP
+  deleteRootOnTermination: true
+  hostKeyVerificationStrategy: 'OFF'
+  iamInstanceProfile: ${instance_profile}
+  idleTerminationMinutes: 2
+  instanceCapStr: 1
+  javaPath: java
+  metadataEndpointEnabled: true
+  metadataTokensRequired: false
+  mode: EXCLUSIVE
+  numExecutors: 1
+  remoteAdmin: ec2-user
+  remoteFS: /home/ec2-user/jenkins
+  securityGroups: ${sg_name}
+  stopOnTerminate: false
+  subnetId: ${subnet_id}
+
+
+jenkins:
+  systemMessage: "Configured by JCasC! FROM TPL"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: ofiry
+          name: Ofir Yahav
+          password: ${jenkins_admin_password}
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  clouds:
+  - amazonEC2:
+      name: root_main
+      region: eu-central-1
+      sshKeysCredentialsId: workers_ssh_access
+      useInstanceProfileForCredentials: true
+      templates:
+      - ami: ${ami_id_amd64}
+        description: main_worker_amd64
+        labelString: main_worker_amd64
+        type: T3Xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_main_worker_amd64
+        <<: *worker_config
+      - ami: ${ami_id_arm64}
+        description: main_worker_arm64
+        labelString: main_worker_arm64
+        type: T4gXlarge
+        tags:
+        - name: Name
+          value: root_jenkins_main_worker_arm64
+        <<: *worker_config
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: github_access
+              username: ${github_username}
+              password: ${github_token}
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: workers_ssh_access
+              username: ec2-user
+              privateKeySource:
+                directEntry:
+                  privateKey: |${workers_ssh_key}
+
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+
+jobs:
+  - script: >
+      job('seed_job') {
+        scm {
+          git {
+            remote {
+              url('https://github.com/ofiryy/devops-project.git')
+              credentials('github_access')
+            }
+            branch('update')
+          }
+        }
+        steps {
+          dsl {
+            external('jenkinsfiles/pipelines.groovy')
+            removeAction('DELETE')
+          }
+        }
+      }
