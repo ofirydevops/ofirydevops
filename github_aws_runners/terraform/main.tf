@@ -103,7 +103,6 @@ module "runners" {
   }
 
   enable_ami_housekeeper = false
-
   instance_termination_watcher = {
     enable = false
   }
