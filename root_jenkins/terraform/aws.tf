@@ -35,10 +35,7 @@ locals {
         "root_jenkins" : {}
     }
 
-    # image_tag = "timestamp_${replace(tostring(timestamp()), ":", "")}"
     image_tag = "hash_${local.docker_dep_files_content_hash}"
-    # root_jenkins_volume_id = "vol-0088cc9dafddea310" # "vol-00564c77e367707c6"
-
     hosted_zone_id = data.aws_ssm_parameter.params["hosted_zone_id"].value
     root_jenkins_key_pair = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
     root_jenkins_ecr_repo_url = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
