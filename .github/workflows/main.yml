@@ -1,0 +1,49 @@
+name: main_workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  main_arm64:
+    runs-on:
+      - self-hosted
+      - linux
+      - arm64
+      - kuku
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Test
+        run: |
+          ls -l
+          echo "Hello World arm64"
+          terraform --version
+          git-crypt --help
+          helm
+          kubectl
+          aws help
+          docker compose 
+
+
+  # main_x64:
+  #   runs-on:
+  #     - self-hosted
+  #     - linux
+  #     - x64
+  #     - kuku
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+
+  #     - name: Test
+  #       run: |
+  #         ls -l
+  #         echo "Hello World x64"
+  #         terraform --version
+  #         git-crypt --help
+  #         helm
+  #         kubectl
+  #         aws help
+  #         docker compose 
