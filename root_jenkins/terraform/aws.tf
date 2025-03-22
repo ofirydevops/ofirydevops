@@ -107,7 +107,11 @@ resource "null_resource" "docker_build_and_push" {
       DOCKER_IMAGE_REPO     = local.ecr_repo_name
       DOCKER_IMAGE_TAG      = local.image_tag
     }
+<<<<<<< HEAD
     command = "aws ecr get-login-password --region ${local.region} --profile OFIRYDEVOPS | docker login --username AWS --password-stdin $DOCKER_REGISTRY && docker compose -f ${path.module}/../docker/docker-compose.yml build main --push -q"
+=======
+    command = "aws ecr get-login-password --region ${local.region} --profile OFIRYDEVOPS | docker login --username AWS --password-stdin $DOCKER_REGISTRY && docker compose -f ${path.module}/../docker/docker-compose.yml build main --push && rm ${path.module}/jcasc_config_tmp.yaml"
+>>>>>>> ece4b52 (1)
   }
 }
 
