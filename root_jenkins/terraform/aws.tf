@@ -62,6 +62,7 @@ locals {
     }
 
     arch = "arm64"
+    device_to_mount = "/dev/xvdh"
 
     docker_dep_files = [
       "${path.module}/../docker/Dockerfile",
@@ -394,11 +395,12 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     workers_ssh_key = indent(20, "\n${file("${path.module}/../../root/key_pair/root_jenkins.secret.key")}")
     worker_role_arn = aws_iam_role.roles["root_jenkins_worker"].arn
     default_profile_name = "OFIRYDEVOPS"
+    region = local.region
   })
 }
 
 resource "aws_volume_attachment" "root_jenkins_attachment" {
-  device_name = "/dev/xvdh"
+  device_name = local.device_to_mount
   volume_id   = local.root_jenkins_volume_id
   instance_id = aws_instance.root_jenkins.id
 }
@@ -416,11 +418,11 @@ resource "null_resource" "root_jenkins_volume_mount" {
         private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
       }
       inline = [
-        "if ! sudo file -s \"$(readlink -f /dev/xvdh)\" | grep -q \"filesystem\"; then sudo mkfs.ext4 /dev/xvdh; fi",
+        "if ! sudo file -s \"$(readlink -f ${local.device_to_mount})\" | grep -q \"filesystem\"; then sudo mkfs.ext4 ${local.device_to_mount}; fi",
         "sudo mkdir -p /var/jenkins_home",
-        "sudo mount /dev/xvdh /var/jenkins_home",
+        "sudo mount ${local.device_to_mount} /var/jenkins_home",
         "sudo chown -R 1000:1000 /var/jenkins_home",
-        "echo '/dev/xvdh /var/jenkins_home ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab"
+        "echo '${local.device_to_mount} /var/jenkins_home ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab"
       ]
     }
 }

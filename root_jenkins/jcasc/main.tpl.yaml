@@ -44,7 +44,7 @@ jenkins:
   clouds:
   - amazonEC2:
       name: root_main
-      region: eu-central-1
+      region: ${region}
       sshKeysCredentialsId: workers_ssh_access
       useInstanceProfileForCredentials: true
       templates:
