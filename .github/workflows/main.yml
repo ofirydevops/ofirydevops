@@ -2,6 +2,12 @@ name: main_workflow
 
 on:
   workflow_dispatch:
+    inputs:
+      myinput:
+        type: string
+        description: My Input
+        required: true
+
 
 jobs:
   main_arm64:
@@ -17,13 +23,8 @@ jobs:
       - name: Test
         run: |
           ls -l
-          echo "Hello World arm64"
-          terraform --version
-          git-crypt --help
-          helm
-          kubectl
-          aws help
-          docker compose 
+          echo "Hello World ${{ github.event.inputs.myinput }}"
+
 
 
   # main_x64:
