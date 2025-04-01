@@ -1,0 +1,15 @@
+name: ofiry
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit=12.1
+  - pip
+  - pip:
+    - fastapi
+    - uvicorn
