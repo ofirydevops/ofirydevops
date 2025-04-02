@@ -29,8 +29,7 @@ services:
       target: runtime
       args:
         CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
-        <<: *build_args
-        <<: *arm64_build_args
+        <<: [*build_args, *arm64_build_args]
 
   main_amd64:
     <<: *main_conf
@@ -39,5 +38,4 @@ services:
       target: runtime
       args:
         CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
-        <<: *build_args
-        <<: *amd64_build_args
+        <<: [*build_args, *amd64_build_args]

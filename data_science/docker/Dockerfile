@@ -69,4 +69,33 @@ RUN curl ${AWS_CLI_DOWNLOAD_LINK} -o "awscliv2.zip" && \
 ENV PATH="/opt/conda/envs/${CONDA_ENV_NAME}/bin:/opt/conda/bin:$PATH"
 RUN echo "conda activate ${CONDA_ENV_NAME}" >> ~/.bashrc
 
+# Copy all code into image
+WORKDIR /app
+COPY . /app
+
 CMD ["bash"]
+
+FROM runtime AS remote
+
+RUN apt-get install openssh-server sudo -y
+EXPOSE 22
+
+ARG USER=root 
+ARG HOME=/${USER}
+
+RUN mkdir -p ${HOME}/.ssh \
+    && chown ${USER}:${USER} ${HOME}/.ssh \
+    && chmod 700 ${HOME}/.ssh
+
+COPY data_science/docker/remote/authorized_keys ${HOME}/.ssh/authorized_keys
+
+RUN chown ${USER}:${USER} ${HOME}/.ssh/authorized_keys && \
+    chmod 600 ${HOME}/.ssh/authorized_keys
+
+ARG git_ref
+RUN git remote set-url origin https://github.com/ofiryy/devops-project.git
+RUN git config global user.name "remote-user"
+RUN git config global user.email @
+RUN git checkout git_ref
+
+CMD ["/usr/sbin/sshd", "-D"]
