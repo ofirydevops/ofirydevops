@@ -7,4 +7,4 @@ services:
     build:
       context: ../../
       dockerfile: data_science/docker/Dockerfile
-      target: builder
+      target: runtime
