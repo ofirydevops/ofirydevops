@@ -77,7 +77,7 @@ CMD ["bash"]
 
 FROM runtime AS remote
 
-RUN apt-get install openssh-server sudo make g++ -y
+RUN apt-get install openssh-server sudo make g++ libssl-dev -y
 EXPOSE 22
 
 ARG USER=root 
@@ -93,7 +93,7 @@ RUN chown ${USER}:${USER} ${HOME}/.ssh/authorized_keys && \
     chmod 600 ${HOME}/.ssh/authorized_keys
 
 RUN cd ${HOME} && \
-    git clone https://github.com/AGWA/git-crypt.git && \
+    git clone https://github.com/ofiryy/git-crypt.git && \
     cd git-crypt && \
     make && \
     make install
