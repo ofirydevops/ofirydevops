@@ -77,7 +77,7 @@ CMD ["bash"]
 
 FROM runtime AS remote
 
-RUN apt-get install openssh-server sudo -y
+RUN apt-get install openssh-server sudo make g++ -y
 EXPOSE 22
 
 ARG USER=root 
