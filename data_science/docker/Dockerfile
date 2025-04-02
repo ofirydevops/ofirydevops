@@ -11,26 +11,22 @@ RUN conda config --set ssl_verify false
 # Install Mamba with a fixed version
 RUN conda install -n base -c conda-forge mamba=1.4.9 && conda clean --all -f -y
 
-# Install yq (yaml parser)
-RUN wget https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -O /usr/bin/yq && \
-    chmod +x /usr/bin/yq
-
 # Copy the Conda environment file
-ARG CONDA_ENV_FILE=data_science/conda_envs/ofirys_env.yaml
-COPY ${CONDA_ENV_FILE} /tmp/env.yml
-ENV CONDA_ENV_NAME=ofiry
+ARG CONDA_ENV_FILE_PATH
+ARG CONDA_ENV_NAME
+COPY ${CONDA_ENV_FILE_PATH} ./env.yml
+
 # Create a Conda environment with fixed dependencies
 
-RUN mamba env create --name $CONDA_ENV_NAME -f /tmp/env.yml && \
-    conda clean --all -f -y && \
-    rm -rf /tmp/env.yml
+RUN mamba env create --name $CONDA_ENV_NAME -f ./env.yml && \
+    conda clean --all -f -y 
 
 # Set Conda environment name
 
 ENV PATH="/opt/conda/envs/$CONDA_ENV_NAME/bin:/opt/conda/bin:$PATH"
 
 # Remove unnecessary files to reduce image size
-RUN conda run -n ofiry conda env export | grep -v "prefix:" > /tmp/env.yml && \
+RUN conda run -n ${CONDA_ENV_NAME} conda env export | grep -v "prefix:" > ./env.yml && \
     conda clean --all -f -y && \
     find /opt/conda -type d -name "__pycache__" -exec rm -rf {} + && \
     find /opt/conda -type f -name "*.pyc" -delete
@@ -38,11 +34,39 @@ RUN conda run -n ofiry conda env export | grep -v "prefix:" > /tmp/env.yml && \
 # Use CUDA runtime image to keep final image small
 FROM nvidia/cuda:12.2.2-base-ubuntu22.04 AS runtime
 
+ARG CONDA_ENV_NAME
+ARG AWS_CLI_DOWNLOAD_LINK
 # Copy Miniconda and installed Conda environment from the builder stage
 COPY --from=builder /opt/conda /opt/conda
+# Add Docker's official GPG key:
+RUN apt-get update
+RUN apt-get install ca-certificates curl unzip -y
+RUN install -m 0755 -d /etc/apt/keyrings
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+RUN chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+RUN echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN apt-get update
+
+RUN apt-get install \
+        docker-ce=5:28.0.4-1~ubuntu.22.04~jammy \
+        docker-ce-cli=5:28.0.4-1~ubuntu.22.04~jammy \
+        containerd.io=1.7.27-1 \
+        docker-buildx-plugin=0.22.0-1~ubuntu.22.04~jammy \
+        docker-compose-plugin=2.34.0-1~ubuntu.22.04~jammy -y
+
+# amd64: https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.15.37.zip
+RUN curl ${AWS_CLI_DOWNLOAD_LINK} -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install
+
 
 # Set paths and activate Conda environment
-ENV PATH="/opt/conda/envs/ofiry/bin:/opt/conda/bin:$PATH"
-RUN echo "conda activate ofiry" >> ~/.bashrc
+ENV PATH="/opt/conda/envs/${CONDA_ENV_NAME}/bin:/opt/conda/bin:$PATH"
+RUN echo "conda activate ${CONDA_ENV_NAME}" >> ~/.bashrc
 
 CMD ["bash"]

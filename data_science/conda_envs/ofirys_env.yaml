@@ -3,12 +3,12 @@ channels:
   - conda-forge
 dependencies:
   - python=3.11
-  - numpy
-  - pandas
-  - pytorch
-  - torchvision
-  - torchaudio
+  - numpy=2.2.4
+  - pandas=2.2.3
+  - pytorch=2.6.0
+  - torchvision=0.21.0
+  - torchaudio=2.6.0
   - pip
   - pip:
-    - fastapi
-    - uvicorn
+    - fastapi==0.115.12
+    - uvicorn==0.34.0

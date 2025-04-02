@@ -1,10 +1,43 @@
 version: "3.9"
 
+x-image: &image
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
+
+x-build_args: &build_args
+  CONDA_ENV_NAME: main
+
+x-amd64_build_args: &amd64_build_args
+  AWS_CLI_DOWNLOAD_LINK: https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.15.37.zip
+
+x-arm64_build_args: &arm64_build_args
+  AWS_CLI_DOWNLOAD_LINK: https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.15.37.zip
+
+x-build: &build
+  context: ../../
+  dockerfile: data_science/docker/Dockerfile
+
+x-main_conf: &main_conf
+  <<: *image
+  network_mode: bridge
+
+
 services:
-  main:
-    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
-    network_mode: bridge
+  main_arm64:
+    <<: *main_conf 
     build:
-      context: ../../
-      dockerfile: data_science/docker/Dockerfile
+      <<: *build
       target: runtime
+      args:
+        CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
+        <<: *build_args
+        <<: *arm64_build_args
+
+  main_amd64:
+    <<: *main_conf
+    build:
+      <<: *build
+      target: runtime
+      args:
+        CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
+        <<: *build_args
+        <<: *amd64_build_args
