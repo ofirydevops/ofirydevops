@@ -7,7 +7,7 @@ packer {
     }
 }
 
-variable "arch" {
+variable "kind" {
   type = string
   default = "amd64"
 }
@@ -15,7 +15,7 @@ variable "arch" {
 variable "images" {}
 
 locals {
-  arch_conf = {
+  conf = {
     "arm64" : {
       installation_script_path = "ami_generator/installation_scripts/basic_arm64.sh"
       base_ami_name_filter = "amzn2-ami-ecs-hvm-2.0.20230509-arm64-ebs"
@@ -26,6 +26,12 @@ locals {
       base_ami_name_filter = "amzn2-ami-ecs-hvm-2.0.20240312-x86_64-ebs"
       instance_type = "t3.xlarge"
     }
+    "deep_learning" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_amd64.sh"
+      base_ami_name_filter = "Deep Learning Base OSS Nvidia Driver GPU AMI (Amazon Linux 2023) 20250328"
+      instance_type = "g4dn.xlarge"
+    }
+    
   }
 
   global_conf = jsondecode(file("${path.root}/../../global_conf.json"))
@@ -53,11 +59,11 @@ build {
     content {
       ami_name = source.value.ami_name
 
-      instance_type = local.arch_conf[var.arch]["instance_type"]
+      instance_type = local.conf[var.kind]["instance_type"]
 
       source_ami_filter {
         filters = {
-          name = local.arch_conf[var.arch]["base_ami_name_filter"]
+          name = local.conf[var.kind]["base_ami_name_filter"]
           root-device-type = "ebs"
           virtualization-type = "hvm"
         }
@@ -75,7 +81,7 @@ build {
   }
 
   provisioner "shell" {
-    script = local.arch_conf[var.arch]["installation_script_path"]
+    script = local.conf[var.kind]["installation_script_path"]
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
   }
 }

@@ -39,3 +39,12 @@ services:
       args:
         CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
         <<: [*build_args, *amd64_build_args]
+
+  remote:
+    <<: *main_conf
+    build:
+      <<: *build
+      target: remote
+      args:
+        CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
+        <<: [*build_args, *amd64_build_args]

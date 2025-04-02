@@ -7,14 +7,14 @@ packer {
     }
 }
 
-variable "arch" {
+variable "kind" {
   type = string
 }
 
 variable "images" {}
 
 locals {
-  arch_conf = {
+  conf = {
     "arm64" : {
       installation_script_path = "${path.root}/../installation_scripts/basic_arm64_al2023.sh"
       base_ami_name_filter = "al2023-ami-ecs-hvm-2023.0.20241031-kernel-6.1-arm64"
@@ -33,7 +33,7 @@ locals {
   default_vpc_id         = local.global_conf["default_vpc_id"]
   default_public_subnets = local.global_conf["default_public_subnets"]
   runner_version         = "2.320.1"
-  github_link_arch       = local.arch_conf[var.arch]["github_link_arch"]
+  github_link_arch       = local.conf[var.kind]["github_link_arch"]
 }
 
 source "amazon-ebs" "ami" {
@@ -56,11 +56,11 @@ build {
     content {
       ami_name = source.value.ami_name
 
-      instance_type = local.arch_conf[var.arch]["instance_type"]
+      instance_type = local.conf[var.kind]["instance_type"]
 
       source_ami_filter {
         filters = {
-          name = local.arch_conf[var.arch]["base_ami_name_filter"]
+          name = local.conf[var.kind]["base_ami_name_filter"]
           root-device-type = "ebs"
           virtualization-type = "hvm"
         }
@@ -78,7 +78,7 @@ build {
   }
 
   provisioner "shell" {
-    script = local.arch_conf[var.arch]["installation_script_path"]
+    script = local.conf[var.kind]["installation_script_path"]
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
   }
 

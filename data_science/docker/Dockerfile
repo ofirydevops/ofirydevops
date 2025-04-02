@@ -92,10 +92,18 @@ COPY data_science/docker/remote/authorized_keys ${HOME}/.ssh/authorized_keys
 RUN chown ${USER}:${USER} ${HOME}/.ssh/authorized_keys && \
     chmod 600 ${HOME}/.ssh/authorized_keys
 
-ARG git_ref
+RUN cd ${HOME} && \
+    git clone https://github.com/AGWA/git-crypt.git && \
+    cd git-crypt && \
+    make && \
+    make install
+
+RUN git-crypt lock
+
+ARG GIT_REF=main
 RUN git remote set-url origin https://github.com/ofiryy/devops-project.git
-RUN git config global user.name "remote-user"
-RUN git config global user.email @
-RUN git checkout git_ref
+RUN git config --global user.name "remote-user"
+RUN git config --global user.email @
+RUN git checkout $GIT_REF
 
 CMD ["/usr/sbin/sshd", "-D"]

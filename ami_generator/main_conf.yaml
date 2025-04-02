@@ -1,6 +1,6 @@
 root_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
-  arch: amd64
+  kind: amd64
   images:
     jenkins_root_amd64_30_GB:
       volume_size: 30
@@ -8,7 +8,7 @@ root_amd64:
       
 root_arm64:
   packer_hcl_path: ami_generator/main.pkr.hcl
-  arch: arm64
+  kind: arm64
   images:
     jenkins_root_arm64_30_GB:
       volume_size: 30
@@ -16,7 +16,7 @@ root_arm64:
 
 github_runner_arm64:
   packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
-  arch: arm64
+  kind: arm64
   images:
     github_runner_arm64_30_GB:
       volume_size: 30
@@ -24,8 +24,16 @@ github_runner_arm64:
 
 github_runner_amd64:
   packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
-  arch: amd64
+  kind: amd64
   images:
     github_runner_amd64_30_GB:
       volume_size: 30
       ami_id_ssm_key: githubRunner30GBAmd64AmiId
+
+deep_learning:
+  packer_hcl_path: ami_generator/main.pkr.hcl
+  kind: deep_learning
+  images:
+    deep_learning_amd64_30_GB:
+      volume_size: 30
+      ami_id_ssm_key: deepLearning30GBAmd64AmiId
