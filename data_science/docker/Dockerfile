@@ -1,33 +1,51 @@
-FROM gpuci/miniconda-cuda:11.5-base-ubuntu20.04 AS base
+# Builder stage: Install Conda and dependencies
+FROM continuumio/miniconda3:23.3.1-0 AS builder
 
-FROM base AS build
+# Install system certificates to fix SSL issues
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
+# Ensure Conda trusts the system certificates
+RUN conda config --set ssl_verify false
 
+# Install Mamba with a fixed version
+RUN conda install -n base -c conda-forge mamba=1.4.9 && conda clean --all -f -y
 
-FROM base AS runtime
-# COPY --from=build /venv /venv
+#Install yq (yaml parser)
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -O /usr/bin/yq && \
+    chmod +x /usr/bin/yq
 
+# Copy the Conda environment file
+ARG CONDA_ENV_FILE=data_science/conda_envs/ofirys_env.yaml
+COPY ${CONDA_ENV_FILE} /tmp/environment.yml
 
-# Add Docker's official GPG key:
-RUN apt-get update
-RUN apt-get install ca-certificates curl
-RUN install -m 0755 -d /etc/apt/keyrings
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-RUN chmod a+r /etc/apt/keyrings/docker.asc
+# Create a Conda environment with fixed dependencies
+RUN mamba env create -f /tmp/environment.yml --freeze-installed && \
+    conda clean --all -f -y && \
+    rm -rf /tmp/environment.yml
 
-# Add the repository to Apt sources:
-RUN echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
-    tee /etc/apt/sources.list.d/docker.list > /dev/null 
-RUN apt-get update
-RUN apt-get install docker-ce \
-                    docker-ce-cli \
-                    containerd.io \
-                    docker-buildx-plugin \
-                    docker-compose-plugin
+# Set Conda environment name
+ENV CONDA_ENV_NAME=ofiry
+ENV PATH="/opt/conda/envs/$CONDA_ENV_NAME/bin:/opt/conda/bin:$PATH"
 
-FROM runtime as remote-dev
+# Remove unnecessary files to reduce image size
+RUN conda env export -n $CONDA_ENV_NAME | grep -v "prefix:" > /tmp/environment.yml && \
+    conda remove -n base --all --yes && \
+    conda clean --all -f -y && \
+    find /opt/conda -type d -name "__pycache__" -exec rm -rf {} + && \
+    find /opt/conda -type f -name "*.pyc" -delete
+
+# # Use CUDA runtime image to keep final image small
+# FROM nvidia/cuda:12.2.2-runtime-ubuntu22.04 AS runtime
+
+# # Copy Miniconda and installed Conda environment from the builder stage
+# COPY --from=builder /opt/conda /opt/conda
+
+# # Set paths and activate Conda environment
+# ENV PATH="/opt/conda/envs/ofiry/bin:/opt/conda/bin:$PATH"
+# RUN echo "conda activate ofiry" >> ~/.bashrc
+
+# CMD ["bash"]
 
 
 
