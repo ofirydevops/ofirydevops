@@ -40,11 +40,22 @@ services:
         CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
         <<: [*build_args, *amd64_build_args]
 
-  remote:
+  remote_dev_amd64:
     <<: *main_conf
     build:
       <<: *build
-      target: remote
+      target: remote_dev
       args:
         CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
         <<: [*build_args, *amd64_build_args]
+      # cache_from:
+      #   - type=registry,ref=<registry>/<cache-image>:<branch>
+      # cache_to:
+      #   - type=registry,oci-mediatypes=true,image-manifest=true,mode=max,ref=<registry>/<cache-image>
+      cache_from:
+      - type=s3,region=eu-central-1,bucket=ofirydevops-docker-cache,name=my-cache,mode=max
+      cache_to:
+      - type=s3,region=eu-central-1,bucket=ofirydevops-docker-cache,name=my-cache,mode=max
+
+    ports:
+      - 5000:22

@@ -59,7 +59,7 @@ RUN apt-get install \
         docker-buildx-plugin=0.22.0-1~ubuntu.22.04~jammy \
         docker-compose-plugin=2.34.0-1~ubuntu.22.04~jammy -y
 
-# amd64: https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.15.37.zip
+
 RUN curl ${AWS_CLI_DOWNLOAD_LINK} -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install
@@ -75,7 +75,7 @@ COPY . /app
 
 CMD ["bash"]
 
-FROM runtime AS remote
+FROM runtime AS remote_dev
 
 RUN apt-get install openssh-server sudo make g++ libssl-dev -y
 EXPOSE 22
