@@ -26,6 +26,8 @@ x-worker_config: &worker_config
     tee -a /home/ec2-user/.aws/config <<EOF
     [profile ${default_profile_name}]
     EOF
+    docker buildx create --name s3-builder --driver docker-container --use
+    docker buildx inspect --bootstrap
 
 
 jenkins:
