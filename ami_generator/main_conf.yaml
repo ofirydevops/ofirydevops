@@ -34,6 +34,6 @@ deep_learning:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: deep_learning
   images:
-    deep_learning_amd64_30_GB:
-      volume_size: 30
+    deep_learning_amd64_75_GB:
+      volume_size: 75
       ami_id_ssm_key: deepLearning30GBAmd64AmiId

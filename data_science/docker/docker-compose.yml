@@ -5,6 +5,7 @@ x-image: &image
 
 x-build_args: &build_args
   CONDA_ENV_NAME: main
+  CONDA_ENV_FILE_PATH: data_science/conda_envs/${CONDA_ENV}.yaml
 
 x-amd64_build_args: &amd64_build_args
   AWS_CLI_DOWNLOAD_LINK: https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.15.37.zip
@@ -21,41 +22,70 @@ x-main_conf: &main_conf
   network_mode: bridge
 
 
+x-cache_to_amd64: &cache_to_amd64
+  cache_to:
+  - type=s3,region=${AWS_CACHE_REGION},bucket=${AWS_CACHE_BUCKET},name=data_science_amd64_${CONDA_ENV},mode=max
+x-cache_to_arm64: &cache_to_arm64
+  cache_to:
+  - type=s3,region=${AWS_CACHE_REGION},bucket=${AWS_CACHE_BUCKET},name=data_science_arm64_${CONDA_ENV},mode=max
+
+x-cache_from_amd64: &cache_from_amd64
+  cache_from:
+  - type=s3,region=${AWS_CACHE_REGION},bucket=${AWS_CACHE_BUCKET},name=data_science_amd64_${CONDA_ENV},mode=max
+x-cache_from_arm64: &cache_from_arm64
+  cache_from:
+  - type=s3,region=${AWS_CACHE_REGION},bucket=${AWS_CACHE_BUCKET},name=data_science_arm64_${CONDA_ENV},mode=max
+
+
 services:
   main_arm64:
     <<: *main_conf 
     build:
-      <<: *build
+      <<: [*build, *cache_from_arm64]
       target: runtime
       args:
-        CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
         <<: [*build_args, *arm64_build_args]
 
   main_amd64:
     <<: *main_conf
     build:
-      <<: *build
+      <<: [*build, *cache_from_amd64]
       target: runtime
       args:
-        CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
+        <<: [*build_args, *amd64_build_args]
+
+  main_amd64_update_cache:
+    <<: *main_conf
+    build:
+      <<: [*build, *cache_from_amd64, *cache_to_amd64]
+      target: runtime
+      args:
+        <<: [*build_args, *amd64_build_args]
+
+  main_arm64_update_cache:
+    <<: *main_conf
+    build:
+      <<: [*build, *cache_from_arm64, *cache_to_arm64]
+      target: runtime
+      args:
         <<: [*build_args, *amd64_build_args]
 
   remote_dev_amd64:
     <<: *main_conf
     build:
-      <<: *build
+      <<: [*build, *cache_from_amd64]
       target: remote_dev
       args:
-        CONDA_ENV_FILE_PATH: data_science/conda_envs/ofirys_env.yaml
         <<: [*build_args, *amd64_build_args]
-      # cache_from:
-      #   - type=registry,ref=<registry>/<cache-image>:<branch>
-      # cache_to:
-      #   - type=registry,oci-mediatypes=true,image-manifest=true,mode=max,ref=<registry>/<cache-image>
-      cache_from:
-      - type=s3,region=eu-central-1,bucket=ofirydevops-docker-cache,name=my-cache,mode=max
-      # cache_to:
-      # - type=s3,region=eu-central-1,bucket=ofirydevops-docker-cache,name=my-cache,mode=max
+    ports:
+      - 5000:22
 
+  remote_dev_arm64:
+    <<: *main_conf
+    build:
+      <<: [*build, *cache_from_arm64]
+      target: remote_dev
+      args:
+        <<: [*build_args, *arm64_build_args]
     ports:
       - 5000:22

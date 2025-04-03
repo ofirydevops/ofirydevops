@@ -31,8 +31,20 @@ locals {
         }
         
     }
+    buckets = {
+      "ofirydevops-docker-cache" : {
+      
+      }
+    }
 }
 
+
+module "s3_buckets" {
+  for_each = local.buckets
+  source = "terraform-aws-modules/s3-bucket/aws"
+  version = "v4.6.0"
+  bucket = each.key
+}
 resource "aws_route53_zone" "main" {
   name = "ofirydevops.com"
 }
