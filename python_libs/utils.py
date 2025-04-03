@@ -25,13 +25,13 @@ def decrypt_git_repo():
     with open(gitcrypt_key_file_name, 'wb') as gitcrypt_key_file:
         gitcrypt_key_file.write(gitcrypt_key)
     try:
-        subprocess.run(["git-crypt", "unlock", gitcrypt_key_file_name], check=True)
+        subprocess.run(["git-crypt", "unlock", gitcrypt_key_file_name], check=False)
     finally:
         os.remove(gitcrypt_key_file_name)
 
 
 def encrypt_git_repo():
-    subprocess.run(["git-crypt", "lock"], check=True)
+    subprocess.run(["git-crypt", "lock"], check=False)
 
 
 def run_in_decrypted_git_repo(func_to_run):

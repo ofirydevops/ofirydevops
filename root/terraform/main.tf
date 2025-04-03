@@ -6,6 +6,7 @@ locals {
     root_jenkins_volume_az = data.aws_availability_zones.azs.names[0]
 
     region = local.global_conf["region"]
+    domain = local.global_conf["domain"]
     ecr_repos = {
         "root_jenkins" : {}
     }
@@ -46,7 +47,7 @@ module "s3_buckets" {
   bucket = each.key
 }
 resource "aws_route53_zone" "main" {
-  name = "ofirydevops.com"
+  name = local.domain
 }
 
 resource "aws_key_pair" "root_jenkins" {

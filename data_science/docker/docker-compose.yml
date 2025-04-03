@@ -4,7 +4,7 @@ x-image: &image
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
 
 x-build_args: &build_args
-  CONDA_ENV_NAME: main
+  CONDA_ENV_INTERNAL_NAME: main
   CONDA_ENV_FILE_PATH: data_science/conda_envs/${CONDA_ENV}.yaml
 
 x-amd64_build_args: &amd64_build_args

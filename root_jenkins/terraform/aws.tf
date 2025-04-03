@@ -2,6 +2,7 @@ data "aws_ssm_parameter" "params" {
   for_each = local.ssm_params_to_read
   name = each.value.key
 }
+
 locals {
 
     jenkins_casc_config_dir = "/var/jenkins_home/jcasc"
@@ -15,11 +16,11 @@ locals {
       }
 
       "jenkins_root_30GB_amd64_ami_id" : {
-          key = "jenkinsRoot30GBAmd64AmiId"
+          key = "basic30GBAmd64AmiId"
       }
 
       "jenkins_root_30GB_arm64_ami_id" : {
-          key = "jenkinsRoot30GBArm64AmiId"
+          key = "basic30GBArm64AmiId"
       }
 
       "root_jenkins_volume_az" : {
@@ -108,6 +109,7 @@ resource "null_resource" "docker_build_and_push" {
       DOCKER_REGISTRY       = local.ecr_registry
       DOCKER_IMAGE_REPO     = local.ecr_repo_name
       DOCKER_IMAGE_TAG      = local.image_tag
+      DOMAIN                = local.domain
     }
     command = "aws ecr get-login-password --region ${local.region} --profile OFIRYDEVOPS | docker login --username AWS --password-stdin $DOCKER_REGISTRY && docker compose -f ${path.module}/../docker/docker-compose.yml build main --push -q"
   }

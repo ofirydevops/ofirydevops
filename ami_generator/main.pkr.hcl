@@ -14,25 +14,31 @@ variable "kind" {
 
 variable "images" {}
 
+
 locals {
   conf = {
     "arm64" : {
-      installation_script_path = "ami_generator/installation_scripts/basic_arm64.sh"
-      base_ami_name_filter = "amzn2-ami-ecs-hvm-2.0.20230509-arm64-ebs"
+      installation_script_path = "ami_generator/installation_scripts/basic_arm64_al2023.sh"
+      base_ami_name_filter = "al2023-ami-ecs-hvm-2023.0.20241031-kernel-6.1-arm64"
       instance_type = "t4g.xlarge"
     }
     "amd64" : {
-      installation_script_path = "ami_generator/installation_scripts/basic_amd64.sh"
-      base_ami_name_filter = "amzn2-ami-ecs-hvm-2.0.20240312-x86_64-ebs"
+      installation_script_path = "ami_generator/installation_scripts/basic_amd64_al2023.sh"
+      base_ami_name_filter = "al2023-ami-ecs-hvm-2023.0.20241031-kernel-6.1-x86_64"
       instance_type = "t3.xlarge"
     }
-    "deep_learning" : {
-      installation_script_path = "ami_generator/installation_scripts/basic_amd64.sh"
-      base_ami_name_filter = "Deep Learning Base OSS Nvidia Driver GPU AMI (Amazon Linux 2023) 20250328"
+    "gpu_amd64_al2023" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_amd64_al2023.sh"
+      base_ami_name_filter = "Deep Learning OSS Nvidia Driver AMI GPU PyTorch 2.6.0 (Amazon Linux 2023) 20250323"
       instance_type = "g4dn.xlarge"
     }
-    
+    "gpu_arm64_al2023" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_arm64_al2023.sh"
+      base_ami_name_filter = "Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.6.0 (Amazon Linux 2023) 20250328"
+      instance_type = "g5g.xlarge"
+    }
   }
+
 
   global_conf = jsondecode(file("${path.root}/../../global_conf.json"))
 
