@@ -54,8 +54,8 @@ services:
       #   - type=registry,oci-mediatypes=true,image-manifest=true,mode=max,ref=<registry>/<cache-image>
       cache_from:
       - type=s3,region=eu-central-1,bucket=ofirydevops-docker-cache,name=my-cache,mode=max
-      cache_to:
-      - type=s3,region=eu-central-1,bucket=ofirydevops-docker-cache,name=my-cache,mode=max
+      # cache_to:
+      # - type=s3,region=eu-central-1,bucket=ofirydevops-docker-cache,name=my-cache,mode=max
 
     ports:
       - 5000:22
