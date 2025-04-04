@@ -1,1 +1,0 @@
-{"packer_hcl_path": "ami_generator/main.pkr.hcl", "kind": "gpu_arm64_al2023", "images": {"deep_learning_arm64_50_GB": {"volume_size": 50, "ami_id_ssm_key": "deepLearning50GBArm64AmiId", "ami_name": "PACKER_deep_learning_arm64_50_GB__04_04_2025__01_57"}}}
