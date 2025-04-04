@@ -77,7 +77,9 @@ CMD ["bash"]
 
 FROM runtime AS remote_dev
 
-RUN apt-get install openssh-server sudo make g++ libssl-dev -y
+RUN apt-get install openssh-server sudo make g++ libssl-dev -y && \
+    mkdir -p /run/sshd && \
+    chmod 755 /run/sshd
 EXPOSE 22
 
 ARG USER=root 
