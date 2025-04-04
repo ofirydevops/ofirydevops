@@ -32,7 +32,7 @@ node(env.node) {
                 "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
                 "GIT_REF=${env.ref}"
             ]) {   
-                sd "mkdir -p ~/.docker/cli-plugins && \
+                sh "mkdir -p ~/.docker/cli-plugins && \
                     curl -L https://github.com/docker/buildx/releases/download/v0.8.0/buildx-v0.8.0-linux-amd64 -o ~/.docker/cli-plugins/docker-buildx && \
                     chmod +x ~/.docker/cli-plugins/docker-buildx"
                 sh "docker buildx version"
