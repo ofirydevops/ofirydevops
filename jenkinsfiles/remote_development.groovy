@@ -4,13 +4,14 @@ node(env.node) {
 
         def maxUptime = 80
         def uptimeInMinuts = env.uptime_in_minutes.toInteger()
-        def serviceSuffix = "_amd64"
+        def serviceSuffix = "amd64"
         if (env.node.toLowerCase().contains("arm64")) {
-            serviceSuffix = "_arm64"
+            serviceSuffix = "arm64"
         }
         if (env.node.toLowerCase().contains("gpu")) {
             serviceSuffix = "${serviceSuffix}_gpu"
         }
+        def service = "remote_dev_${serviceSuffix}"
 
         if uptimeInMinuts > maxUptime {
             uptimeInMinuts = maxUptime
@@ -32,7 +33,7 @@ node(env.node) {
                 "GIT_REF=${env.ref}"
             ]) {   
                 sh "docker buildx create --name docker-container--driver docker-container --use --bootstrap"
-                sh "docker compose -f data_science/docker/docker-compose.yml build remote_dev_${serviceSuffix}"
+                sh "docker compose -f data_science/docker/docker-compose.yml build ${service}"
             }
         }
 
@@ -43,7 +44,7 @@ node(env.node) {
                 withEnv([
                     "DOCKER_IMAGE_TAG=${env.BUILD_TAG}"
                 ]) {   
-                    sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports remote_dev_${serviceSuffix}"
+                    sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
                 }
             }
         }
