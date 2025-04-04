@@ -105,7 +105,7 @@ security:
 jobs:
   - script: >
       job('seed_job') {
-        label('main_worker_arm64')
+        label('arm64_4vcpu_16gb_30gb')
         parameters {
           stringParam('ref', 'main', 'branch / tag / commit')
         }

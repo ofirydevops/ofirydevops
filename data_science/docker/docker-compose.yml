@@ -21,6 +21,15 @@ x-main_conf: &main_conf
   <<: *image
   network_mode: bridge
 
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
 
 x-cache_to_amd64: &cache_to_amd64
   cache_to:
@@ -48,6 +57,22 @@ services:
 
   main_amd64:
     <<: *main_conf
+    build:
+      <<: [*build, *cache_from_amd64]
+      target: runtime
+      args:
+        <<: [*build_args, *amd64_build_args]
+
+  main_arm64_gpu:
+    <<: [*main_conf, *gpu] 
+    build:
+      <<: [*build, *cache_from_arm64]
+      target: runtime
+      args:
+        <<: [*build_args, *arm64_build_args]
+
+  main_amd64_gpu:
+    <<: [*main_conf, *gpu] 
     build:
       <<: [*build, *cache_from_amd64]
       target: runtime
@@ -82,6 +107,27 @@ services:
 
   remote_dev_arm64:
     <<: *main_conf
+    build:
+      <<: [*build, *cache_from_arm64]
+      target: remote_dev
+      args:
+        <<: [*build_args, *arm64_build_args]
+    ports:
+      - 5000:22
+
+
+  remote_dev_amd64_gpu:
+    <<: [*main_conf, *gpu]
+    build:
+      <<: [*build, *cache_from_amd64]
+      target: remote_dev
+      args:
+        <<: [*build_args, *amd64_build_args]
+    ports:
+      - 5000:22
+
+  remote_dev_arm64_gpu:
+    <<: [*main_conf, *gpu]
     build:
       <<: [*build, *cache_from_arm64]
       target: remote_dev
