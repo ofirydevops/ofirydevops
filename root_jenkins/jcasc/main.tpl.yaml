@@ -19,7 +19,6 @@ x-worker_config: &worker_config
   remoteFS: /home/ec2-user/jenkins
   securityGroups: ${sg_name}
   stopOnTerminate: false
-  subnetId: ${subnet_id}
   initScript: |
     #!/bin/bash
     mkdir -p /home/ec2-user/.aws
@@ -51,6 +50,7 @@ jenkins:
       - ami: ${basic_amd64_30gb_ami_id}
         description: amd64_4vcpu_16gb_30gb
         labelString: amd64_4vcpu_16gb_30gb
+        subnetId: ${subnet_id}
         type: t3.xlarge
         tags:
         - name: Name
@@ -59,6 +59,7 @@ jenkins:
       - ami: ${basic_arm64_30gb_ami_id}
         description: arm64_4vcpu_16gb_30gb
         labelString: arm64_4vcpu_16gb_30gb
+        subnetId: ${subnet_id}
         type: t4g.xlarge
         tags:
         - name: Name

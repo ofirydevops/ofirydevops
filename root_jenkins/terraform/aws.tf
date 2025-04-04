@@ -285,6 +285,15 @@ resource "aws_security_group_rule" "https_inbound" {
   security_group_id = aws_security_group.sgs["root_jenkins_master"].id
 }
 
+resource "aws_security_group_rule" "remote_dev_access" {
+  type              = "ingress"
+  from_port         = 5000
+  to_port           = 5000
+  protocol          = "tcp"
+  cidr_blocks       = ["${local.laptop_public_ip}/32"]
+  security_group_id = aws_security_group.sgs["root_jenkins_worker"].id
+}
+
 resource "aws_iam_role" "roles" {
   for_each = local.iam_roles
   name = each.key
