@@ -15,11 +15,11 @@ locals {
           key = "rootJenkinsKeyPair"
       }
 
-      "jenkins_root_30GB_amd64_ami_id" : {
+      "basic_30GB_amd64_ami_id" : {
           key = "basic30GBAmd64AmiId"
       }
 
-      "jenkins_root_30GB_arm64_ami_id" : {
+      "basic_30GB_arm64_ami_id" : {
           key = "basic30GBArm64AmiId"
       }
 
@@ -49,8 +49,8 @@ locals {
     hosted_zone_id = data.aws_ssm_parameter.params["hosted_zone_id"].value
     root_jenkins_key_pair = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
     root_jenkins_ecr_repo_url = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
-    jenkins_root_30GB_amd64_ami_id = data.aws_ssm_parameter.params["jenkins_root_30GB_amd64_ami_id"].value
-    jenkins_root_30GB_arm64_ami_id = data.aws_ssm_parameter.params["jenkins_root_30GB_arm64_ami_id"].value
+    basic_30GB_amd64_ami_id = data.aws_ssm_parameter.params["basic_30GB_amd64_ami_id"].value
+    basic_30GB_arm64_ami_id = data.aws_ssm_parameter.params["basic_30GB_arm64_ami_id"].value
     root_jenkins_volume_az = data.aws_ssm_parameter.params["root_jenkins_volume_az"].value
     root_jenkins_volume_id = data.aws_ssm_parameter.params["root_jenkins_volume_id"].value
     root_jenkins_subnet_id = data.aws_subnet.jenkins_subnet.id
@@ -400,20 +400,23 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
   filename = "${path.module}/jcasc_config_tmp.yaml"
   file_permission = "0755"
   content  = templatefile("${path.module}/../jcasc/main.tpl.yaml", {
-    instance_profile = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
-    sg_name = aws_security_group.sgs["root_jenkins_worker"].name
-    subnet_id = local.root_jenkins_subnet_id
-    jenkins_admin_password = local.secrets["jenkins_admin_password"]
-    ami_id_amd64 = local.jenkins_root_30GB_amd64_ami_id
-    ami_id_arm64 = local.jenkins_root_30GB_arm64_ami_id
-    github_username = local.secrets["github_username"]
-    github_token = local.secrets["github_token"]
-    workers_ssh_key = indent(20, "\n${file("${path.module}/../../root/key_pair/root_jenkins.secret.key")}")
-    worker_role_arn = aws_iam_role.roles["root_jenkins_worker"].arn
-    default_profile_name = "OFIRYDEVOPS"
-    region = local.region
+    instance_profile                = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
+    sg_name                         = aws_security_group.sgs["root_jenkins_worker"].name
+    subnet_id                       = local.root_jenkins_subnet_id
+    jenkins_admin_password          = local.secrets["jenkins_admin_password"]
+    basic_amd64_30gb_ami_id         = local.basic_30GB_amd64_ami_id
+    basic_arm64_30gb_ami_id         = local.basic_30GB_arm64_ami_id
+    deep_learning_amd64_50gb_ami_id = local.deep_learning_50GB_amd64_ami_id
+    deep_learning_arm64_50gb_ami_id = local.deep_learning_50GB_arm64_ami_id
+    github_username                 = local.secrets["github_username"]
+    github_token                    = local.secrets["github_token"]
+    workers_ssh_key                 = indent(20, "\n${file("${path.module}/../../root/key_pair/root_jenkins.secret.key")}")
+    worker_role_arn                 = aws_iam_role.roles["root_jenkins_worker"].arn
+    default_profile_name            = "OFIRYDEVOPS"
+    region                          = local.region
   })
 }
+
 
 resource "aws_volume_attachment" "root_jenkins_attachment" {
   device_name = local.device_to_mount

@@ -1,4 +1,4 @@
-node('main_worker_arm64') {
+node('arm64_4vcpu_16gb_30gb') {
     ansiColor('xterm') {
 
         stage('Checkout') {

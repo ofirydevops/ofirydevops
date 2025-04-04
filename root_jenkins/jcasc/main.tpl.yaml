@@ -48,30 +48,38 @@ jenkins:
       sshKeysCredentialsId: workers_ssh_access
       useInstanceProfileForCredentials: true
       templates:
-      - ami: ${ami_id_amd64}
-        description: main_worker_amd64
-        labelString: main_worker_amd64
-        type: T3Xlarge
+      - ami: ${basic_amd64_30gb_ami_id}
+        description: amd64_4vcpu_16gb_30gb
+        labelString: amd64_4vcpu_16gb_30gb
+        type: t3.xlarge
         tags:
         - name: Name
-          value: root_jenkins_main_worker_amd64
+          value: root_jenkins_amd64_4vcpu_16gb_30gb
         <<: *worker_config
-      - ami: ${ami_id_arm64}
-        description: main_worker_arm64
-        labelString: main_worker_arm64
-        type: T4gXlarge
+      - ami: ${basic_arm64_30gb_ami_id}
+        description: arm64_4vcpu_16gb_30gb
+        labelString: arm64_4vcpu_16gb_30gb
+        type: t4g.xlarge
         tags:
         - name: Name
-          value: root_jenkins_main_worker_arm64
+          value: root_jenkins_arm64_4vcpu_16gb_30gb
         <<: *worker_config
-      # - ami: ${ami_id_arm64}
-      #   description: deep_learning_worker_arm64
-      #   labelString: deep_learning_worker_arm64
-      #   type: T4gXlarge
-      #   tags:
-      #   - name: Name
-      #     value: root_jenkins_main_worker_arm64
-      #   <<: *worker_config
+      - ami: ${deep_learning_arm64_50gb_ami_id}
+        description: gpu_arm64_4vcpu_16gb_50gb
+        labelString: gpu_arm64_4vcpu_16gb_50gb
+        type: g4dn.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_gpu_arm64_4vcpu_16gb_50gb
+        <<: *worker_config
+      - ami: ${deep_learning_amd64_50gb_ami_id}
+        description: gpu_amd64_4vcpu_8gb_50gb
+        labelString: gpu_amd64_4vcpu_8gb_50gb
+        type: g5g.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_gpu_amd64_4vcpu_8gb_50gb
+        <<: *worker_config
 
 credentials:
   system:

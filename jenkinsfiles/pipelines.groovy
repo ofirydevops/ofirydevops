@@ -27,14 +27,14 @@ pipelineJob('deploy_github_aws_runners') {
 }
 
 
-pipelineJob('deepl_learning_remote_development') {
+pipelineJob('data_science_remote_development') {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('node', [
-          'main_worker_amd64', 
-          'main_worker_arm64', 
-          'deep_learning_worker_amd64',
-          'deep_learning_worker_arm64'
+          'amd64_4vcpu_16gb_30gb', 
+          'arm64_4vcpu_16gb_30gb', 
+          'gpu_amd64_4vcpu_8gb_50gb',
+          'gpu_arm64_4vcpu_16gb_50gb'
           ], 
           'Node to run on'
         )

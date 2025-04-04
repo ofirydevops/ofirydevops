@@ -1,5 +1,5 @@
 NODE_ARCH_MAP = [
-    'main_worker_amd64' : 'amd64', 
+    'amd64_4vcpu_16gb_30gb' : 'amd64', 
     'main_worker_arm64' : 'arm64', 
     'deep_learning_worker_amd64' : 'amd64', 
     'deep_learning_worker_arm64' : 'arm64'
