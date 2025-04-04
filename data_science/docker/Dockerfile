@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
     rm -rf /var/lib/apt/lists/*
 
 # Ensure Conda trusts the system certificates
-RUN conda config --set ssl_verify true
+RUN conda config --set ssl_verify false
 
 # Install Mamba with a fixed version
 RUN conda install -n base -c conda-forge mamba=1.4.9 && conda clean --all -f -y

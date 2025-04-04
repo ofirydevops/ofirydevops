@@ -32,11 +32,7 @@ locals {
         }
         
     }
-    buckets = {
-      "ofirydevops-docker-cache" : {
-      
-      }
-    }
+    buckets = {}
 }
 
 
