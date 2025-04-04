@@ -94,6 +94,10 @@ COPY data_science/docker/remote/authorized_keys ${HOME}/.ssh/authorized_keys
 RUN chown ${USER}:${USER} ${HOME}/.ssh/authorized_keys && \
     chmod 600 ${HOME}/.ssh/authorized_keys
 
+RUN echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+
 RUN cd ${HOME} && \
     git clone https://github.com/ofiryy/git-crypt.git && \
     cd git-crypt && \
