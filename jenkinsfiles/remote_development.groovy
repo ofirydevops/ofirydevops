@@ -13,7 +13,7 @@ node(env.node) {
         }
         def service = "remote_dev_${serviceSuffix}"
 
-        if uptimeInMinuts > maxUptime {
+        if (uptimeInMinuts > maxUptime) {
             uptimeInMinuts = maxUptime
         }
 
