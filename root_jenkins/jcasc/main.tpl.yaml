@@ -71,7 +71,7 @@ jenkins:
         type: g5g.xlarge
         tags:
         - name: Name
-          value: root_jenkins_gpu_arm64_4vcpu_16gb_50gb
+          value: root_jenkins_gpu_arm64_4vcpu_8gb_50gb
         <<: *worker_config
       - ami: ${deep_learning_amd64_50gb_ami_id}
         description: gpu_amd64_4vcpu_16gb_50gb
@@ -79,7 +79,7 @@ jenkins:
         type: g4dn.xlarge
         tags:
         - name: Name
-          value: root_jenkins_gpu_amd64_4vcpu_8gb_50gb
+          value: root_jenkins_gpu_amd64_4vcpu_16gb_50gb
         <<: *worker_config
 
 credentials:
