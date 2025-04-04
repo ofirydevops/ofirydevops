@@ -98,7 +98,7 @@ RUN cd ${HOME} && \
     make && \
     make install
 
-RUN git-crypt lock
+RUN git-crypt lock || true
 
 ARG GIT_REF
 RUN git remote set-url origin https://github.com/ofiryy/devops-project.git
