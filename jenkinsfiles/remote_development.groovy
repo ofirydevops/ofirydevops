@@ -32,6 +32,7 @@ node(env.node) {
                 "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
                 "GIT_REF=${env.ref}"
             ]) {   
+                sd "docker buildx version"
                 sh "docker buildx create --name docker-container--driver docker-container --use"
                 sh "docker buildx inspect --bootstrap"
                 sh "docker compose -f data_science/docker/docker-compose.yml build ${service}"
