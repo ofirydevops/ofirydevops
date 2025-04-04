@@ -4,10 +4,12 @@ USER root
 
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
+ARG DOMAIN
+ENV DOMAIN=$DOMAIN
 
 COPY ./root_jenkins/docker/create_ssl_cert.sh ./create_ssl_cert.sh
 RUN chmod +x create_ssl_cert.sh
-RUN ./create_ssl_cert.sh
+RUN ./create_ssl_cert.sh $DOMAIN
 
 USER jenkins
 COPY ./root_jenkins/jcasc/plugins.txt /var/plugins.txt

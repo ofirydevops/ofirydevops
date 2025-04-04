@@ -66,3 +66,6 @@ dnf install -y terraform-1.11.0 packer-1.9.1
 
 # Install Java 17
 dnf install -y java-17-amazon-corretto-headless
+
+# Install docker driver
+docker buildx create --name docker-container --driver docker-container --bootstrap

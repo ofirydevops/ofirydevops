@@ -1,14 +1,100 @@
-name: ofiry
 channels:
   - conda-forge
 dependencies:
+  # Core Python and utilities
   - python=3.11
-  - numpy=2.2.4
-  - pandas=2.2.3
-  - pytorch=2.6.0
-  - torchvision=0.21.0
-  - torchaudio=2.6.0
   - pip
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - seaborn
+  - plotly
+  - tqdm
+  - scikit-learn
+  - joblib
+  - numba
+  - cython
+
+  # # Machine Learning & Deep Learning
+  # - tensorflow
+  # - keras
+  # - pytorch
+  # - torchvision
+  # - torchaudio
+  # - xgboost
+  # - lightgbm
+
+
+  # # Natural Language Processing
+  # - nltk
+  # - spacy
+  # - gensim
+  # - textblob
+  # - datasets
+  # - tokenizers
+
+  # # Computer Vision
+  # - opencv
+  # - imageio
+  # - albumentations
+  # - scikit-image
+  # - pycocotools
+
+  # # Audio Processing
+  # - librosa
+  # - pydub
+  # - torchaudio
+
+  # # Reinforcement Learning
+  # - stable-baselines3
+  # - pettingzoo
+
+  # # Probabilistic Programming
+  # - pymc
+  # - pyro-ppl
+
+  # # Optimization
+  # - cvxpy
+  # - scipy
+  # - bayesian-optimization
+  # - optuna
+
+  # # Graph Processing
+  # - networkx
+
+  # # Web Scraping & APIs
+  # - requests
+  # - beautifulsoup4
+  # - scrapy
+  # - selenium
+  # - httpx
+
+  # # Databases & Storage
+  # - sqlalchemy
+  # - psycopg2
+  # - pymongo
+  # - h5py
+  # - zarr
+
+  # # Parallel Computing
+  # - dask
+  # - modin
+  # - mpi4py
+
+  # # Development Tools
+  # - ipython
+  # - jupyterlab
+  # - black
+  # - isort
+
+
+  # # Miscellaneous
+  # - pyyaml
+  # - rich
+  # - loguru
+  # - arrow
+
   - pip:
     - fastapi==0.115.12
     - uvicorn==0.34.0

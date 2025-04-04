@@ -100,7 +100,7 @@ RUN cd ${HOME} && \
 
 RUN git-crypt lock
 
-ARG GIT_REF=main
+ARG GIT_REF
 RUN git remote set-url origin https://github.com/ofiryy/devops-project.git
 RUN git config --global user.name "remote-user"
 RUN git config --global user.email @

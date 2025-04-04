@@ -30,11 +30,18 @@ locals {
       "root_jenkins_volume_id" : {
           key = "rootJenkinsVolumeId"
       }
+
+      "deep_learning_50GB_amd64_ami_id" : {
+          key = "deepLearning50GBAmd64AmiId"
+      }
+
+      "deep_learning_50GB_arm64_ami_id" : {
+          key = "deepLearning50GBArm64AmiId"
+      }
     }
 
     ecr_repos = [
-      "root_jenkins",
-      "data_science"
+      "root_jenkins"
     ]
 
 
@@ -47,6 +54,8 @@ locals {
     root_jenkins_volume_az = data.aws_ssm_parameter.params["root_jenkins_volume_az"].value
     root_jenkins_volume_id = data.aws_ssm_parameter.params["root_jenkins_volume_id"].value
     root_jenkins_subnet_id = data.aws_subnet.jenkins_subnet.id
+    deep_learning_50GB_amd64_ami_id = data.aws_ssm_parameter.params["deep_learning_50GB_amd64_ami_id"].value
+    deep_learning_50GB_arm64_ami_id = data.aws_ssm_parameter.params["deep_learning_50GB_arm64_ami_id"].value
 
 
     ecr_registry = split("/", local.root_jenkins_ecr_repo_url)[0]
@@ -90,7 +99,7 @@ resource "aws_ecr_repository" "ecr_repos" {
 }
 
 resource "aws_ecr_lifecycle_policy" "ecr_repos" {
-    for_each = local.ecr_repos
+    for_each = toset(local.ecr_repos)
     repository = aws_ecr_repository.ecr_repos[each.key].name
     policy = file("${path.module}/policies/ecr_lifecycle_policy.json")
 }
@@ -110,8 +119,11 @@ resource "null_resource" "docker_build_and_push" {
       DOCKER_IMAGE_REPO     = local.ecr_repo_name
       DOCKER_IMAGE_TAG      = local.image_tag
       DOMAIN                = local.domain
+      REGION                = local.region
+      PROFILE               = "OFIRYDEVOPS"
+      MODULE_PATH           = path.module
     }
-    command = "aws ecr get-login-password --region ${local.region} --profile OFIRYDEVOPS | docker login --username AWS --password-stdin $DOCKER_REGISTRY && docker compose -f ${path.module}/../docker/docker-compose.yml build main --push -q"
+    command = "${path.module}/../docker/build_and_push.sh"
   }
 }
 

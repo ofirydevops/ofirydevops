@@ -26,8 +26,6 @@ x-worker_config: &worker_config
     tee -a /home/ec2-user/.aws/config <<EOF
     [profile ${default_profile_name}]
     EOF
-    docker buildx create --name s3-builder --driver docker-container --use
-    docker buildx inspect --bootstrap
 
 
 jenkins:
@@ -66,6 +64,14 @@ jenkins:
         - name: Name
           value: root_jenkins_main_worker_arm64
         <<: *worker_config
+      # - ami: ${ami_id_arm64}
+      #   description: deep_learning_worker_arm64
+      #   labelString: deep_learning_worker_arm64
+      #   type: T4gXlarge
+      #   tags:
+      #   - name: Name
+      #     value: root_jenkins_main_worker_arm64
+      #   <<: *worker_config
 
 credentials:
   system:
