@@ -68,4 +68,8 @@ dnf install -y terraform-1.11.0 packer-1.9.1
 dnf install -y java-17-amazon-corretto-headless
 
 # Install docker driver
+wget https://github.com/docker/buildx/releases/download/v0.22.0/buildx-v0.22.0.linux-arm64 -O docker-buildx
+mkdir -p ~/.docker/cli-plugins
+mv docker-buildx ~/.docker/cli-plugins/docker-buildx
+chmod +x ~/.docker/cli-plugins/docker-buildx
 docker buildx create --name docker-container --driver docker-container --bootstrap
