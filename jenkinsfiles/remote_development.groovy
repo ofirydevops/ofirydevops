@@ -32,12 +32,11 @@ node(env.node) {
                 "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
                 "GIT_REF=${env.ref}"
             ]) {   
-                sh "mkdir -p ~/.docker/cli-plugins && \
-                    curl -L https://github.com/docker/buildx/releases/download/v0.8.0/buildx-v0.8.0-linux-amd64 -o ~/.docker/cli-plugins/docker-buildx && \
-                    chmod +x ~/.docker/cli-plugins/docker-buildx"
-                sh "docker buildx version"
-                sh "docker buildx create --name docker-container--driver docker-container --use"
-                sh "docker buildx inspect --bootstrap"
+//     7  wget https://github.com/docker/buildx/releases/download/v0.12.1/buildx-v0.12.1.linux-amd64 -O docker-buildx
+//     8  mkdir -p ~/.docker/cli-plugins
+//     9  mv docker-buildx ~/.docker/cli-plugins/docker-buildx
+//    10  chmod +x ~/.docker/cli-plugins/docker-buildx                sh "docker buildx version"
+                sh "docker buildx create --name docker-container --driver docker-container --use --bootstrap"
                 sh "docker compose -f data_science/docker/docker-compose.yml build ${service}"
             }
         }
