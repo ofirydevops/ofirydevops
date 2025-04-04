@@ -7,14 +7,14 @@ dependencies:
   - numpy
   - scipy
   - pandas
-  - matplotlib
-  - seaborn
+  # - matplotlib
+  # - seaborn
   - plotly
-  - tqdm
-  - scikit-learn
-  - joblib
-  - numba
-  - cython
+  # - tqdm
+  # - scikit-learn
+  # - joblib
+  # - numba
+  # - cython
 
   # # Machine Learning & Deep Learning
   # - tensorflow

@@ -31,27 +31,24 @@ node(env.node) {
             withEnv([
                 "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
                 "GIT_REF=${env.ref}"
-            ]) {   
-                // sh "wget https://github.com/docker/buildx/releases/download/v0.22.0/buildx-v0.22.0.linux-arm64 -O docker-buildx && \
-                //     mkdir -p ~/.docker/cli-plugins && \
-                //     mv docker-buildx ~/.docker/cli-plugins/docker-buildx && \
-                //     chmod +x ~/.docker/cli-plugins/docker-buildx && \
-                //     docker buildx version"
-                // sh "docker buildx create --name docker-container --driver docker-container --use --bootstrap"
-                sh "docker compose -f data_science/docker/docker-compose.yml build ${service}"
+            ]) {
+                sh "docker buildx inspect docker-container --bootstrap" 
+                sh "docker buildx use docker-container"
+                // sh "docker compose -f data_science/docker/docker-compose.yml build ${service}"
+                sh "docker compose -f data_science/docker/docker-compose.yml build main_arm64_update_cache"
             }
         }
 
 
-        stage("Run Conda Env") {
+        // stage("Run Conda Env") {
 
-            timeout(time: uptimeInMinuts, unit: 'MINUTES') {
-                withEnv([
-                    "DOCKER_IMAGE_TAG=${env.BUILD_TAG}"
-                ]) {   
-                    sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
-                }
-            }
-        }
+        //     timeout(time: uptimeInMinuts, unit: 'MINUTES') {
+        //         withEnv([
+        //             "DOCKER_IMAGE_TAG=${env.BUILD_TAG}"
+        //         ]) {   
+        //             sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
+        //         }
+        //     }
+        // }
     }
 }
