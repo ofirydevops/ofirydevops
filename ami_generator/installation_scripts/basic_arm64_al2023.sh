@@ -22,17 +22,17 @@ usermod -a -G docker ec2-user
 # make altinstall  # Installs to /usr/local/bin without overwriting system Python
 # cd ..
 
-# # Install Python 3.10
-# wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
-# tar -xf Python-3.10.12.tgz
-# cd Python-3.10.12
-# ./configure --enable-optimizations
-# make -j$(nproc)
-# make altinstall
-# cd ..
+# Install Python 3.10
+wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
+tar -xf Python-3.10.12.tgz
+cd Python-3.10.12
+./configure --enable-optimizations
+make -j$(nproc)
+make altinstall
+cd ..
 
 # Install pipenv ans sam cli
-pip3.9 install pipenv==2023.3.20 aws-sam-cli==1.135.0
+pip3.10 install pipenv==2023.3.20 aws-sam-cli==1.135.0
 
 # Install Docker Compose
 curl -SL "https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/libexec/docker/cli-plugins/docker-compose
