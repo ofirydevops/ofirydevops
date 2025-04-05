@@ -33,12 +33,12 @@ node(env.node) {
                 "GIT_REF=${env.ref}"
             ]) {
                 sh "docker buildx ls"
-                
-                sh "docker buildx create --name docker-container --driver docker-container --bootstrap"
-                sh "docker buildx use docker-container"
+                sh "aws ecr get-login-password --region eu-central-1 --profile OFIRYDEVOPS | docker login --username AWS --password-stdin 961341530050.dkr.ecr.eu-central-1.amazonaws.com"
+                sh "docker buildx create --name docker-container --driver docker-container --use --bootstrap"
                 sh "docker buildx ls"
-                // sh "docker compose -f data_science/docker/docker-compose.yml build ${service}"
                 sh "docker compose -f data_science/docker/docker-compose.yml build main_arm64_update_cache"
+                // sh "docker compose -f data_science/docker/docker-compose.yml build ${service}"
+                
             }
         }
 
