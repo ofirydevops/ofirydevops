@@ -8,7 +8,7 @@ x-worker_config: &worker_config
   deleteRootOnTermination: true
   hostKeyVerificationStrategy: 'OFF'
   iamInstanceProfile: ${instance_profile}
-  idleTerminationMinutes: 2
+  idleTerminationMinutes: 15
   instanceCapStr: 1
   javaPath: java
   metadataEndpointEnabled: true
