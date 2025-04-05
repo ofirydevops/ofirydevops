@@ -18,8 +18,8 @@ COPY ${CONDA_ENV_FILE_PATH} ./env.yml
 
 # Create a Conda environment with fixed dependencies
 
-RUN mamba env create --name $CONDA_ENV_INTERNAL_NAME -f ./env.yml && \
-    conda clean --all -f -y 
+RUN mamba env create --name $CONDA_ENV_INTERNAL_NAME -f ./env.yml
+RUN conda clean --all -f -y
 
 # Set Conda environment name
 
