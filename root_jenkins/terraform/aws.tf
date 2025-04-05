@@ -45,7 +45,7 @@ locals {
     ]
 
 
-    image_tag = "hash_${local.docker_dep_files_content_hash}"
+    image_tag = "hash_${substr(local.docker_dep_files_content_hash, 0, 20)}"
     hosted_zone_id = data.aws_ssm_parameter.params["hosted_zone_id"].value
     root_jenkins_key_pair = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
     root_jenkins_ecr_repo_url = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
