@@ -32,7 +32,7 @@ node(env.node) {
                 "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
                 "GIT_REF=${env.ref}"
             ]) {
-                sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
+                // sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
                 sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
             }
         }
