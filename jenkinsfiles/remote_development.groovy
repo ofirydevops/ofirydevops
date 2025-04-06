@@ -33,8 +33,8 @@ node(env.node) {
                 "GIT_REF=${env.ref}",
                 "CONDA_ENV=${env.conda_env}"
             ]) {
-                sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
-                // sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
+                // sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
+                sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
             }
         }
 
