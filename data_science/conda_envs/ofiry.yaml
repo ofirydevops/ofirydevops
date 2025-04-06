@@ -18,6 +18,8 @@ dependencies:
   - pytorch
   - torchvision
   - torchaudio
-  - tensorflow
   - keras
   - plotly
+  # - pip:
+  #   - tensorflow
+    
