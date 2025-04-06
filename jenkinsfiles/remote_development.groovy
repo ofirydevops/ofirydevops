@@ -32,9 +32,9 @@ node(env.node) {
                 "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
                 "GIT_REF=${env.ref}"
             ]) {
-                sh "docker buildx ls"
-                sh "aws ecr get-login-password --region eu-central-1 --profile OFIRYDEVOPS | docker login --username AWS --password-stdin 961341530050.dkr.ecr.eu-central-1.amazonaws.com"
-                sh "docker buildx create --name dc --driver docker-container --bootstrap || true"
+                // sh "docker buildx ls"
+                // sh "aws ecr get-login-password --region eu-central-1 --profile OFIRYDEVOPS | docker login --username AWS --password-stdin 961341530050.dkr.ecr.eu-central-1.amazonaws.com"
+                // sh "docker buildx create --name dc --driver docker-container --bootstrap || true"
                 sh "docker buildx ls"
                 sh "docker compose -f data_science/docker/docker-compose.yml build main_arm64_update_cache --builder dc"
                 // sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
