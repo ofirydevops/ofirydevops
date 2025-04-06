@@ -11,8 +11,7 @@ services:
         DOMAIN: ${DOMAIN}
     image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
     ports:
-      # - 443:8443
-      - 80:8443
+      - 443:8443
     volumes:
       - jenkins_home:/var/jenkins_home
 volumes:

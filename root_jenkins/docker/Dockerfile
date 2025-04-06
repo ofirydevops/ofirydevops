@@ -16,4 +16,4 @@ COPY ./root_jenkins/jcasc/plugins.txt /var/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /var/plugins.txt
 
 # ENV JENKINS_OPTS --httpPort=-1 --httpsPort=8443 --httpsKeyStore=/var/jenkins.jks --httpsKeyStorePassword=changeme
-ENV JENKINS_OPTS --httpPort=8443
+ENV JENKINS_OPTS --httpPort=8443 --httpsPort=-1
