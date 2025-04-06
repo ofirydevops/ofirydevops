@@ -108,7 +108,7 @@ services:
   remote_dev_arm64:
     <<: *main_conf
     build:
-      <<: [*build, *cache_from_arm64, *cache_to_arm64]
+      <<: [*build, *cache_from_arm64]
       target: remote_dev
       args:
         <<: [*build_args, *arm64_build_args]
