@@ -56,3 +56,42 @@ WORKDIR /app
 COPY . /app
 
 CMD ["bash"]
+
+FROM runtime AS remote_dev
+
+RUN apt-get install openssh-server sudo make g++ libssl-dev -y && \
+    mkdir -p /run/sshd && \
+    chmod 755 /run/sshd
+EXPOSE 22
+
+ARG USER=root 
+ARG HOME=/${USER}
+
+RUN mkdir -p ${HOME}/.ssh \
+    && chown ${USER}:${USER} ${HOME}/.ssh \
+    && chmod 700 ${HOME}/.ssh
+
+COPY data_science/docker/remote/authorized_keys ${HOME}/.ssh/authorized_keys
+
+RUN chown ${USER}:${USER} ${HOME}/.ssh/authorized_keys && \
+    chmod 600 ${HOME}/.ssh/authorized_keys
+
+RUN echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+
+RUN cd ${HOME} && \
+    git clone https://github.com/ofiryy/git-crypt.git && \
+    cd git-crypt && \
+    make && \
+    make install
+
+RUN git-crypt lock || true
+
+ARG GIT_REF
+RUN git remote set-url origin https://github.com/ofiryy/devops-project.git
+RUN git config --global user.name "remote-user"
+RUN git config --global user.email @
+RUN git checkout $GIT_REF
+
+CMD ["/usr/sbin/sshd", "-D"]
