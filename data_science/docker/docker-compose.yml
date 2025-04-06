@@ -30,6 +30,9 @@ x-gpu: &gpu
             count: all
             capabilities: [gpu]
 
+x-remote_dev_ports: &remote_dev_ports
+  ports:
+    - 5000:22
 
 x-cache_to_amd64: &cache_to_amd64
   cache_to:
@@ -96,42 +99,34 @@ services:
         <<: [*build_args, *amd64_build_args]
 
   remote_dev_amd64:
-    <<: *main_conf
+    <<: [*main_conf, *remote_dev_ports] 
     build:
       <<: [*build, *cache_from_amd64]
       target: remote_dev
       args:
         <<: [*build_args, *amd64_build_args]
-    ports:
-      - 5000:22
 
   remote_dev_arm64:
-    <<: *main_conf
+    <<: [*main_conf, *remote_dev_ports] 
     build:
       <<: [*build, *cache_from_arm64]
       target: remote_dev
       args:
         <<: [*build_args, *arm64_build_args]
-    ports:
-      - 5000:22
 
 
   remote_dev_amd64_gpu:
-    <<: [*main_conf, *gpu]
+    <<: [*main_conf, *gpu, *remote_dev_ports]
     build:
       <<: [*build, *cache_from_amd64]
       target: remote_dev
       args:
         <<: [*build_args, *amd64_build_args]
-    ports:
-      - 5000:22
 
   remote_dev_arm64_gpu:
-    <<: [*main_conf, *gpu]
+    <<: [*main_conf, *gpu, *remote_dev_ports]
     build:
       <<: [*build, *cache_from_arm64]
       target: remote_dev
       args:
         <<: [*build_args, *arm64_build_args]
-    ports:
-      - 5000:22
