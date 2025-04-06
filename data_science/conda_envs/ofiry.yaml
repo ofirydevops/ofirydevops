@@ -19,5 +19,3 @@ dependencies:
   - pytorch=2.1.0
   - keras
   - plotly
-  - pip:
-    - tensorflow==2.15.0
