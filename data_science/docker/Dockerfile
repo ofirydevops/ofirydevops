@@ -2,7 +2,7 @@
 FROM continuumio/miniconda3:23.3.1-0 AS builder
 
 # Install system certificates to fix SSL issues
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates apt-get install libarchive13 && \
     rm -rf /var/lib/apt/lists/*
 
 # Ensure Conda trusts the system certificates
