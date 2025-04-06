@@ -5,7 +5,7 @@ DOMAIN=$1
 apt update
 apt install python3-certbot-dns-route53 certbot -y
 
-certbot certonly \
+certbot certonly -v \
     --dns-route53 \
     -d ${DOMAIN} \
     -d *.${DOMAIN} \
