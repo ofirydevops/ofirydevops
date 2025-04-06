@@ -33,19 +33,20 @@ node(env.node) {
                 "GIT_REF=${env.ref}"
             ]) {
                 sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
+                sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
             }
         }
 
 
-        stage("Run Conda Env") {
+        // stage("Run Conda Env") {
 
-            timeout(time: uptimeInMinuts, unit: 'MINUTES') {
-                withEnv([
-                    "DOCKER_IMAGE_TAG=${env.BUILD_TAG}"
-                ]) {   
-                    sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
-                }
-            }
-        }
+        //     timeout(time: uptimeInMinuts, unit: 'MINUTES') {
+        //         withEnv([
+        //             "DOCKER_IMAGE_TAG=${env.BUILD_TAG}"
+        //         ]) {   
+        //             sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
+        //         }
+        //     }
+        // }
     }
 }
