@@ -43,8 +43,8 @@ x-cache_from_amd64: &cache_from_amd64
   - type=s3,region=${AWS_CACHE_REGION},bucket=${AWS_CACHE_BUCKET},name=data_science_amd64_${CONDA_ENV},mode=max
 x-cache_from_arm64: &cache_from_arm64
   cache_from:
-  # - type=s3,region=${AWS_CACHE_REGION},bucket=${AWS_CACHE_BUCKET},name=data_science_arm64_${CONDA_ENV},mode=max
-  - type=registry,ref=${AWS_REGITRY_REF_REPO}:data_science_arm64_${CONDA_ENV},mode=max
+  - type=s3,region=${AWS_CACHE_REGION},bucket=${AWS_CACHE_BUCKET},name=data_science_arm64_${CONDA_ENV},mode=max
+  # - type=registry,ref=${AWS_REGITRY_REF_REPO}:data_science_arm64_${CONDA_ENV},mode=max
 
 
 # x-cache_to_amd64: &cache_to_amd64
