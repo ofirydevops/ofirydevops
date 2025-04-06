@@ -1,87 +1,23 @@
 channels:
   - conda-forge
 dependencies:
-  # Core Python and Jupyter
   - python=3.11
   - ipykernel
-  # - jupyterlab
-  # - notebook
-  # - ipywidgets
-
-  # # Data manipulation & I/O
-  # - pandas
-  # - numpy
-  # - openpyxl
-  # - xlrd
-  # - pyarrow
-  # - fastparquet
-  # - h5py
-  # - sqlalchemy
-  # - requests
-
-  # # Visualization
-  # - matplotlib
-  # - seaborn
-  # - plotly
-  # - bokeh
-  # - altair
-  # - folium
-
-  # # Machine learning
-  # - scikit-learn
-  # - xgboost
-  # - lightgbm
-  # - catboost
-  # - imbalanced-learn
-
-  # # Deep learning
-  # - pytorch
-  # - torchvision
-  # - torchaudio
-  # - tensorflow
-  # - keras
-
-  # # NLP
-  # - spacy
-  # - nltk
-  # - gensim
-
-  # # Computer vision
-  # - opencv
-
-  # # Utility & tools
-  # - tqdm
-  # - rich
-  # - pyyaml
-  # - joblib
-  # - scikit-image
-  # - imageio
-  # - pyproj
-  # - shap
-  # - dill
-  # - networkx
-  # - sympy
-  # - numba
-  # - statsmodels
-  # - beautifulsoup4
-  # - lxml
-
-  # # Dev and testing
-  # - pip
-  # - pytest
-  # - mypy
-  # - black
-  # - flake8
-
-  # # pip-only dependencies
-  # - pip:
-  #     - transformers
-  #     - sentencepiece
-  #     - datasets
-  #     - wandb
-  #     - pyngrok
-  #     - fastapi
-  #     - uvicorn
-  #     - pydantic
-  #     - fire
-  #     - httpx
+  - jupyterlab
+  - notebook
+  - ipywidgets
+  - pandas
+  - numpy
+  - openpyxl
+  - xlrd
+  - pyarrow
+  - fastparquet
+  - h5py
+  - sqlalchemy
+  - requests
+  - pytorch
+  - torchvision
+  - torchaudio
+  - tensorflow
+  - keras
+  - plotly
