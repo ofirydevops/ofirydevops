@@ -72,4 +72,3 @@ wget https://github.com/docker/buildx/releases/download/v0.22.0/buildx-v0.22.0.l
 mkdir -p ~/.docker/cli-plugins
 mv docker-buildx ~/.docker/cli-plugins/docker-buildx
 chmod +x ~/.docker/cli-plugins/docker-buildx
-docker buildx create --name docker-container --driver docker-container --bootstrap
