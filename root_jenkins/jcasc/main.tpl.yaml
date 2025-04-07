@@ -66,7 +66,7 @@ jenkins:
         - name: Name
           value: root_jenkins_arm64_4vcpu_16gb_30gb
         <<: *worker_config
-      - ami: ${deep_learning_arm64_50gb_ami_id}
+      - ami: ${deep_learning_50GB_arm64_ami_id}
         description: gpu_arm64_4vcpu_8gb_50gb
         labelString: gpu_arm64_4vcpu_8gb_50gb
         type: g5g.xlarge
