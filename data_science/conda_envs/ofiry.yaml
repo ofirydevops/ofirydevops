@@ -4,8 +4,5 @@ channels:
   - defaults
 dependencies:
   - python=3.10
-  - pytorch=2.6
-  - pytorch-cuda=12.3
-  - pip
-  - pip:
-    - tensorflow==2.15
+  - pytorch=2.2
+  - tensorflow==2.13
