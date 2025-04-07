@@ -4,6 +4,6 @@ channels:
   - nvidia
 dependencies:
   - python=3.10
-  - pytorch=2.2.2
-  - tensorflow=2.15
-  - pytorch-cuda=12.8
+  - pytorch
+  - tensorflow
+  - pytorch-gpu
