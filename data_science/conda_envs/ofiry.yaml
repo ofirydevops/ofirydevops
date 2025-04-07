@@ -9,5 +9,4 @@ dependencies:
   - pip
   - pip:
     - tensorflow
-    - tensorflow-gpu
 
