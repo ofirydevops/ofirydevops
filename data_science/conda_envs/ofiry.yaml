@@ -3,7 +3,7 @@ channels:
 dependencies:
   - python=3.10
   - pytorch
-  - pytorch-gpu
+  - pytorch-cuda
   - tensorflow
   - cudatoolkit
   # - pip
