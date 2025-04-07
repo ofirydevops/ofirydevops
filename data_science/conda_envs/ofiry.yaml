@@ -6,6 +6,8 @@ dependencies:
   - python=3.10
   - pytorch
   - pytorch-gpu
-  - tensorflow
-  - tensorflow-gpu
+  - pip
+  - pip:
+    - tensorflow
+    - tensorflow-gpu
 
