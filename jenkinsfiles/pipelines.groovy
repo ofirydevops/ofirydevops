@@ -34,7 +34,7 @@ pipelineJob('data_science_remote_development') {
           'amd64_4vcpu_16gb_30gb', 
           'arm64_4vcpu_16gb_30gb', 
           'gpu_amd64_4vcpu_16gb_100gb',
-          'gpu_arm64_4vcpu_8gb_50gb'
+          'gpu_arm64_4vcpu_8gb_100gb'
           ], 
           'Node to run on'
         )
