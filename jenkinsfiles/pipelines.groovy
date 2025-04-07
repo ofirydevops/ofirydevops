@@ -48,7 +48,10 @@ pipelineJob('data_science_remote_development') {
                      ['10', '20', '40','80'], 
                      'Amount of time to keep the node up')
         choiceParam('conda_env', 
-                     ['ofiry'], 
+                     [
+                      'ofiry',
+                      'py310_amd64_gpu'
+                      ], 
                      'Conda env to run')
     }
 
@@ -70,6 +73,41 @@ pipelineJob('data_science_remote_development') {
                }
              }
             scriptPath('jenkinsfiles/remote_development.groovy')
+        }
+    }
+}
+
+
+pipelineJob('data_science_update_cahce') {
+    parameters {
+        stringParam('ref', 'main', 'branch / tag / commit')
+        choiceParam('arch', ['amd64', 'arm64'])
+        choiceParam('conda_env', 
+                     [
+                      'ofiry',
+                      'py310_amd64_gpu'
+                      ], 
+                     'Conda env for which the cache will be updated')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+    }
+
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url('https://github.com/ofiryy/devops-project.git')
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/cache_update.groovy')
         }
     }
 }
