@@ -40,7 +40,7 @@ pipelineJob('data_science_remote_development') {
         )
         choiceParam('cuda_base_image_tag', [
           '12.3.2-cudnn9-runtime-ubuntu22.04', 
-          '11.8.0-cudnn8-runtime-ubuntu22.04'
+          '12.8.1-cudnn-runtime-ubuntu22.04'
           ], 
           'Image tag for nvidia/cuda base image'
         )
