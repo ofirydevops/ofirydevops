@@ -38,6 +38,12 @@ pipelineJob('data_science_remote_development') {
           ], 
           'Node to run on'
         )
+        choiceParam('cuda_image_tag', [
+          '12.3.2-cudnn9-runtime-ubuntu22.04', 
+          '11.8.0-cudnn8-runtime-ubuntu22.04'
+          ], 
+          'Image tag for nvidia/cuda base image'
+        )
         choiceParam('uptime_in_minutes', 
                      ['10', '20', '40','80'], 
                      'Amount of time to keep the node up')
