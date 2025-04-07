@@ -6,6 +6,7 @@ dependencies:
   - pytorch-gpu
   - tensorflow
   - tensorflow-gpu
+  - cudatoolkit
   # - pip
   # - pip:
   #   - tensorflow
