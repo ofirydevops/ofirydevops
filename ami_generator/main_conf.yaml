@@ -4,7 +4,7 @@ basic_amd64:
   images:
     # basic_amd64_30_GB:
     #   volume_size: 30
-    #   ami_id_ssm_key: basic30GBAmd64AmiId
+    #   ami_id_ssm_key: basic100GBAmd64AmiId
     basic_amd64_100_GB:
       volume_size: 100
       ami_id_ssm_key: basic100GBAmd64AmiId
@@ -15,7 +15,7 @@ basic_arm64:
   images:
     # basic_arm64_30_GB:
     #   volume_size: 30
-    #   ami_id_ssm_key: basic30GBArm64AmiId
+    #   ami_id_ssm_key: basic100GBArm64AmiId
     basic_arm64_100_GB:
       volume_size: 100
       ami_id_ssm_key: basic100GBArm64AmiId

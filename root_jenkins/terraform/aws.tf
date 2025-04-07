@@ -15,12 +15,12 @@ locals {
           key = "rootJenkinsKeyPair"
       }
 
-      "basic_30GB_amd64_ami_id" : {
-          key = "basic30GBAmd64AmiId"
+      "basic_100GB_amd64_ami_id" : {
+          key = "basic100GBAmd64AmiId"
       }
 
-      "basic_30GB_arm64_ami_id" : {
-          key = "basic30GBArm64AmiId"
+      "basic_100GB_arm64_ami_id" : {
+          key = "basic100GBArm64AmiId"
       }
 
       "root_jenkins_volume_az" : {
@@ -31,9 +31,6 @@ locals {
           key = "rootJenkinsVolumeId"
       }
 
-      "deep_learning_50GB_amd64_ami_id" : {
-          key = "deepLearning50GBAmd64AmiId"
-      }
       "deep_learning_100GB_amd64_ami_id" : {
           key = "deepLearning100GBAmd64AmiId"
       }
@@ -51,12 +48,11 @@ locals {
     hosted_zone_id = data.aws_ssm_parameter.params["hosted_zone_id"].value
     root_jenkins_key_pair = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
     root_jenkins_ecr_repo_url = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
-    basic_30GB_amd64_ami_id = data.aws_ssm_parameter.params["basic_30GB_amd64_ami_id"].value
-    basic_30GB_arm64_ami_id = data.aws_ssm_parameter.params["basic_30GB_arm64_ami_id"].value
+    basic_100GB_amd64_ami_id = data.aws_ssm_parameter.params["basic_100GB_amd64_ami_id"].value
+    basic_100GB_arm64_ami_id = data.aws_ssm_parameter.params["basic_100GB_arm64_ami_id"].value
     root_jenkins_volume_az = data.aws_ssm_parameter.params["root_jenkins_volume_az"].value
     root_jenkins_volume_id = data.aws_ssm_parameter.params["root_jenkins_volume_id"].value
     root_jenkins_subnet_id = data.aws_subnet.jenkins_subnet.id
-    deep_learning_50GB_amd64_ami_id = data.aws_ssm_parameter.params["deep_learning_50GB_amd64_ami_id"].value
     deep_learning_100GB_arm64_ami_id = data.aws_ssm_parameter.params["deep_learning_100GB_arm64_ami_id"].value
     deep_learning_100GB_amd64_ami_id = data.aws_ssm_parameter.params["deep_learning_100GB_amd64_ami_id"].value
 
@@ -416,8 +412,8 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     sg_name                         = aws_security_group.sgs["root_jenkins_worker"].name
     subnet_id                       = local.root_jenkins_subnet_id
     jenkins_admin_password          = local.secrets["jenkins_admin_password"]
-    basic_amd64_30gb_ami_id         = local.basic_30GB_amd64_ami_id
-    basic_arm64_30gb_ami_id         = local.basic_30GB_arm64_ami_id
+    basic_100GB_amd64_ami_id         = local.basic_100GB_amd64_ami_id
+    basic_100GB_arm64_ami_id         = local.basic_100GB_arm64_ami_id
     deep_learning_100GB_arm64_ami_id = local.deep_learning_100GB_arm64_ami_id
     deep_learning_100GB_amd64_ami_id = local.deep_learning_100GB_amd64_ami_id
     github_username                 = local.secrets["github_username"]

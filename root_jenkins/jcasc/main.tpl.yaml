@@ -48,23 +48,23 @@ jenkins:
       sshKeysCredentialsId: workers_ssh_access
       useInstanceProfileForCredentials: true
       templates:
-      - ami: ${basic_amd64_30gb_ami_id}
-        description: amd64_4vcpu_16gb_30gb
-        labelString: amd64_4vcpu_16gb_30gb
+      - ami: ${basic_100GB_amd64_ami_id}
+        description: amd64_4vcpu_16gb_100gb
+        labelString: amd64_4vcpu_16gb_100gb
         subnetId: ${subnet_id}
         type: t3.xlarge
         tags:
         - name: Name
-          value: root_jenkins_amd64_4vcpu_16gb_30gb
+          value: root_jenkins_amd64_4vcpu_16gb_100gb
         <<: *worker_config
-      - ami: ${basic_arm64_30gb_ami_id}
-        description: arm64_4vcpu_16gb_30gb
-        labelString: arm64_4vcpu_16gb_30gb
+      - ami: ${basic_100GB_arm64_ami_id}
+        description: arm64_4vcpu_16gb_100gb
+        labelString: arm64_4vcpu_16gb_100gb
         subnetId: ${subnet_id}
         type: t4g.xlarge
         tags:
         - name: Name
-          value: root_jenkins_arm64_4vcpu_16gb_30gb
+          value: root_jenkins_arm64_4vcpu_16gb_100gb
         <<: *worker_config
       - ami: ${deep_learning_100GB_arm64_ami_id}
         description: gpu_arm64_4vcpu_8gb_100gb
