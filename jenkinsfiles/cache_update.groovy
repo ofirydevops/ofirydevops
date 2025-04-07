@@ -25,8 +25,6 @@ node(ARCH_CONF.get(env.arch).get('node')) {
             checkout scm
         }
 
-        if (NODES.get(env.arch))
-
         stage("Update CondaEnv Docker Cache") {
             sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
                 CONDA_ENV=${condaEnv} \
