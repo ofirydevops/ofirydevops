@@ -1,7 +1,6 @@
 channels:
   - conda-forge
   - pytorch
-  - defaults
   - nvidia
 dependencies:
   - python=3.10
