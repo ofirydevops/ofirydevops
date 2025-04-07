@@ -5,5 +5,7 @@ channels:
 dependencies:
   - python=3.10
   - pytorch
-  - tensorflow
   - pytorch-gpu
+  - tensorflow
+  - tensorflow-gpu
+
