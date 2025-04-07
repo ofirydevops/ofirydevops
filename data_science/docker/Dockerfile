@@ -15,7 +15,7 @@ RUN micromamba clean --all -f -y
 RUN find /opt/conda -type d -name "__pycache__" -exec rm -rf {} + && \
     find /opt/conda -type f -name "*.pyc" -delete
 
-FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04 AS runtime
+FROM nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04 AS runtime
 
 COPY --from=builder /opt/conda /opt/conda
     

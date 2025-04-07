@@ -2,20 +2,6 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  - python=3.11
-  - ipykernel
-  - jupyterlab
-  - notebook
-  - ipywidgets
-  - pandas
-  - numpy
-  - openpyxl
-  - xlrd
-  - pyarrow
-  - fastparquet
-  - h5py
-  - sqlalchemy
-  - requests
-  - pytorch=2.1.0
-  - keras
-  - plotly
+  - python=3.10
+  - pytorch=2.6
+  - tensorflow=2.15
