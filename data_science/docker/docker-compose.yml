@@ -6,6 +6,7 @@ x-image: &image
 x-build_args: &build_args
   CONDA_ENV_INTERNAL_NAME: main
   CONDA_ENV_FILE_PATH: data_science/conda_envs/${CONDA_ENV}.yaml
+  CUDA_BASE_IMAGE_TAG: ${CUDA_BASE_IMAGE_TAG}
 
 x-amd64_build_args: &amd64_build_args
   AWS_CLI_DOWNLOAD_LINK: https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.15.37.zip
