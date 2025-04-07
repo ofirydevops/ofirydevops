@@ -8,3 +8,4 @@ dependencies:
   - pip:
     - tensorflow==2.19.0
 
+# worked for amd64

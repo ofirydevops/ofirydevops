@@ -50,7 +50,7 @@ pipelineJob('data_science_remote_development') {
         choiceParam('conda_env', 
                      [
                       'ofiry',
-                      'py310_amd64_gpu'
+                      'py310_gpu'
                       ], 
                      'Conda env to run')
     }
@@ -85,7 +85,7 @@ pipelineJob('data_science_update_cahce') {
         choiceParam('conda_env', 
                      [
                       'ofiry',
-                      'py310_amd64_gpu'
+                      'py310_gpu'
                       ], 
                      'Conda env for which the cache will be updated')
     }
