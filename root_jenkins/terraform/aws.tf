@@ -34,7 +34,9 @@ locals {
       "deep_learning_50GB_amd64_ami_id" : {
           key = "deepLearning50GBAmd64AmiId"
       }
-
+      "deep_learning_100GB_amd64_ami_id" : {
+          key = "deepLearning100GBAmd64AmiId"
+      }
       "deep_learning_50GB_arm64_ami_id" : {
           key = "deepLearning50GBArm64AmiId"
       }
