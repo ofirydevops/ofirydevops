@@ -5,4 +5,4 @@ channels:
 dependencies:
   - python=3.10
   - pytorch=2.2
-  - tensorflow=2.13
+  - tensorflow=2.15
