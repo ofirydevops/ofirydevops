@@ -2,17 +2,23 @@ basic_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: amd64
   images:
-    basic_amd64_30_GB:
-      volume_size: 30
-      ami_id_ssm_key: basic30GBAmd64AmiId
-      
+    # basic_amd64_30_GB:
+    #   volume_size: 30
+    #   ami_id_ssm_key: basic30GBAmd64AmiId
+    basic_amd64_100_GB:
+      volume_size: 100
+      ami_id_ssm_key: basic100GBAmd64AmiId
+
 basic_arm64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: arm64
   images:
-    basic_arm64_30_GB:
-      volume_size: 30
-      ami_id_ssm_key: basic30GBArm64AmiId
+    # basic_arm64_30_GB:
+    #   volume_size: 30
+    #   ami_id_ssm_key: basic30GBArm64AmiId
+    basic_arm64_100_GB:
+      volume_size: 100
+      ami_id_ssm_key: basic100GBArm64AmiId
 
 github_runner_arm64:
   packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
