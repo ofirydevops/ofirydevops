@@ -1,7 +1,10 @@
 channels:
   - conda-forge
   - pytorch
+  - defaults
 dependencies:
   - python=3.10
   - pytorch=2.6
-  - tensorflow=2.15
+  - pip
+  - pip:
+    - tensorflow==2.15

@@ -31,10 +31,11 @@ node(env.node) {
             withEnv([
                 "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
                 "GIT_REF=${env.ref}",
-                "CONDA_ENV=${env.conda_env}"
+                "CONDA_ENV=${env.conda_env}",
+                "CUDA_BASE_IMAGE_TAG=${env.cuda_base_image_tag}"
             ]) {
-                sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
-                // sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
+                // sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
+                sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
             }
         }
 
