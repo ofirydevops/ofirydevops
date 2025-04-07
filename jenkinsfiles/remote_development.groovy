@@ -2,8 +2,14 @@
 node(env.node) {
     ansiColor('xterm') {
 
-        def maxUptime = 80
-        def uptimeInMinuts = env.uptime_in_minutes.toInteger()
+        def maxUptime        = 80
+        def uptimeInMinuts   = env.uptime_in_minutes.toInteger()
+        def dockerImageTag   = env.BUILD_TAG
+        def gitRef           = env.ref
+        def condaEnv         = env.conda_env
+        def cudaBaseImageTag = env.cuda_base_image_tag
+
+
         def serviceSuffix = "amd64"
         if (env.node.toLowerCase().contains("arm64")) {
             serviceSuffix = "arm64"
@@ -29,10 +35,10 @@ node(env.node) {
         stage("Build Conda Env Docker") {
 
             withEnv([
-                "DOCKER_IMAGE_TAG=${env.BUILD_TAG}",
-                "GIT_REF=${env.ref}",
-                "CONDA_ENV=${env.conda_env}",
-                "CUDA_BASE_IMAGE_TAG=${env.cuda_base_image_tag}"
+                "DOCKER_IMAGE_TAG=${dockerImageTag}",
+                "GIT_REF=${gitRef}",
+                "CONDA_ENV=${condaEnv}",
+                "CUDA_BASE_IMAGE_TAG=${cudaBaseImageTag}"
             ]) {
                 sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
                 // sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
@@ -44,7 +50,7 @@ node(env.node) {
 
             timeout(time: uptimeInMinuts, unit: 'MINUTES') {
                 withEnv([
-                    "DOCKER_IMAGE_TAG=${env.BUILD_TAG}"
+                    "DOCKER_IMAGE_TAG=${dockerImageTag}"
                 ]) {   
                     sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
                 }
