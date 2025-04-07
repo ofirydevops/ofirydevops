@@ -33,27 +33,21 @@ node(env.node) {
         }
 
         stage("Build Conda Env Docker") {
-
-            withEnv([
-                "DOCKER_IMAGE_TAG=${dockerImageTag}",
-                "GIT_REF=${gitRef}",
-                "CONDA_ENV=${condaEnv}",
-                "CUDA_BASE_IMAGE_TAG=${cudaBaseImageTag}"
-            ]) {
-                sh "docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
-                // sh "docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
-            }
+            sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
+                GIT_REF=${gitRef} \
+                CONDA_ENV=${condaEnv} \
+                CUDA_BASE_IMAGE_TAG=${cudaBaseImageTag} \
+                docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
+            //  docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
         }
 
 
         stage("Run Conda Env") {
 
             timeout(time: uptimeInMinuts, unit: 'MINUTES') {
-                withEnv([
-                    "DOCKER_IMAGE_TAG=${dockerImageTag}"
-                ]) {   
-                    sh "docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
-                }
+            
+                sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
+                    docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
             }
         }
     }
