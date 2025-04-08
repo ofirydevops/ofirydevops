@@ -1,3 +1,18 @@
+def condaEnvs = [
+  'ofiry',
+  'py310_gpu',
+  'py310_full',
+  'py39_gpu',
+  'py39_full',
+  ]
+
+def nodes = [
+  'amd64_4vcpu_16gb_100gb', 
+  'arm64_4vcpu_16gb_100gb', 
+  'gpu_amd64_4vcpu_16gb_100gb',
+  'gpu_arm64_4vcpu_8gb_100gb'
+  ]
+
 pipelineJob('deploy_github_aws_runners') {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
@@ -30,22 +45,15 @@ pipelineJob('deploy_github_aws_runners') {
 pipelineJob('data_science_remote_development') {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
-        choiceParam('node', [
-          'amd64_4vcpu_16gb_100gb', 
-          'arm64_4vcpu_16gb_100gb', 
-          'gpu_amd64_4vcpu_16gb_100gb',
-          'gpu_arm64_4vcpu_8gb_100gb'
-          ], 
-          'Node to run on'
-        )
+        choiceParam('node', nodes, 'Node to run on')
 
         choiceParam('uptime_in_minutes', 
                      ['10', '20', '40','80'], 
                      'Amount of time to keep the node up')
 
         choiceParam('conda_env', 
-                     ['ofiry', 'py310_gpu'], 
-                     'Conda env to run')
+                    condaEnvs, 
+                    'Conda env to run')
     }
 
     properties {
@@ -76,8 +84,8 @@ pipelineJob('data_science_update_cahce') {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('arch', ['amd64', 'arm64'])
         choiceParam('conda_env', 
-                     ['ofiry','py310_gpu'], 
-                     'Conda env for which the cache will be updated')
+                    condaEnvs, 
+                    'Conda env for which the cache will be updated')
     }
 
     properties {
