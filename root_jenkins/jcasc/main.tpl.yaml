@@ -26,6 +26,7 @@ x-worker_config: &worker_config
     [profile ${default_profile_name}]
     EOF
     docker buildx create --name dc --driver docker-container --bootstrap
+    aws ecr get-login-password --region ${region} --profile ${default_profile_name} | docker login --username AWS --password-stdin ${ecr_registry}
 
 
 jenkins:

@@ -423,6 +423,7 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     worker_role_arn                 = aws_iam_role.roles["root_jenkins_worker"].arn
     default_profile_name            = "OFIRYDEVOPS"
     region                          = local.region
+    ecr_registry                    = local.ecr_registry
   })
 }
 
