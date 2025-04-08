@@ -64,4 +64,4 @@ dependencies:
   - pyqt=5.15.9
   - lxml=5.3.2
   - beautifulsoup4=4.13.3
-  - tf-keras
+  - tf-keras=2.18.0
