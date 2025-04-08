@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pytorch
+  - pytorch-gpu
+  - tensorflow
+  - tensorflow-gpu

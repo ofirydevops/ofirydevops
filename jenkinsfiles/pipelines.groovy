@@ -31,8 +31,8 @@ pipelineJob('data_science_remote_development') {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('node', [
-          'amd64_4vcpu_16gb_30gb', 
-          'arm64_4vcpu_16gb_30gb', 
+          'amd64_4vcpu_16gb_100gb', 
+          'arm64_4vcpu_16gb_100gb', 
           'gpu_amd64_4vcpu_16gb_100gb',
           'gpu_arm64_4vcpu_8gb_100gb'
           ], 

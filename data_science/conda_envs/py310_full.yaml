@@ -1,7 +1,8 @@
+
 channels:
   - conda-forge
 dependencies:
-  - python=3.9
+  - python=3.10
   - pip=25.0.1
   - ipython=8.18.1
   - jupyterlab=4.4.0
@@ -63,5 +64,4 @@ dependencies:
   - pyqt=5.15.9
   - lxml=5.3.2
   - beautifulsoup4=4.13.3
-
-
+  - tf-keras
