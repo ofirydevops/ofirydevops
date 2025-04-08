@@ -2,10 +2,9 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - pytorch
-  - pytorch-cuda
-  - tensorflow
-  - cudatoolkit
+  - cudatoolkit=12.8  # CUDA toolkit (compatible with PyTorch & TensorFlow)
+  - pytorch=2.1.2
+  - tensorflow=2.10.0
   # - pip
   # - pip:
   #   - tensorflow
