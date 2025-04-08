@@ -38,20 +38,13 @@ pipelineJob('data_science_remote_development') {
           ], 
           'Node to run on'
         )
-        choiceParam('cuda_base_image_tag', [
-          '12.3.2-cudnn9-runtime-ubuntu22.04', 
-          '12.8.1-cudnn-runtime-ubuntu22.04'
-          ], 
-          'Image tag for nvidia/cuda base image'
-        )
+
         choiceParam('uptime_in_minutes', 
                      ['10', '20', '40','80'], 
                      'Amount of time to keep the node up')
+
         choiceParam('conda_env', 
-                     [
-                      'ofiry',
-                      'py310_gpu'
-                      ], 
+                     ['ofiry', 'py310_gpu'], 
                      'Conda env to run')
     }
 
@@ -83,10 +76,7 @@ pipelineJob('data_science_update_cahce') {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('arch', ['amd64', 'arm64'])
         choiceParam('conda_env', 
-                     [
-                      'ofiry',
-                      'py310_gpu'
-                      ], 
+                     ['ofiry','py310_gpu'], 
                      'Conda env for which the cache will be updated')
     }
 

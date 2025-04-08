@@ -1,4 +1,3 @@
-ARG CUDA_BASE_IMAGE_TAG
 FROM mambaorg/micromamba:2-cuda12.2.2-ubuntu20.04 as builder
 
 WORKDIR /app
@@ -15,7 +14,7 @@ RUN micromamba clean --all -f -y
 RUN find /opt/conda -type d -name "__pycache__" -exec rm -rf {} + && \
     find /opt/conda -type f -name "*.pyc" -delete
 
-FROM nvidia/cuda:${CUDA_BASE_IMAGE_TAG} AS runtime
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04 AS runtime
 
 
 COPY --from=builder /opt/conda /opt/conda

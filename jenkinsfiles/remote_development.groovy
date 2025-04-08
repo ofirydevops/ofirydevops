@@ -7,7 +7,6 @@ node(env.node) {
         def dockerImageTag   = env.BUILD_TAG
         def gitRef           = env.ref
         def condaEnv         = env.conda_env
-        def cudaBaseImageTag = env.cuda_base_image_tag
 
 
         def serviceSuffix = "amd64"
@@ -36,9 +35,7 @@ node(env.node) {
             sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
                 GIT_REF=${gitRef} \
                 CONDA_ENV=${condaEnv} \
-                CUDA_BASE_IMAGE_TAG=${cudaBaseImageTag} \
                 docker compose -f data_science/docker/docker-compose.yml build ${service} --builder dc"
-            //  docker compose -f data_science/docker/docker-compose.yml build main_amd64_update_cache --builder dc"
         }
 
 

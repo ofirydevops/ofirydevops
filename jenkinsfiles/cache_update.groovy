@@ -10,8 +10,6 @@ def ARCH_CONF = [
     ]
 ]
 
-// ARCH = env.getEnvironment().get("arch", "amd64")
-
 node(ARCH_CONF.get(env.arch).get('node')) {
     ansiColor('xterm') {
 
