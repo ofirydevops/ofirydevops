@@ -34,9 +34,6 @@ deep_learning_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: gpu_amd64_al2023
   images:
-    # deep_learning_amd64_50_GB:
-    #   volume_size: 50
-    #   ami_id_ssm_key: deepLearning50GBAmd64AmiId
     deep_learning_amd64_100_GB:
       volume_size: 100
       ami_id_ssm_key: deepLearning100GBAmd64AmiId
@@ -45,9 +42,6 @@ deep_learning_arm64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: gpu_arm64_al2023
   images:
-    # deep_learning_arm64_50_GB:
-    #   volume_size: 50
-    #   ami_id_ssm_key: deepLearning100GBArm64AmiId
     deep_learning_arm64_100_GB:
       volume_size: 100
       ami_id_ssm_key: deepLearning100GBArm64AmiId
