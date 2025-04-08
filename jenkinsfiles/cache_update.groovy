@@ -1,10 +1,10 @@
 def ARCH_CONF = [
     "arm64" : [
-        "node" : "arm64_4vcpu_16gb_30gb",
+        "node" : "arm64_4vcpu_16gb_100gb",
         "dc_service" : "main_arm64_update_cache"
     ],
     "amd64" : [
-        "node" : "amd64_4vcpu_16gb_30gb",
+        "node" : "amd64_4vcpu_16gb_100gb",
         "dc_service" : "main_amd64_update_cache"
 
     ]
