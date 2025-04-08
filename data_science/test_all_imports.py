@@ -59,6 +59,8 @@ import click
 import PyQt5
 import lxml
 import bs4
+import tf_keras
+
 
 # Simple print to confirm imports
 print("All packages imported successfully!")
