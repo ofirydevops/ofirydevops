@@ -1,11 +1,84 @@
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
-  - cudatoolkit=12.8  # CUDA toolkit (compatible with PyTorch & TensorFlow)
-  - pytorch=2.1.2
-  - tensorflow=2.10.0
-  # - pip
-  # - pip:
-  #   - tensorflow
+  # Core Python
+  - python=3.9
+  - pip
+  - ipython
+  - jupyterlab
+  - notebook
 
+  # Data manipulation
+  - numpy
+  - pandas
+  - polars
+  - dask
+  - pyarrow
+  - openpyxl
+  - xlrd
+
+  # Machine Learning
+  - scikit-learn
+  - xgboost
+  - lightgbm
+  - catboost
+  - tensorflow
+  - pytorch
+  - torchvision
+  - torchaudio
+  - keras
+
+  # NLP
+  - nltk
+  - spacy
+  - gensim
+  - transformers
+  - sentence-transformers
+
+  # Visualization
+  - matplotlib
+  - seaborn
+  - plotly
+  - bokeh
+  - altair
+  - scikit-image
+  - opencv
+
+  # Dev / Util
+  - tqdm
+  - rich
+  - ipywidgets
+  - black
+  - flake8
+  - mypy
+  - pre-commit
+
+  # Web / APIs / HTTP
+  - requests
+  - httpx
+  - fastapi
+  - uvicorn
+  - flask
+
+  # Databases / Storage
+  - sqlalchemy
+  - psycopg2
+  - pymysql
+  - redis-py
+  - tinydb
+
+  # Files & IO
+  - h5py
+  - zarr
+  - fsspec
+  - python-multipart
+
+  # Others
+  - pyyaml
+  - joblib
+  - hydra-core
+  - typer
+  - click
+  - pyqt
+  - lxml
+  - beautifulsoup4
