@@ -4,7 +4,7 @@ dependencies:
   - python=3.12
   - pip
   - numpy>=1.26.4  # Compatible with Python 3.12 and PyTorch
-  - conda-forge::cudatoolkit=12.4  # CUDA toolkit for NVIDIA GPU (Linux/Windows)
+  # - conda-forge::cudatoolkit=12.4  # CUDA toolkit for NVIDIA GPU (Linux/Windows)
   - conda-forge::cudnn  # Optional: Improves performance with NVIDIA GPU
   - pip:
     - torch==2.6.0+cu124  # PyTorch with CUDA 12.4 support
