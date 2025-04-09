@@ -2,14 +2,14 @@
 node(env.node) {
     ansiColor('xterm') {
 
-        def maxUptime        = 80
-        def uptimeInMinuts   = env.uptime_in_minutes.toInteger()
-        def dockerImageTag   = env.BUILD_TAG
-        def gitRef           = env.ref
-        def condaEnv         = env.conda_env
-        def nodeLabel        = env.node
-        def service          = null
-        def servicePrefix    = "remote_dev_"
+        def maxUptime      = 80
+        def uptimeInMinuts = env.uptime_in_minutes.toInteger()
+        def dockerImageTag = env.BUILD_TAG
+        def gitRef         = env.ref
+        def condaEnv       = env.conda_env
+        def nodeLabel      = env.node
+        def service        = null
+        def servicePrefix  = "remote_dev_"
 
         if (uptimeInMinuts > maxUptime) {
             uptimeInMinuts = maxUptime
