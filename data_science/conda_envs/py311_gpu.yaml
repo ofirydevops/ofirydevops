@@ -3,5 +3,6 @@ channels:
 dependencies:
   - python=3.11
   - pytorch
-  - pytorch-gpu
-  - tensorflow
+  - pip
+  - pip:
+    - tensorflow
