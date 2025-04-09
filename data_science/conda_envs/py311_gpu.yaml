@@ -2,7 +2,12 @@ channels:
   - conda-forge
 dependencies:
   - python=3.11
-  - pytorch
   - pip
+  - numpy>=1.26.4
+  - cudnn
   - pip:
-    - tensorflow
+    - torch==2.6.0+cu124
+    - torchvision==0.21.0+cu124
+    - torchaudio==2.6.0+cu124
+    - -- gle::tensorflow==2.17.0
+    - --index-url https://download.pytorch.org/whl/cu124
