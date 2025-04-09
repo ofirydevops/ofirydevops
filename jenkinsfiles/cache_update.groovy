@@ -22,7 +22,7 @@ node(NODE_LABEL) {
         stage('Checkout') {
             checkout scm
             def utils = load 'jenkinsfiles/utils.groovy'
-            service = utils.getserviceSuffix(nodeLabel, servicePrefix)
+            service = utils.getDcService(nodeLabel, servicePrefix)
         }
 
         stage("Update CondaEnv Docker Cache") {

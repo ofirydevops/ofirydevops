@@ -18,7 +18,7 @@ node(env.node) {
         stage('Checkout') {
             checkout scm
             def utils = load 'jenkinsfiles/utils.groovy'
-            service = utils.getDcServiceSuffix(nodeLabel, servicePrefix)
+            service = utils.getDcService(nodeLabel, servicePrefix)
         }
 
         stage('Display Public IP') {

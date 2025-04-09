@@ -1,4 +1,4 @@
-def getDcServiceSuffix(dcServicePrefix, nodeLabel) {
+def getDcService(dcServicePrefix, nodeLabel) {
     def dcServiceSuffix = "_amd64"
 
     def nodeLabelLowerCase = nodeLabel.toLowerCase()
