@@ -9,7 +9,7 @@ x-worker_config: &worker_config
   hostKeyVerificationStrategy: 'OFF'
   iamInstanceProfile: ${instance_profile}
   idleTerminationMinutes: 5
-  instanceCapStr: 1
+  instanceCapStr: 3
   javaPath: java
   metadataEndpointEnabled: true
   metadataTokensRequired: false
