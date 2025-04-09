@@ -27,5 +27,6 @@ dependencies:
     - torch==2.6.0+cu124
     - torchvision==0.21.0+cu124
     - torchaudio==2.6.0+cu124
-    - --index-url https://download.pytorch.org/whl/cu124
-    - tensorflow==2.16.2
+    - tensorflow==2.16.1  # Corrected to an existing version
+    - --index-url https://download.pytorch.org/whl/cu124  # PyTorch-specific index
+    - --extra-index-url https://pypi.org/simple  # Ensures TensorFlow fetches from PyPI

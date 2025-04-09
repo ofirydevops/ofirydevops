@@ -13,7 +13,7 @@ def getDcService(dcServicePrefix, nodeLabel) {
 }
 
 def setUpDockerEnv(pipeline) {
-    pipeline.sh("docker buildx create --name ${pipeline.env.DOCKER_CONTAINER_DRIVER_NAME} --driver docker-container --bootstrap")
+    pipeline.sh("docker buildx create --name ${pipeline.env.DOCKER_CONTAINER_DRIVER_NAME} --driver docker-container --bootstrap || true")
     pipeline.sh("aws ecr get-login-password --region ${pipeline.env.AWS_REGION} --profile ${pipeline.env.AWS_DEFAULT_PROFILE} | \
                 docker login --username AWS --password-stdin ${pipeline.env.AWS_ECR_REGISTRY}")
 }
