@@ -5,4 +5,3 @@ dependencies:
   - pytorch
   - pytorch-gpu
   - tensorflow
-  - tensorflow-gpu
