@@ -15,14 +15,16 @@ node(NODE_LABEL) {
         def condaEnv       = env.conda_env
         def arch           = env.arch
         def dockerImageTag = env.BUILD_TAG
-        def service        = null
-        def servicePrefix  = "main_update_cache"
+        def service        = "main_update_cache_${arch}"
         def nodeLabel      = NODE_LABEL
+        def processor      = env.processor
+
+        if ("gpu".equals(processor)) {
+            service = "${service}_gpu"
+        }
 
         stage('Checkout') {
             checkout scm
-            def utils = load 'jenkinsfiles/utils.groovy'
-            service = utils.getDcService(servicePrefix, nodeLabel)
         }
 
         stage("Update CondaEnv Docker Cache") {

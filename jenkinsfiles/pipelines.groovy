@@ -83,6 +83,7 @@ pipelineJob('data_science_update_cahce') {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('arch', ['amd64', 'arm64'])
+        choiceParam('processor', ['cpu', 'gpu'])
         choiceParam('conda_env', 
                     condaEnvs, 
                     'Conda env for which the cache will be updated')
