@@ -25,6 +25,8 @@ node(NODE_LABEL) {
 
         stage('Checkout') {
             checkout scm
+            def utils = load 'jenkinsfiles/utils.groovy'
+            utils.setUpDockerEnv(this)
         }
 
         stage("Update CondaEnv Docker Cache") {

@@ -30,6 +30,17 @@ x-worker_config: &worker_config
 
 
 jenkins:
+  globalNodeProperties:
+  - envVars:
+      env:
+      - key: AWS_ECR_REGISTRY
+        value: ${ecr_registry}
+      - key: AWS_DEFAULT_PROFILE
+        value: ${default_profile_name}
+      - key: AWS_REGION
+        value: ${region}
+      - key: DOCKER_CONTAINER_DRIVER_NAME
+        value: dc
   numExecutors: 0
   systemMessage: "Configured by JCasC! FROM TPL"
   securityRealm:

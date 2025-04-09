@@ -19,6 +19,7 @@ node(env.node) {
             checkout scm
             def utils = load 'jenkinsfiles/utils.groovy'
             service = utils.getDcService(servicePrefix, nodeLabel)
+            utils.setUpDockerEnv(this)
         }
 
         stage('Display Public IP') {
