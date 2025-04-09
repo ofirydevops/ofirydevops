@@ -19,7 +19,6 @@ node(NODE_LABEL) {
         def servicePrefix  = "main_update_cache_"
         def nodeLabel      = NODE_LABEL
 
-
         stage('Checkout') {
             checkout scm
             def utils = load 'jenkinsfiles/utils.groovy'
