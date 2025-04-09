@@ -7,7 +7,7 @@ def ARCH_CONF = [
     ]
 ]
 
-NODE_LABEL = ARCH_CONF.get(env.arch).get('node')
+def NODE_LABEL = ARCH_CONF.get(env.arch).get('node')
 
 node(NODE_LABEL) {
     ansiColor('xterm') {
