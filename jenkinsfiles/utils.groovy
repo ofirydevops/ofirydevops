@@ -3,10 +3,10 @@ def getDcService(dcServicePrefix, nodeLabel) {
 
     def nodeLabelLowerCase = nodeLabel.toLowerCase()
     if (nodeLabelLowerCase.contains("arm64")) {
-        dcServiceSuffix = "arm64"
+        dcServiceSuffix = "_arm64"
     }
     if (nodeLabelLowerCase.contains("gpu")) {
-        dcServiceSuffix = "${serviceSuffix}_gpu"
+        dcServiceSuffix = "${dcServiceSuffix}_gpu"
     }
     def dcService = "${dcServicePrefix}${dcServiceSuffix}"
     return dcService
