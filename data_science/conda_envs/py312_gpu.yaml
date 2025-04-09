@@ -2,12 +2,11 @@ channels:
   - conda-forge
 dependencies:
   - python=3.12
-  - pip
-  - numpy>=1.26.4  # Compatible with Python 3.12 and PyTorch
-  # - conda-forge::cudatoolkit=12.4  # CUDA toolkit for NVIDIA GPU (Linux/Windows)
-  - conda-forge::cudnn  # Optional: Improves performance with NVIDIA GPU
+  - pip=25.0.1
+  - numpy>=1.26.4
+  - cudnn=9.8.0.87
   - pip:
-    - torch==2.6.0+cu124  # PyTorch with CUDA 12.4 support
-    - torchvision==0.21.0+cu124  # Correct version for torch 2.6.0
-    - torchaudio==2.6.0+cu124  # Matching torchaudio
-    - --index-url https://download.pytorch.org/whl/cu124  # PyTorch wheel index
+    - torch==2.6.0+cu124
+    - torchvision==0.21.0+cu124
+    - torchaudio==2.6.0+cu124
+    - --index-url https://download.pytorch.org/whl/cu124
