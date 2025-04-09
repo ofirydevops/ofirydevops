@@ -11,3 +11,5 @@ dependencies:
     - torchvision==0.17.0+cu124  # Matching torchvision
     - torchaudio==2.6.0+cu124  # Matching torchaudio
     - --index-url https://download.pytorch.org/whl/cu124  # PyTorch wheel index
+
+    
