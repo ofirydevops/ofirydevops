@@ -4,6 +4,7 @@ def condaEnvs = [
   'py310_full',
   'py39_gpu',
   'py39_full',
+  'py311_gpu'
   ]
 
 def nodes = [
