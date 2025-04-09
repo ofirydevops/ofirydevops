@@ -16,7 +16,7 @@ node(NODE_LABEL) {
         def arch           = env.arch
         def dockerImageTag = env.BUILD_TAG
         def service        = null
-        def servicePrefix  = "main_update_cache_"
+        def servicePrefix  = "main_update_cache"
         def nodeLabel      = NODE_LABEL
 
         stage('Checkout') {

@@ -9,7 +9,7 @@ node(env.node) {
         def condaEnv       = env.conda_env
         def nodeLabel      = env.node
         def service        = null
-        def servicePrefix  = "remote_dev_"
+        def servicePrefix  = "remote_dev"
 
         if (uptimeInMinuts > maxUptime) {
             uptimeInMinuts = maxUptime
