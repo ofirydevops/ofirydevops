@@ -13,7 +13,6 @@ x-cpu_runtime_build_args: &cpu_runtime_build_args
 x-build_args: &build_args
   CONDA_ENV_INTERNAL_NAME: main
   CONDA_ENV_FILE_PATH: data_science/conda_envs/${CONDA_ENV}.yaml
-  <<: *cpu_runtime_build_args
 
 x-amd64_build_args: &amd64_build_args
   AWS_CLI_DOWNLOAD_LINK: https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.15.37.zip
@@ -67,7 +66,7 @@ services:
       <<: [*build, *cache_from_arm64]
       target: runtime
       args:
-        <<: [*build_args, *arm64_build_args]
+        <<: [*build_args, *arm64_build_args, *cpu_runtime_build_args]
 
   main_amd64:
     <<: *main_conf
@@ -75,7 +74,7 @@ services:
       <<: [*build, *cache_from_amd64]
       target: runtime
       args:
-        <<: [*build_args, *amd64_build_args]
+        <<: [*build_args, *amd64_build_args, *cpu_runtime_build_args]
 
   main_arm64_gpu:
     <<: [*main_conf, *gpu]
@@ -100,13 +99,13 @@ services:
       <<: [*build, *cache_from_amd64, *cache_to_amd64]
       target: runtime
       args:
-        <<: [*build_args, *amd64_build_args]
+        <<: [*build_args, *amd64_build_args, *cpu_runtime_build_args]
 
   main_arm64_update_cache:
     <<: *main_conf
     platform: linux/arm64
     build:
-      <<: [*build, *cache_from_arm64, *cache_to_arm64]
+      <<: [*build, *cache_from_arm64, *cache_to_arm64, *cpu_runtime_build_args]
       target: runtime
       args:
         <<: [*build_args, *amd64_build_args]
@@ -117,7 +116,7 @@ services:
       <<: [*build, *cache_from_amd64]
       target: remote_dev
       args:
-        <<: [*build_args, *amd64_build_args]
+        <<: [*build_args, *amd64_build_args, *cpu_runtime_build_args]
 
   remote_dev_arm64:
     <<: [*main_conf, *remote_dev_ports]
@@ -126,7 +125,7 @@ services:
       <<: [*build, *cache_from_arm64]
       target: remote_dev
       args:
-        <<: [*build_args, *arm64_build_args]
+        <<: [*build_args, *arm64_build_args, *cpu_runtime_build_args]
 
 
   remote_dev_amd64_gpu:
