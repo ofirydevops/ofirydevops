@@ -40,8 +40,7 @@ locals {
     }
 
     ecr_repos = [
-      "root_jenkins",
-      "docker_cache"
+      "root_jenkins"
     ]
 
 
