@@ -7,16 +7,9 @@ node(env.node) {
         def dockerImageTag   = env.BUILD_TAG
         def gitRef           = env.ref
         def condaEnv         = env.conda_env
-
-
-        def serviceSuffix = "amd64"
-        if (env.node.toLowerCase().contains("arm64")) {
-            serviceSuffix = "arm64"
-        }
-        if (env.node.toLowerCase().contains("gpu")) {
-            serviceSuffix = "${serviceSuffix}_gpu"
-        }
-        def service = "remote_dev_${serviceSuffix}"
+        def nodeLabel        = env.node
+        def service          = null
+        def servicePrefix    = "remote_dev_"
 
         if (uptimeInMinuts > maxUptime) {
             uptimeInMinuts = maxUptime
@@ -24,6 +17,8 @@ node(env.node) {
 
         stage('Checkout') {
             checkout scm
+            def utils = load 'jenkinsfiles/utils.groovy'
+            service = utils.getDcServiceSuffix(nodeLabel, servicePrefix)
         }
 
         stage('Display Public IP') {

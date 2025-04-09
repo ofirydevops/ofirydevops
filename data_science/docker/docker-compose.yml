@@ -45,23 +45,23 @@ x-remote_dev_ports: &remote_dev_ports
 
 x-cache_to_amd64: &cache_to_amd64
   cache_to:
-  - type=registry,ref=${AWS_REGITRY_REF_REPO}:data_science_amd64_${CONDA_ENV},mode=max,image-manifest=true,oci-mediatypes=true
+  - type=registry,ref=${AWS_REGITRY_REF_REPO}:${CONDA_ENV}_amd64,mode=max,image-manifest=true,oci-mediatypes=true
 x-cache_to_arm64: &cache_to_arm64
   cache_to:
-  - type=registry,ref=${AWS_REGITRY_REF_REPO}:data_science_arm64_${CONDA_ENV},mode=max,image-manifest=true,oci-mediatypes=true
+  - type=registry,ref=${AWS_REGITRY_REF_REPO}:${CONDA_ENV}_arm64,mode=max,image-manifest=true,oci-mediatypes=true
+
 
 x-cache_from_amd64: &cache_from_amd64
   cache_from:
-  - type=registry,ref=${AWS_REGITRY_REF_REPO}:data_science_amd64_${CONDA_ENV}
+  - type=registry,ref=${AWS_REGITRY_REF_REPO}:${CONDA_ENV}_amd64
 x-cache_from_arm64: &cache_from_arm64
   cache_from:
-  - type=registry,ref=${AWS_REGITRY_REF_REPO}:data_science_arm64_${CONDA_ENV}
+  - type=registry,ref=${AWS_REGITRY_REF_REPO}:${CONDA_ENV}_arm64
 
 
 services:
   main_arm64:
     <<: *main_conf
-    platform: linux/arm64
     build:
       <<: [*build, *cache_from_arm64]
       target: runtime
@@ -78,7 +78,6 @@ services:
 
   main_arm64_gpu:
     <<: [*main_conf, *gpu]
-    platform: linux/arm64
     build:
       <<: [*build, *cache_from_arm64]
       target: runtime
@@ -93,7 +92,7 @@ services:
       args:
         <<: [*build_args, *amd64_build_args, *gpu_build_args]
 
-  main_amd64_update_cache:
+  main_update_cache_amd64:
     <<: *main_conf
     build:
       <<: [*build, *cache_from_amd64, *cache_to_amd64]
@@ -101,14 +100,30 @@ services:
       args:
         <<: [*build_args, *amd64_build_args, *cpu_build_args]
 
-  main_arm64_update_cache:
+  main_update_cache_arm64:
     <<: *main_conf
-    platform: linux/arm64
     build:
       <<: [*build, *cache_from_arm64, *cache_to_arm64]
       target: runtime
       args:
-        <<: [*build_args, *amd64_build_args]
+        <<: [*build_args, *amd64_build_args, *cpu_build_args]
+
+
+  main_update_cache_amd64_gpu:
+    <<: *main_conf
+    build:
+      <<: [*build, *cache_from_amd64, *cache_to_amd64]
+      target: runtime
+      args:
+        <<: [*build_args, *amd64_build_args, *gpu_build_args]
+
+  main_update_cache_arm64_gpu:
+    <<: *main_conf
+    build:
+      <<: [*build, *cache_from_arm64, *cache_to_arm64]
+      target: runtime
+      args:
+        <<: [*build_args, *amd64_build_args, *gpu_build_args]
 
   remote_dev_amd64:
     <<: [*main_conf, *remote_dev_ports] 
@@ -120,7 +135,6 @@ services:
 
   remote_dev_arm64:
     <<: [*main_conf, *remote_dev_ports]
-    platform: linux/arm64
     build:
       <<: [*build, *cache_from_arm64]
       target: remote_dev
@@ -138,7 +152,6 @@ services:
 
   remote_dev_arm64_gpu:
     <<: [*main_conf, *gpu, *remote_dev_ports]
-    platform: linux/arm64
     build:
       <<: [*build, *cache_from_arm64]
       target: remote_dev
