@@ -4,6 +4,12 @@ locals {
     region = local.global_conf["region"]
     name = "ofirydevops"
     git_repository = "devops-project"
+    laptop_public_ip = trimspace(data.http.my_public_ip.response_body)
+
+    gh_runner_userdata = templatefile("${path.module}/userdata.sh", {
+      default_profile_name = "OFIRYDEVOPS"
+    })
+    runner_iam_role_managed_policy_arns = aws_iam_policy.gh_runner_policies["gh_runner_general"].arn
 
     lambdas = [
       {
@@ -27,8 +33,78 @@ locals {
         tag  = "v6.3.0"
       }
     ]
+
+    iam_policies = {
+      "gh_runner_general" : jsonencode({
+          Version = "2012-10-17"
+          Statement = [
+              {
+                  Action = [
+                      "ecr:*",
+                      "ecs:*",
+                      "ec2:*",
+                      "autoscaling:*",
+                      "iam:*",
+                      "lambda:*",
+                      "apigateway:*",
+                      "sqs:*",
+                      "cloudwatch:*",
+                      "s3:*",
+                      "ssm:*",
+                      "logs:*",
+                      "secretsmanager:*",
+                      "events:*"
+                      ]
+                  Effect   = "Allow"
+                  Resource = "*"
+              }
+          ]
+      })
+    }
+
+    sgs = {
+      "gh_runner_general" : {}
+    }
+}
+data "http" "my_public_ip" {
+  url = "https://checkip.amazonaws.com"
 }
 
+resource "aws_security_group" "sgs" {
+  for_each = local.sgs
+  name        = each.key
+  vpc_id      = module.vpc.vpc_id
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group_rule" "laptop_ssh_access_to_runners" {
+  for_each          = local.sgs
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${local.laptop_public_ip}/32"]
+  security_group_id = aws_security_group.sgs["gh_runner_general"].id
+}
+resource "aws_security_group_rule" "remote_dev_access_to_runners" {
+  type              = "ingress"
+  from_port         = 5000
+  to_port           = 5000
+  protocol          = "tcp"
+  cidr_blocks       = ["${local.laptop_public_ip}/32"]
+  security_group_id = aws_security_group.sgs["gh_runner_general"].id
+}
+
+resource "aws_iam_policy" "gh_runner_policies" {
+  for_each = local.iam_policies
+  name     = each.key
+  policy   = each.value
+}
 
 module "github_runners_s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
@@ -85,6 +161,9 @@ module "runners" {
   syncer_lambda_s3_key = aws_s3_object.lambdas_zips["runner-binaries-syncer"].key
   webhook_lambda_s3_key = aws_s3_object.lambdas_zips["webhook"].key
   runners_lambda_s3_key = aws_s3_object.lambdas_zips["runners"].key
+  runner_additional_security_group_ids = [
+    aws_security_group.sgs["gh_runner_general"].id
+  ]
 
   aws_region = local.region
   vpc_id     = module.vpc.vpc_id
@@ -107,52 +186,85 @@ module "runners" {
     enable = false
   }
   multi_runner_config = {
-    "linux_arm64" = {
+    "basic_arm64_100GB" = {
       matcherConfig : {
-        labelMatchers = [["self-hosted", "linux", "arm64", "kuku"]]
+        labelMatchers = [["basic_arm64_100GB"]]
         exactMatch    = true
       }
       runner_config = {
         runner_os                      = "linux"
         runner_architecture            = "arm64"
-        runner_extra_labels            = ["kuku"]
+        runner_extra_labels            = []
         enable_ssm_on_runners          = true
 
         scale_up_reserved_concurrent_executions = -1
         runner_disable_default_labels           = false
         create_service_linked_role_spot         = true
         enable_organization_runners             = false
-        instance_types                          = ["t4g.large"]
+        instance_types                          = ["t4g.xlarge"]
         delay_webhook_event                     = 5
         runners_maximum_count                   = 2
         scale_down_schedule_expression          = "cron(* * * * ? *)"
-        enable_userdata                         = true
-        runner_name_prefix                      = "${local.name}_arm64_"
-        ami_id_ssm_parameter_name               = "githubRunner30GBArm64AmiId"
+        enable_userdata                         = false
+        runner_name_prefix                      = "${local.name}_basic_arm64"
+        ami_id_ssm_parameter_name               = "githubRunner100GBArm64AmiId"
+
+        runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
+
       }
     },
-    "linux_x64" = {
+    "basic_amd64_100GB" = {
       matcherConfig : {
-        labelMatchers = [["self-hosted", "linux", "x64", "kuku"]]
+        labelMatchers = [["basic_amd64_100GB"]]
         exactMatch    = true
       }
       runner_config = {
         runner_os                       = "linux"
-        runner_architecture             = "x64"
-        runner_extra_labels             = ["kuku"]
+        runner_architecture             = "amd64"
+        runner_extra_labels             = []
         enable_ssm_on_runners           = true
 
         scale_up_reserved_concurrent_executions = -1
         runner_disable_default_labels           = false
         create_service_linked_role_spot         = true
         enable_organization_runners             = false
-        instance_types                          = ["t3.large"]
+        instance_types                          = ["t3.xlarge"]
         delay_webhook_event                     = 5
         runners_maximum_count                   = 2
         scale_down_schedule_expression          = "cron(* * * * ? *)"
-        runner_name_prefix                      = "${local.name}_x64_"
-        ami_id_ssm_parameter_name               = "githubRunner30GBAmd64AmiId"
+        runner_name_prefix                      = "${local.name}_basic_amd64"
+        ami_id_ssm_parameter_name               = "githubRunner100GBAmd64AmiId"
         enable_userdata                         = false
+
+        runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
+      }
+    }
+
+
+    "gpu_amd64_100GB" = {
+      matcherConfig : {
+        labelMatchers = [["gpu_amd64_100GB"]]
+        exactMatch    = true
+      }
+      runner_config = {
+        runner_os                       = "linux"
+        runner_architecture             = "amd64"
+        runner_extra_labels             = []
+        enable_ssm_on_runners           = true
+
+        scale_up_reserved_concurrent_executions = -1
+        runner_disable_default_labels           = false
+        create_service_linked_role_spot         = true
+        enable_organization_runners             = false
+        instance_types                          = ["g4dn.xlarge"]
+        delay_webhook_event                     = 5
+        runners_maximum_count                   = 2
+        scale_down_schedule_expression          = "cron(* * * * ? *)"
+        runner_name_prefix                      = "${local.name}_gpu_amd64"
+        ami_id_ssm_parameter_name               = "githubRunner100GBAmd64GpuAmiId"
+        enable_userdata                         = false
+
+        runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
       }
     }
   }
