@@ -15,6 +15,22 @@
         },
         {
             "rulePriority": 2,
+<<<<<<< HEAD
+=======
+            "description": "Keep only 1 last images with \"hash_\" prefix",
+            "selection": {
+                "tagStatus": "tagged",
+                "tagPrefixList": ["hash_"],
+                "countType": "imageCountMoreThan",
+                "countNumber": 1
+            },
+            "action": {
+                "type": "expire"
+            }
+        },
+        {
+            "rulePriority": 3,
+>>>>>>> update2
             "description": "Delete untagged artifacts",
             "selection": {
                 "tagStatus": "untagged",

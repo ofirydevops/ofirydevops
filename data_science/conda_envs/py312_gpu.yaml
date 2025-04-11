@@ -1,0 +1,12 @@
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip=25.0.1
+  - numpy>=1.26.4
+  - cudnn=9.8.0.87
+  - pip:
+    - torch==2.6.0+cu124
+    - torchvision==0.21.0+cu124
+    - torchaudio==2.6.0+cu124
+    - --index-url https://download.pytorch.org/whl/cu124

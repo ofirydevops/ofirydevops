@@ -1,0 +1,143 @@
+x-worker_config: &worker_config
+  amiType:
+    unixData:
+      sshPort: 22
+  associatePublicIp: true
+  connectBySSHProcess: false
+  connectionStrategy: PRIVATE_IP
+  deleteRootOnTermination: true
+  hostKeyVerificationStrategy: 'OFF'
+  iamInstanceProfile: ${instance_profile}
+  idleTerminationMinutes: 5
+  instanceCapStr: 3
+  javaPath: java
+  metadataEndpointEnabled: true
+  metadataTokensRequired: false
+  mode: EXCLUSIVE
+  numExecutors: 1
+  remoteAdmin: ec2-user
+  remoteFS: /home/ec2-user/jenkins
+  securityGroups: ${sg_name}
+  stopOnTerminate: false
+  initScript: |
+    #!/bin/bash
+    mkdir -p /home/ec2-user/.aws
+    tee -a /home/ec2-user/.aws/config <<EOF
+    [profile ${default_profile_name}]
+    EOF
+
+jenkins:
+  globalNodeProperties:
+  - envVars:
+      env:
+      - key: AWS_ECR_REGISTRY
+        value: ${ecr_registry}
+      - key: AWS_DEFAULT_PROFILE
+        value: ${default_profile_name}
+      - key: AWS_REGION
+        value: ${region}
+      - key: DOCKER_CONTAINER_DRIVER_NAME
+        value: dc
+  numExecutors: 0
+  systemMessage: "Configured by JCasC! FROM TPL"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: ofiry
+          name: Ofir Yahav
+          password: ${jenkins_admin_password}
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  clouds:
+  - amazonEC2:
+      name: root_main
+      region: ${region}
+      sshKeysCredentialsId: workers_ssh_access
+      useInstanceProfileForCredentials: true
+      templates:
+      - ami: ${basic_100GB_amd64_ami_id}
+        description: amd64_4vcpu_16gb_100gb
+        labelString: amd64_4vcpu_16gb_100gb
+        subnetId: ${subnet_id}
+        type: t3.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_amd64_4vcpu_16gb_100gb
+        <<: *worker_config
+      - ami: ${basic_100GB_arm64_ami_id}
+        description: arm64_4vcpu_16gb_100gb
+        labelString: arm64_4vcpu_16gb_100gb
+        subnetId: ${subnet_id}
+        type: t4g.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_arm64_4vcpu_16gb_100gb
+        <<: *worker_config
+      - ami: ${deep_learning_100GB_arm64_ami_id}
+        description: gpu_arm64_4vcpu_8gb_100gb
+        labelString: gpu_arm64_4vcpu_8gb_100gb
+        type: g5g.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_gpu_arm64_4vcpu_8gb_100gb
+        <<: *worker_config
+      - ami: ${deep_learning_100GB_amd64_ami_id}
+        description: gpu_amd64_4vcpu_16gb_100gb
+        labelString: gpu_amd64_4vcpu_16gb_100gb
+        type: g4dn.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_gpu_amd64_4vcpu_16gb_100gb
+        <<: *worker_config
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: github_access
+              username: ${github_username}
+              password: ${github_token}
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: workers_ssh_access
+              username: ec2-user
+              privateKeySource:
+                directEntry:
+                  privateKey: |${workers_ssh_key}
+
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+
+jobs:
+  - script: >
+      job('seed_job') {
+        label('arm64_4vcpu_16gb_100gb')
+        parameters {
+          stringParam('ref', 'main', 'branch / tag / commit')
+          choiceParam('file_to_provision', 
+              [
+              'jenkinsfiles/pipelines.groovy'
+              ], 
+              'The pipelines file to provision')
+        }
+        scm {
+          git {
+            remote {
+              url('https://github.com/ofiryy/devops-project.git')
+              credentials('github_access')
+            }
+            branch('$ref')
+          }
+        }
+        steps {
+          dsl {
+            external('jenkinsfiles/pipelines.groovy')
+            removeAction('DELETE')
+          }
+        }
+      }

@@ -6,6 +6,9 @@ verify_ssl = true
 [packages]
 boto3 = "==1.36.26"
 PyYAML = "==6.0.2"
+requests = "==2.32.3"
+pyjwt = "==2.10.1"
+cryptography = "==44.0.2"
 
 [dev-packages]
 

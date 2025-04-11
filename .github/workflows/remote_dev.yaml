@@ -1,0 +1,82 @@
+name: Python Remote Development
+
+on:
+  workflow_dispatch:
+    inputs:
+      uptime_in_minutes:
+        description: "Max uptime in minutes for Conda run"
+        type: choice
+        options: [10, 20 , 40, 80]
+        required: true
+      conda_env:
+        description: "Conda environment name"
+        type: choice
+        options:
+        - ofiry
+        - py310_gpu
+        - py310_full
+        - py39_gpu
+        - py39_full
+        - py311_gpu
+        - py312_gpu
+        required: true
+      ref:
+        description: "Git reference (branch/tag); defaults to triggering ref"
+        required: false
+      node:
+        description: "Runner"
+        type: choice
+        options:
+          - basic_amd64_100GB
+          - basic_arm64_100GB
+          - gpu_amd64_100GB
+        default: basic_amd64_100GB
+        required: true
+
+env:
+  MAX_UPTIME: 80
+  SERVICE_PREFIX: "remote_dev"
+  DOCKER_IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}
+
+jobs:
+  build-and-run:
+    runs-on: ${{ github.event.inputs.node }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set Environment Variables
+        run: |
+          UPTIME_MINUTES=${{ github.event.inputs.uptime_in_minutes }}
+          if [ "$UPTIME_MINUTES" -gt "${{ env.MAX_UPTIME }}" ]; then
+            UPTIME_MINUTES=${{ env.MAX_UPTIME }}
+          fi
+          SERVICE="remote_dev_amd64"
+
+          echo "UPTIME_IN_MINUTES=$UPTIME_MINUTES"              >> $GITHUB_ENV
+          echo "SERVICE=$SERVICE"                               >> $GITHUB_ENV
+          echo "CONDA_ENV=${{ github.event.inputs.conda_env }}" >> $GITHUB_ENV
+
+      - name: Display Public IP
+        run: |
+          IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+          echo "Public IP: $IP"
+
+      - name: Set Up Docker Environment
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Conda Env Docker
+        run: |
+          docker compose -f data_science/docker/docker-compose.yml build ${{ env.SERVICE }} --builder dc
+        env:
+          DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
+          GIT_REF: ${{ github.ref_name }}
+          CONDA_ENV: ${{ github.event.inputs.conda_env }}
+
+      - name: Run Conda Env with Timeout
+        run: |
+          TIMEOUT_SECONDS=$(( ${{ env.UPTIME_IN_MINUTES }} * 60 ))
+          timeout $TIMEOUT_SECONDS \
+          docker compose -f data_science/docker/docker-compose.yml run --service-ports ${{ env.SERVICE }} || true
+        env:
+          DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}

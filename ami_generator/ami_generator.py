@@ -6,6 +6,7 @@ import subprocess
 import uuid
 import boto3
 import datetime
+<<<<<<< HEAD
 import yaml
 import base64
 
@@ -58,12 +59,23 @@ def yaml_to_dict(file_path):
     except yaml.YAMLError as e:
         print(f"Error parsing YAML file: {e}")
     return {}
+=======
+import python_libs.utils as utils
+
+
+
+PACKER_CONF_FILE = "ami_generator/main_conf.yaml"
+>>>>>>> update2
 
 def get_args():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--conf',
                              required = True,
+<<<<<<< HEAD
                              choices  = yaml_to_dict(PACKER_CONF_FILE).keys(),
+=======
+                             choices  = utils.yaml_to_dict(PACKER_CONF_FILE).keys(),
+>>>>>>> update2
                              dest     = 'conf')
     args = vars(args_parser.parse_args())
     return args
@@ -118,16 +130,26 @@ def store_ami_ids_in_ssm(input_dict):
 
 def main():
     args = get_args()
+<<<<<<< HEAD
     input_dict = yaml_to_dict(PACKER_CONF_FILE)[args["conf"]]
+=======
+    input_dict = utils.yaml_to_dict(PACKER_CONF_FILE)[args["conf"]]
+
+    print(json.dumps(input_dict, indent=4))
+>>>>>>> update2
 
     timestamp = get_formatted_timestamp()
 
     for ami in input_dict["images"]:
         input_dict["images"][ami]["ami_name"] = f'PACKER_{ami}__{timestamp}'
 
+<<<<<<< HEAD
 
 
     run_in_decrypted_git_repo(lambda: run_packer(input_dict))
+=======
+    utils.run_in_decrypted_git_repo(lambda: run_packer(input_dict))
+>>>>>>> update2
 
     store_ami_ids_in_ssm(input_dict)
 

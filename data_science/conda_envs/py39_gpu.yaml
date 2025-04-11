@@ -1,0 +1,32 @@
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip=25.0.1
+  - numpy>=1.23.5,<2.0
+  - cudnn=9.8.0.87
+  - pandas=2.2.3
+  - polars=1.26.0
+  - dask=2024.8.0
+  - pyarrow=19.0.1
+  - openpyxl=3.1.5
+  - xlrd=2.0.1
+  - scikit-learn=1.6.1
+  - xgboost=2.1.4
+  - lightgbm=lightgbm
+  - catboost=1.2.7
+  - keras=3.9.0
+  - nltk=3.9.1
+  - spacy=3.8.5
+  - gensim=4.3.3
+  - transformers=4.51.1
+  - sentence-transformers=4.0.2
+  - matplotlib=3.9.4
+  - seaborn=0.13.2
+  - pip:
+    - torch==2.6.0+cu124
+    - torchvision==0.21.0+cu124
+    - torchaudio==2.6.0+cu124
+    - tensorflow==2.16.1
+    - --index-url https://download.pytorch.org/whl/cu124
+    - --extra-index-url https://pypi.org/simple

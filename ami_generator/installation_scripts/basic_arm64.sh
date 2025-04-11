@@ -4,8 +4,11 @@ set -e
 
 yum update -y
 yum upgrade -y
-yum install nano jq unzip telnet -y
+yum install nano jq unzip telnet amazon-cloudwatch-agent -y
 yum install openssl-devel bzip2-devel libffi-devel wget tar xz-devel gcc perl -y
+
+# Add ec2-user to the Docker group
+usermod -a -G docker ec2-user
 
 # Install openssl 1.1.1u
 yum install -y openssl openssl-devel
@@ -73,7 +76,11 @@ chmod 700 get_helm.sh
 # Install terraform and packer
 yum install -y yum-utils
 yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+<<<<<<< HEAD
 yum -y install terraform-1.5.3 packer-1.9.1
+=======
+yum -y install terraform-1.11.0 packer-1.9.1
+>>>>>>> update2
 
 # Install awscli
 curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.13.1.zip" -o "awscliv2.zip"

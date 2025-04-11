@@ -7,13 +7,18 @@ packer {
     }
 }
 
+<<<<<<< HEAD
 variable "arch" {
+=======
+variable "kind" {
+>>>>>>> update2
   type = string
   default = "amd64"
 }
 
 variable "images" {}
 
+<<<<<<< HEAD
 locals {
   arch_conf = {
     "arm64" : {
@@ -28,6 +33,34 @@ locals {
     }
   }
 
+=======
+
+locals {
+  conf = {
+    "arm64_al2023" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_arm64_al2023.sh"
+      base_ami_name_filter = "al2023-ami-ecs-hvm-2023.0.20241031-kernel-6.1-arm64"
+      instance_type = "t4g.xlarge"
+    }
+    "amd64_al2023" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_amd64_al2023.sh"
+      base_ami_name_filter = "al2023-ami-ecs-hvm-2023.0.20241031-kernel-6.1-x86_64"
+      instance_type = "t3.xlarge"
+    }
+    "amd64_al2023_gpu" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_amd64_al2023.sh"
+      base_ami_name_filter = "Deep Learning OSS Nvidia Driver AMI GPU PyTorch 2.6.0 (Amazon Linux 2023) 20250323"
+      instance_type = "t3.xlarge"
+    }
+    "arm64_al2023_gpu" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_arm64_al2023.sh"
+      base_ami_name_filter = "Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.6.0 (Amazon Linux 2023) 20250328"
+      instance_type = "t4g.xlarge"
+    }
+  }
+
+
+>>>>>>> update2
   global_conf = jsondecode(file("${path.root}/../../global_conf.json"))
 
   default_vpc_id = local.global_conf["default_vpc_id"]
@@ -53,11 +86,19 @@ build {
     content {
       ami_name = source.value.ami_name
 
+<<<<<<< HEAD
       instance_type = local.arch_conf[var.arch]["instance_type"]
 
       source_ami_filter {
         filters = {
           name = local.arch_conf[var.arch]["base_ami_name_filter"]
+=======
+      instance_type = local.conf[var.kind]["instance_type"]
+
+      source_ami_filter {
+        filters = {
+          name = local.conf[var.kind]["base_ami_name_filter"]
+>>>>>>> update2
           root-device-type = "ebs"
           virtualization-type = "hvm"
         }
@@ -75,7 +116,11 @@ build {
   }
 
   provisioner "shell" {
+<<<<<<< HEAD
     script = local.arch_conf[var.arch]["installation_script_path"]
+=======
+    script = local.conf[var.kind]["installation_script_path"]
+>>>>>>> update2
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
   }
 }
