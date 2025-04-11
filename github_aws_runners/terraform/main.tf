@@ -1,12 +1,11 @@
 locals {
-    secrets = yamldecode(file("${path.module}/../../secrets.yaml"))
-    global_conf = jsondecode(file("${path.module}/../../global_conf.json"))
-    region = local.global_conf["region"]
-    name = "ofirydevops"
-    git_repository = "devops-project"
-    laptop_public_ip = trimspace(data.http.my_public_ip.response_body)
-
-    gh_runner_userdata = templatefile("${path.module}/userdata.sh", {
+    secrets                = yamldecode(file("${path.module}/../../secrets.yaml"))
+    global_conf            = jsondecode(file("${path.module}/../../global_conf.json"))
+    region                 = local.global_conf["region"]
+    name                   = "ofirydevops"
+    git_repository         = "devops-project"
+    laptop_public_ip       = trimspace(data.http.my_public_ip.response_body)
+    gh_runner_userdata     = templatefile("${path.module}/userdata.sh", {
       default_profile_name = "OFIRYDEVOPS"
     })
     runner_iam_role_managed_policy_arns = [
@@ -14,8 +13,7 @@ locals {
     ]
 
     instance_target_capacity_type = "on-demand"
-
-    runners_key_name = data.aws_ssm_parameter.params["runners_key_name"].value 
+    runners_key_name              = data.aws_ssm_parameter.params["runners_key_name"].value
 
 
     lambdas = [
@@ -186,9 +184,10 @@ module "runners" {
 
   aws_region = local.region
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  subnet_ids = module.vpc.public_subnets
   prefix     = local.name
   key_name   = local.runners_key_name
+  associate_public_ipv4_address = true
   tags = {
     Name = local.name
   }
