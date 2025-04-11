@@ -9,7 +9,14 @@ locals {
     gh_runner_userdata = templatefile("${path.module}/userdata.sh", {
       default_profile_name = "OFIRYDEVOPS"
     })
-    runner_iam_role_managed_policy_arns = aws_iam_policy.gh_runner_policies["gh_runner_general"].arn
+    runner_iam_role_managed_policy_arns = [
+      aws_iam_policy.gh_runner_policies["gh_runner_general"].arn
+    ]
+
+    instance_target_capacity_type = "on-demand"
+
+    runners_key_name = data.aws_ssm_parameter.params["runners_key_name"].value 
+
 
     lambdas = [
       {
@@ -65,9 +72,21 @@ locals {
     sgs = {
       "gh_runner_general" : {}
     }
+
+    ssm_params_to_read = {
+      "runners_key_name" : {
+          key = "rootJenkinsKeyPair"
+      }
+    }
+
 }
 data "http" "my_public_ip" {
   url = "https://checkip.amazonaws.com"
+}
+
+data "aws_ssm_parameter" "params" {
+  for_each = local.ssm_params_to_read
+  name     = each.value.key
 }
 
 resource "aws_security_group" "sgs" {
@@ -153,22 +172,23 @@ resource "random_id" "random" {
 }
 
 module "runners" {
-  source = "github-aws-runners/github-runner/aws//modules/multi-runner"
-
+  source  = "github-aws-runners/github-runner/aws//modules/multi-runner"
   version = "v6.3.0"
 
-  lambda_s3_bucket = module.github_runners_s3_bucket.s3_bucket_id
-  syncer_lambda_s3_key = aws_s3_object.lambdas_zips["runner-binaries-syncer"].key
+  lambda_s3_bucket      = module.github_runners_s3_bucket.s3_bucket_id
+  syncer_lambda_s3_key  = aws_s3_object.lambdas_zips["runner-binaries-syncer"].key
   webhook_lambda_s3_key = aws_s3_object.lambdas_zips["webhook"].key
   runners_lambda_s3_key = aws_s3_object.lambdas_zips["runners"].key
   runner_additional_security_group_ids = [
     aws_security_group.sgs["gh_runner_general"].id
   ]
+  
 
   aws_region = local.region
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
-  prefix = local.name
+  prefix     = local.name
+  key_name   = local.runners_key_name
   tags = {
     Name = local.name
   }
@@ -206,10 +226,11 @@ module "runners" {
         runners_maximum_count                   = 2
         scale_down_schedule_expression          = "cron(* * * * ? *)"
         enable_userdata                         = false
-        runner_name_prefix                      = "${local.name}_basic_arm64"
+        runner_name_prefix                      = "${local.name}_basic_arm64_100GB"
         ami_id_ssm_parameter_name               = "githubRunner100GBArm64AmiId"
 
         runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
+        instance_target_capacity_type           = local.instance_target_capacity_type
 
       }
     },
@@ -220,7 +241,7 @@ module "runners" {
       }
       runner_config = {
         runner_os                       = "linux"
-        runner_architecture             = "amd64"
+        runner_architecture             = "x64"
         runner_extra_labels             = []
         enable_ssm_on_runners           = true
 
@@ -232,11 +253,12 @@ module "runners" {
         delay_webhook_event                     = 5
         runners_maximum_count                   = 2
         scale_down_schedule_expression          = "cron(* * * * ? *)"
-        runner_name_prefix                      = "${local.name}_basic_amd64"
+        runner_name_prefix                      = "${local.name}_basic_amd64_100GB"
         ami_id_ssm_parameter_name               = "githubRunner100GBAmd64AmiId"
         enable_userdata                         = false
 
         runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
+        instance_target_capacity_type           = local.instance_target_capacity_type
       }
     }
 
@@ -248,7 +270,7 @@ module "runners" {
       }
       runner_config = {
         runner_os                       = "linux"
-        runner_architecture             = "amd64"
+        runner_architecture             = "x64"
         runner_extra_labels             = []
         enable_ssm_on_runners           = true
 
@@ -260,11 +282,12 @@ module "runners" {
         delay_webhook_event                     = 5
         runners_maximum_count                   = 2
         scale_down_schedule_expression          = "cron(* * * * ? *)"
-        runner_name_prefix                      = "${local.name}_gpu_amd64"
+        runner_name_prefix                      = "${local.name}_gpu_amd64_100GB"
         ami_id_ssm_parameter_name               = "githubRunner100GBAmd64GpuAmiId"
         enable_userdata                         = false
 
         runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
+        instance_target_capacity_type           = local.instance_target_capacity_type
       }
     }
   }

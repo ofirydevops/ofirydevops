@@ -10,12 +10,8 @@ on:
 
 
 jobs:
-  main_arm64:
-    runs-on:
-      - self-hosted
-      - linux
-      - arm64
-      - kuku
+  test:
+    runs-on: basic_arm64_100GB
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,27 +20,3 @@ jobs:
         run: |
           ls -l
           echo "Hello World ${{ github.event.inputs.myinput }}"
-
-
-
-  # main_x64:
-  #   runs-on:
-  #     - self-hosted
-  #     - linux
-  #     - x64
-  #     - kuku
-
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Test
-  #       run: |
-  #         ls -l
-  #         echo "Hello World x64"
-  #         terraform --version
-  #         git-crypt --help
-  #         helm
-  #         kubectl
-  #         aws help
-  #         docker compose 
