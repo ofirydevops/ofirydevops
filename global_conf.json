@@ -6,5 +6,6 @@
     "subnet-0f421aff16ab32706"
   ],
   "region" : "eu-central-1",
-  "domain" : "ofirydevops.com"
+  "domain" : "ofirydevops.com",
+  "profile" : "OFIRYDEVOPS"
 }
