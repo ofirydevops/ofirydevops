@@ -231,7 +231,7 @@ module "runners" {
 
         runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
         instance_target_capacity_type           = local.instance_target_capacity_type
-
+        block_device_mappings                   = []
       }
     },
     "basic_amd64_100GB" = {
@@ -259,6 +259,7 @@ module "runners" {
 
         runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
         instance_target_capacity_type           = local.instance_target_capacity_type
+        block_device_mappings                   = []
       }
     }
 
@@ -288,6 +289,7 @@ module "runners" {
 
         runner_iam_role_managed_policy_arns     = local.runner_iam_role_managed_policy_arns
         instance_target_capacity_type           = local.instance_target_capacity_type
+        block_device_mappings                   = []
       }
     }
   }
