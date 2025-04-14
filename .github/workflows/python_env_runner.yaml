@@ -67,6 +67,6 @@ jobs:
         run: |
           TIMEOUT_SECONDS=$(( ${{ github.event.inputs.timeout }} * 60 ))
           timeout $TIMEOUT_SECONDS \
-          docker compose -f data_science/docker/docker-compose.yml run --service-ports ${{ steps.get_dc_service.outputs.service }}
+          docker compose -f data_science/docker/docker-compose.yml run ${{ steps.get_dc_service.outputs.service }} ${{ github.event.inputs.command }}
         env:
           DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}

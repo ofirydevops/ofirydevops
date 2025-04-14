@@ -26,6 +26,7 @@ on:
 
 env:
   DOCKER_IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}
+  SERVICE_PREFIX: main_update_cache
 
 jobs:
   env_cache_update:
@@ -42,9 +43,7 @@ jobs:
                     docker login --username AWS --password-stdin ${{ vars.AWS_ECR_REGISTRY }}
 
       - name: Source and use get_dc_service
-        id: get_dc_service
-        env:
-            SERVICE_PREFIX: main_update_cache
+        id: get_dc_service            
         run: |
             source .github/scripts/utils.sh
             service=$(get_dc_service ${{ env.SERVICE_PREFIX }} ${{ github.event.inputs.node }})
@@ -57,17 +56,6 @@ jobs:
       - name: Update Conda Env Docker Cache
         run: |
           docker compose -f data_science/docker/docker-compose.yml build ${{ steps.get_dc_service.outputs.service }}
-
-      - name: Display Public IP
-        id: get_public_ip
-        run: |
-          IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-          echo "Public IP: $IP"
-          echo "public_ip=$IP" >> $GITHUB_OUTPUT
-
-      - name: Build Conda Env Docker
-        run: |
-          docker compose -f data_science/docker/docker-compose.yml build ${{ steps.get_dc_service.outputs.service }} --builder dc
         env:
           DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
           CONDA_ENV: ${{ github.event.inputs.conda_env }}
