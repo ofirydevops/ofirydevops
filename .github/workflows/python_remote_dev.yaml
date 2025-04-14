@@ -1,4 +1,4 @@
-name: Python Remote Development
+name: python_remote_development
 
 on:
   workflow_dispatch:
@@ -12,25 +12,17 @@ on:
         description: "Conda environment name"
         type: choice
         options:
-        - ofiry
-        - py310_gpu
-        - py310_full
-        - py39_gpu
-        - py39_full
-        - py311_gpu
-        - py312_gpu
+          - ofiry
+          - py310_gpu
+          - py310_full
         required: true
-      ref:
-        description: "Git reference (branch/tag); defaults to triggering ref"
-        required: false
       node:
-        description: "Runner"
+        description: "Runner node"
         type: choice
         options:
           - basic_amd64_100GB
           - basic_arm64_100GB
           - gpu_amd64_100GB
-        default: basic_amd64_100GB
         required: true
 
 env:
@@ -40,10 +32,28 @@ env:
 
 jobs:
   build-and-run:
-    runs-on: ${{ github.event.inputs.node }}
+    runs-on: 
+      - self-hosted
+      - ${{ github.event.inputs.node }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: ECR Auth
+        run: |
+          docker buildx ls
+          aws ecr get-login-password --region ${{ vars.AWS_REGION }} --profile ${{ vars.AWS_DEFAULT_PROFILE }} | \
+                    docker login --username AWS --password-stdin ${{ vars.AWS_ECR_REGISTRY }}
+
+      - name: Source and use get_dc_service
+        id: get_dc_service
+        env:
+            SERVICE_PREFIX: remote_dev
+        run: |
+            source .github/scripts/utils.sh
+            service=$(get_dc_service ${{ env.SERVICE_PREFIX }} ${{ github.event.inputs.node }})
+            echo "Service name: $service"
+            echo "service=$service" >> $GITHUB_OUTPUT
 
       - name: Set Environment Variables
         run: |
@@ -51,32 +61,30 @@ jobs:
           if [ "$UPTIME_MINUTES" -gt "${{ env.MAX_UPTIME }}" ]; then
             UPTIME_MINUTES=${{ env.MAX_UPTIME }}
           fi
-          SERVICE="remote_dev_amd64"
-
           echo "UPTIME_IN_MINUTES=$UPTIME_MINUTES"              >> $GITHUB_ENV
-          echo "SERVICE=$SERVICE"                               >> $GITHUB_ENV
           echo "CONDA_ENV=${{ github.event.inputs.conda_env }}" >> $GITHUB_ENV
 
-      - name: Display Public IP
+
+      - name: Get Public IP
+        id: get_public_ip
         run: |
           IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
           echo "Public IP: $IP"
-
-      - name: Set Up Docker Environment
-        uses: docker/setup-buildx-action@v3
+          echo "public_ip=$IP" >> $GITHUB_OUTPUT
 
       - name: Build Conda Env Docker
         run: |
-          docker compose -f data_science/docker/docker-compose.yml build ${{ env.SERVICE }} --builder dc
+          docker compose -f data_science/docker/docker-compose.yml build ${{ steps.get_dc_service.outputs.service }}
         env:
           DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
           GIT_REF: ${{ github.ref_name }}
           CONDA_ENV: ${{ github.event.inputs.conda_env }}
 
-      - name: Run Conda Env with Timeout
+      - name: Run Conda Env
         run: |
           TIMEOUT_SECONDS=$(( ${{ env.UPTIME_IN_MINUTES }} * 60 ))
+          echo "For remote development you can ssh to root@${{ steps.get_public_ip.outputs.public_ip }} on port 5000"
           timeout $TIMEOUT_SECONDS \
-          docker compose -f data_science/docker/docker-compose.yml run --service-ports ${{ env.SERVICE }} || true
+          docker compose -f data_science/docker/docker-compose.yml run --service-ports ${{ steps.get_dc_service.outputs.service }} || true
         env:
           DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}

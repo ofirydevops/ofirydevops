@@ -1,9 +1,13 @@
 ARG RUNTIME_IMAGE
+
 FROM mambaorg/micromamba:2-cuda12.2.2-ubuntu20.04 as builder
 
 WORKDIR /app
 
 ENV MAMBA_ROOT_PREFIX=/opt/conda
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends curl bzip2 ca-certificates && \
+#     curl -Ls ${MICROMAMBA_DOWNLOAD_LINK} | tar -xvj -C /usr/local/bin/ --strip-components=1 bin/micromamba
 
 ARG CONDA_ENV_FILE_PATH
 ARG CONDA_ENV_INTERNAL_NAME
@@ -15,7 +19,7 @@ RUN micromamba clean --all -f -y
 RUN find /opt/conda -type d -name "__pycache__" -exec rm -rf {} + && \
     find /opt/conda -type f -name "*.pyc" -delete
 
-FROM ${RUNTIME_IMAGE} AS runtime
+FROM ${RUNTIME_IMAGE} as runtime
 
 COPY --from=builder /opt/conda /opt/conda
     

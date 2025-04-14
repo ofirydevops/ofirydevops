@@ -16,9 +16,11 @@ x-build_args: &build_args
 
 x-amd64_build_args: &amd64_build_args
   AWS_CLI_DOWNLOAD_LINK: https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.15.37.zip
+  MICROMAMBA_DOWNLOAD_LINK: https://micro.mamba.pm/api/micromamba/linux-64/2.1.0
 
 x-arm64_build_args: &arm64_build_args
   AWS_CLI_DOWNLOAD_LINK: https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.15.37.zip
+  MICROMAMBA_DOWNLOAD_LINK: https://micro.mamba.pm/api/micromamba/linux-aarch64/2.1.0
 
 x-build: &build
   context: ../../

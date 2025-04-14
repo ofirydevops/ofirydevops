@@ -1,18 +1,14 @@
 def condaEnvs = [
   'ofiry',
   'py310_gpu',
-  'py310_full',
-  'py39_gpu',
-  'py39_full',
-  'py311_gpu',
-  'py312_gpu'
+  'py310_full'
   ]
 
 def nodes = [
-  'amd64_4vcpu_16gb_100gb', 
-  'arm64_4vcpu_16gb_100gb', 
-  'gpu_amd64_4vcpu_16gb_100gb',
-  'gpu_arm64_4vcpu_8gb_100gb'
+  'basic_amd64_100GB', 
+  'basic_arm64_100GB', 
+  'gpu_amd64_100GB',
+  'gpu_arm64_100GB'
   ]
 
 pipelineJob('deploy_github_aws_runners') {
@@ -84,8 +80,13 @@ pipelineJob('data_science_remote_development') {
 pipelineJob('data_science_update_cahce') {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
-        choiceParam('arch', ['amd64', 'arm64'])
-        choiceParam('processor', ['cpu', 'gpu'])
+        
+        choiceParam('node', 
+        [
+        'basic_amd64_100GB',
+        'basic_arm64_100GB'
+        ])
+        booleanParam('gpu', false)
         choiceParam('conda_env', 
                     condaEnvs, 
                     'Conda env for which the cache will be updated')
