@@ -15,8 +15,6 @@
         },
         {
             "rulePriority": 2,
-<<<<<<< HEAD
-=======
             "description": "Keep only 1 last images with \"hash_\" prefix",
             "selection": {
                 "tagStatus": "tagged",
@@ -30,7 +28,6 @@
         },
         {
             "rulePriority": 3,
->>>>>>> update2
             "description": "Delete untagged artifacts",
             "selection": {
                 "tagStatus": "untagged",

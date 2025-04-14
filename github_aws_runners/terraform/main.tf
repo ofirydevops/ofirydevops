@@ -225,7 +225,7 @@ module "runners" {
   multi_runner_config = {
     "basic_arm64_100GB" = {
       matcherConfig : {
-        labelMatchers = [["basic_arm64_100GB"]]
+        labelMatchers = [["basic_arm64_100GB", "self-hosted"]]
         exactMatch    = true
       }
       runner_config = {
@@ -255,7 +255,7 @@ module "runners" {
     },
     "basic_amd64_100GB" = {
       matcherConfig : {
-        labelMatchers = [["basic_amd64_100GB"]]
+        labelMatchers = [["basic_amd64_100GB" ,"self-hosted"]]
         exactMatch    = true
       }
       runner_config = {
@@ -287,7 +287,7 @@ module "runners" {
 
     "gpu_amd64_100GB" = {
       matcherConfig : {
-        labelMatchers = [["gpu_amd64_100GB"]]
+        labelMatchers = [["gpu_amd64_100GB" ,"self-hosted"]]
         exactMatch    = true
       }
       runner_config = {

@@ -22,9 +22,17 @@ x-worker_config: &worker_config
   initScript: |
     #!/bin/bash
     mkdir -p /home/ec2-user/.aws
-    tee -a /home/ec2-user/.aws/config <<EOF
+    tee /home/ec2-user/.aws/config <<EOF
     [profile ${default_profile_name}]
     EOF
+    sudo tee /etc/docker/daemon.json <<EOF
+    {
+      "features": {
+        "containerd-snapshotter": true
+      }
+    }
+    EOF
+    sudo service docker restart
 
 jenkins:
   globalNodeProperties:
@@ -58,38 +66,38 @@ jenkins:
       useInstanceProfileForCredentials: true
       templates:
       - ami: ${basic_100GB_amd64_ami_id}
-        description: amd64_4vcpu_16gb_100gb
-        labelString: amd64_4vcpu_16gb_100gb
+        description: basic_amd64_100GB
+        labelString: basic_amd64_100GB
         subnetId: ${subnet_id}
         type: t3.xlarge
         tags:
         - name: Name
-          value: root_jenkins_amd64_4vcpu_16gb_100gb
+          value: root_jenkins_basic_amd64_100GB
         <<: *worker_config
       - ami: ${basic_100GB_arm64_ami_id}
-        description: arm64_4vcpu_16gb_100gb
-        labelString: arm64_4vcpu_16gb_100gb
+        description: basic_arm64_100GB
+        labelString: basic_arm64_100GB
         subnetId: ${subnet_id}
         type: t4g.xlarge
         tags:
         - name: Name
-          value: root_jenkins_arm64_4vcpu_16gb_100gb
+          value: root_jenkins_basic_arm64_100GB
         <<: *worker_config
       - ami: ${deep_learning_100GB_arm64_ami_id}
-        description: gpu_arm64_4vcpu_8gb_100gb
-        labelString: gpu_arm64_4vcpu_8gb_100gb
+        description: gpu_arm64_100GB
+        labelString: gpu_arm64_100GB
         type: g5g.xlarge
         tags:
         - name: Name
-          value: root_jenkins_gpu_arm64_4vcpu_8gb_100gb
+          value: root_jenkins_gpu_arm64_100GB
         <<: *worker_config
       - ami: ${deep_learning_100GB_amd64_ami_id}
-        description: gpu_amd64_4vcpu_16gb_100gb
-        labelString: gpu_amd64_4vcpu_16gb_100gb
+        description: gpu_amd64_100GB
+        labelString: gpu_amd64_100GB
         type: g4dn.xlarge
         tags:
         - name: Name
-          value: root_jenkins_gpu_amd64_4vcpu_16gb_100gb
+          value: root_jenkins_gpu_amd64_100GB
         <<: *worker_config
 
 credentials:
@@ -116,7 +124,7 @@ security:
 jobs:
   - script: >
       job('seed_job') {
-        label('arm64_4vcpu_16gb_100gb')
+        label('basic_arm64_100GB')
         parameters {
           stringParam('ref', 'main', 'branch / tag / commit')
           choiceParam('file_to_provision', 

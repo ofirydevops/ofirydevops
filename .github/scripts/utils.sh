@@ -1,4 +1,3 @@
-# scripts/utils.sh
 get_dc_service() {
     local dc_service_prefix="$1"
     local node_label="$2"
