@@ -113,3 +113,40 @@ pipelineJob('data_science_update_cahce') {
         }
     }
 }
+
+pipelineJob('python_env_runner') {
+    parameters {
+        stringParam('ref', 'main', 'branch / tag / commit')
+        choiceParam('node', nodes, 'Node to run on')
+
+        stringParam('command', '', 'Command to run')
+
+        choiceParam('timeout_in_minutes', 
+                     ['10', '20', '40','80'])
+
+        choiceParam('conda_env', 
+                    condaEnvs, 
+                    'Conda env to run')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+    }
+
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url('https://github.com/ofiryy/devops-project.git')
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/python_env_runner.groovy')
+        }
+    }
+}

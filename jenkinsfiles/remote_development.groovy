@@ -31,7 +31,7 @@ node(env.node) {
             sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
                 GIT_REF=${gitRef} \
                 CONDA_ENV=${condaEnv} \
-                docker compose -f data_science/docker/docker-compose.yml build ${service}" //--builder dc"
+                docker compose -f data_science/docker/docker-compose.yml build ${service}"
         }
 
 
