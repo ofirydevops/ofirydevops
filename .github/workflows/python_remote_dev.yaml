@@ -17,7 +17,7 @@ on:
           - py310_full
         required: true
       node:
-        description: "Runner node"
+        description: "Runner"
         type: choice
         options:
           - basic_amd64_100GB
@@ -35,13 +35,12 @@ jobs:
     runs-on: 
       - self-hosted
       - ${{ github.event.inputs.node }}
+    runs-on: ${{ github.event.inputs.node }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: ECR Auth
         run: |
-          docker buildx ls
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} --profile ${{ vars.AWS_DEFAULT_PROFILE }} | \
                     docker login --username AWS --password-stdin ${{ vars.AWS_ECR_REGISTRY }}
 
