@@ -15,7 +15,7 @@ node(env.node) {
         stage('Checkout') {
             checkout scm
             def utils = load 'jenkinsfiles/utils.groovy'
-            utils.setUpDockerEnv(this)
+            utils.setUpEcrAuthAndFilesPermission(this)
             service = utils.getDcService(servicePrefix, nodeLabel)
         }
 

@@ -55,6 +55,7 @@ jobs:
 
       - name: Update Conda Env Docker Cache
         run: |
+          stat data_science/conda_envs/${{ github.event.inputs.conda_env }}.yaml
           docker compose -f data_science/docker/docker-compose.yml build ${{ steps.get_dc_service.outputs.service }}
         env:
           DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}

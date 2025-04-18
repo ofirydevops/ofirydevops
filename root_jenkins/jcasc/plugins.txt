@@ -19,3 +19,4 @@ ws-cleanup
 ec2
 role-strategy
 pipeline-stage-view
+github-pullrequest
