@@ -7,33 +7,13 @@ packer {
     }
 }
 
-<<<<<<< HEAD
-variable "arch" {
-=======
 variable "kind" {
->>>>>>> update2
   type = string
   default = "amd64"
 }
 
 variable "images" {}
 
-<<<<<<< HEAD
-locals {
-  arch_conf = {
-    "arm64" : {
-      installation_script_path = "ami_generator/installation_scripts/basic_arm64.sh"
-      base_ami_name_filter = "amzn2-ami-ecs-hvm-2.0.20230509-arm64-ebs"
-      instance_type = "t4g.xlarge"
-    }
-    "amd64" : {
-      installation_script_path = "ami_generator/installation_scripts/basic_amd64.sh"
-      base_ami_name_filter = "amzn2-ami-ecs-hvm-2.0.20240312-x86_64-ebs"
-      instance_type = "t3.xlarge"
-    }
-  }
-
-=======
 
 locals {
   conf = {
@@ -60,7 +40,6 @@ locals {
   }
 
 
->>>>>>> update2
   global_conf = jsondecode(file("${path.root}/../../global_conf.json"))
 
   default_vpc_id = local.global_conf["default_vpc_id"]
@@ -86,19 +65,11 @@ build {
     content {
       ami_name = source.value.ami_name
 
-<<<<<<< HEAD
-      instance_type = local.arch_conf[var.arch]["instance_type"]
-
-      source_ami_filter {
-        filters = {
-          name = local.arch_conf[var.arch]["base_ami_name_filter"]
-=======
       instance_type = local.conf[var.kind]["instance_type"]
 
       source_ami_filter {
         filters = {
           name = local.conf[var.kind]["base_ami_name_filter"]
->>>>>>> update2
           root-device-type = "ebs"
           virtualization-type = "hvm"
         }
@@ -116,11 +87,7 @@ build {
   }
 
   provisioner "shell" {
-<<<<<<< HEAD
-    script = local.arch_conf[var.arch]["installation_script_path"]
-=======
     script = local.conf[var.kind]["installation_script_path"]
->>>>>>> update2
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
   }
 }
