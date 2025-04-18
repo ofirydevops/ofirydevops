@@ -484,3 +484,32 @@ resource "null_resource" "root_jenkins_jcasc_update" {
         ]
     }
 }
+
+
+module "jenkins_github_webhook" {
+  source                        = "../../tf_modules/github_jenkins_webhook_gw"
+  name                          = "ofiry"
+  domain                        = local.domain
+  hosted_zone_id                = local.hosted_zone_id
+  github_jenkins_webhook_secret = local.secrets["github_jenkins_webhook_secret"]
+  vpc_id                        = local.default_vpc_id
+  git_repo                      = local.global_conf["git_repo"]
+  jenkins_server_subnet_id      = local.root_jenkins_subnet_id
+  jenkins_server_private_ip     = aws_instance.root_jenkins.private_ip
+  jenkins_server_sg_id          = aws_security_group.sgs["root_jenkins_master"].id
+}
+
+
+
+resource "null_resource" "cleanup" {
+  depends_on = [
+    module.jenkins_github_webhook,
+    null_resource.root_jenkins_jcasc_update
+    ]
+  triggers = {
+    always = timestamp()
+  }
+  provisioner "local-exec" {
+    command = "rm ${module.jenkins_github_webhook.auth_lambda_zip_name} ${local_sensitive_file.rendered_jcasc_config.filename} || true"
+  }
+}

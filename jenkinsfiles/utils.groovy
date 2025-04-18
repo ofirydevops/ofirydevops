@@ -12,7 +12,8 @@ def getDcService(dcServicePrefix, nodeLabel) {
     return dcService
 }
 
-def setUpDockerEnv(pipeline) {
+def setUpEcrAuthAndFilesPermission(pipeline) {
+    pipeline.sh("find . -type f -exec chmod 644 {} \\;")
     pipeline.sh("aws ecr get-login-password --region ${pipeline.env.AWS_REGION} --profile ${pipeline.env.AWS_DEFAULT_PROFILE} | \
                 docker login --username AWS --password-stdin ${pipeline.env.AWS_ECR_REGISTRY}")
 }

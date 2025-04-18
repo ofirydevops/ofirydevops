@@ -1,4 +1,4 @@
-import tensorflow as tf
+# import tensorflow as tf
 import torch
 
 def check_tensorflow_gpu():
@@ -23,5 +23,5 @@ def check_pytorch_gpu():
         print(f"⚠️ PyTorch GPU check failed: {e}")
 
 if __name__ == "__main__":
-    check_tensorflow_gpu()
     check_pytorch_gpu()
+    # check_tensorflow_gpu()

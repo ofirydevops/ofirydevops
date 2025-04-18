@@ -47,7 +47,7 @@ jenkins:
       - key: DOCKER_CONTAINER_DRIVER_NAME
         value: dc
   numExecutors: 0
-  systemMessage: "Configured by JCasC! FROM TPL"
+  systemMessage: "Configured with JCasC!"
   securityRealm:
     local:
       allowsSignup: false
@@ -149,3 +149,4 @@ jobs:
           }
         }
       }
+

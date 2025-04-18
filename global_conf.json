@@ -7,5 +7,6 @@
   ],
   "region" : "eu-central-1",
   "domain" : "ofirydevops.com",
-  "profile" : "OFIRYDEVOPS"
+  "profile" : "OFIRYDEVOPS",
+  "git_repo" : "devops-project"
 }

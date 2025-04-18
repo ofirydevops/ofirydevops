@@ -7,6 +7,7 @@ on:
         description: "Run command"
         type: string
         required: true
+        default: python data_science/hello_world.py
       timeout:
         description: "Runner timeout"
         type: choice
@@ -45,6 +46,7 @@ jobs:
       - name: ECR Auth
         run: |
           docker buildx ls
+          sudo cat /etc/docker/daemon.json
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} --profile ${{ vars.AWS_DEFAULT_PROFILE }} | \
                     docker login --username AWS --password-stdin ${{ vars.AWS_ECR_REGISTRY }}
 
@@ -58,6 +60,7 @@ jobs:
 
       - name: Build Conda Env Docker
         run: |
+          stat data_science/conda_envs/${{ github.event.inputs.conda_env }}.yaml
           docker compose -f data_science/docker/docker-compose.yml build ${{ steps.get_dc_service.outputs.service }}
         env:
           DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}

@@ -1,20 +1,3 @@
-<<<<<<< HEAD
-root_amd64:
-  packer_hcl_path: ami_generator/main.pkr.hcl
-  arch: amd64
-  images:
-    jenkins_root_amd64_30_GB:
-      volume_size: 30
-      ami_id_ssm_key: jenkinsRoot30GBAmd64AmiId
-      
-root_arm64:
-  packer_hcl_path: ami_generator/main.pkr.hcl
-  arch: arm64
-  images:
-    jenkins_root_arm64_30_GB:
-      volume_size: 30
-      ami_id_ssm_key: jenkinsRoot30GBArm64AmiId
-=======
 basic_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: amd64_al2023
@@ -78,4 +61,3 @@ github_runner_amd64_gpu:
     github_runner_amd64_gpu_100_GB:
       volume_size: 100
       ami_id_ssm_key: githubRunner100GBAmd64GpuAmiId
->>>>>>> update2

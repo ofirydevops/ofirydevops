@@ -6,7 +6,7 @@ tee /etc/docker/daemon.json <<EOF
     }
 }
 EOF
-sudo service docker restart
+service docker restart
 mkdir -p /home/ec2-user/.aws
 tee -a /home/ec2-user/.aws/config <<EOF
 [profile ${default_profile_name}]
