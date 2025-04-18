@@ -10,3 +10,4 @@ node('basic_arm64_100GB') {
         }
     }
 }
+
