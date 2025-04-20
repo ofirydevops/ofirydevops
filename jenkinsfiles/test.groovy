@@ -6,7 +6,10 @@ node('basic_arm64_100GB') {
         }
 
         stage('Run Test') {
-            echo "Hello World"
+            echo "Hello World UPDATE2"
         }
     }
 }
+
+
+

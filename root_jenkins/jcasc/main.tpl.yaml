@@ -104,6 +104,11 @@ credentials:
   system:
     domainCredentials:
       - credentials:
+          - string:
+              description: github_token
+              id: github_token
+              scope: GLOBAL
+              secret: ${github_token}
           - usernamePassword:
               scope: GLOBAL
               id: github_access
@@ -150,3 +155,8 @@ jobs:
         }
       }
 
+unclassified:
+  gitHubPluginConfig:
+    configs:
+    - credentialsId: github_token
+      manageHooks: false
