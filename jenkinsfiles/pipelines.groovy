@@ -157,67 +157,111 @@ pipelineJob('python_env_runner') {
     }
 }
 
-pipelineJob('gh-branch') {
-    // triggers {
-    //     onBranch {
-    //         setPreStatus()
-    //         cancelQueued()
 
-    //         mode {
-    //             cron()
-    //             heavyHooks()
-    //             heavyHooksCron()
-    //         }
-
-    //         repoProviders {
-    //             gitHubPlugin {
-    //                 manageHooks(false)
-    //                 cacheConnection(false)
-    //                 permission { pull() }
-    //             }
-    //         }
-
-    //         events {
-
-    //             branchRestriction {
-    //                 matchCritieria('master')
-    //                 matchCritieria('other')
-    //             }
-
-    //             commitChecks {
-    //                 commitMessagePattern {
-    //                     excludeMatching()
-    //                     matchCritieria('^(?s)\\[(release|unleash)\\-maven\\-plugin\\].*')
-    //                 }
-    //             }
-
-    //             created()
-    //             hashChanged()
-    //             deleted()
-    //         }
-
-    //         whitelistedBranches('master')
-    //     }
-
-    // }
+pipelineJob('terraform_projects_validation') {
     properties {
         durabilityHint {
             hint('PERFORMANCE_OPTIMIZED')
         }
         githubProjectUrl(gitRepoAddress)
     }
-   definition {
-           cpsScm {
-             scm {
-               git {
-                 remote {
-                   url('https://github.com/ofiryy/devops-project.git')
-                   credentials('github_access')
-                 }
-                 branch('update2')
-               }
-             }
-            scriptPath('jenkinsfiles/test.groovy')
+    triggers {
+        ghprbTrigger {
+          useGitHubHooks(true)
+          triggerPhrase('retest terraform_projects_validation')
+          permitAll(true)
+          skipBuildPhrase('')
+          displayBuildErrorsOnDownstreamBuilds(true)
+          buildDescTemplate('PR #$pullId $abbrTitle url: $url')
+          commitStatusContext('')
+          whiteListTargetBranches {
+              ghprbBranch {
+                  branch('main')
+              }
+          } 
+          extensions {
+            ghprbCancelBuildsOnUpdate {
+                overrideGlobal(true)
+            }
+            ghprbSimpleStatus {
+                commitStatusContext('$JOB_NAME')
+                showMatrixStatus(false)
+                statusUrl('')
+                triggeredStatus('')
+                startedStatus('')
+                addTestResults(true)
+            } 
+          }
+
+          adminlist('')
+          whitelist('')
+          orgslist('')
+          cron('')
+          onlyTriggerPhrase(false) 
+          autoCloseFailedPullRequests(false)
+          commentFilePath('')
+          blackListCommitAuthor('') 
+          allowMembersOfWhitelistedOrgsAsAdmin(false) 
+          msgSuccess('')
+          msgFailure('') 
+          gitHubAuthId('') 
+          blackListLabels('') 
+          whiteListLabels('')
+          includedRegions('')
+          excludedRegions('')
+
         }
+
+
+        // githubPullRequests {
+        //     spec('')
+        //     triggerMode('HEAVY_HOOKS')
+        //     events {
+        //         Open()
+        //         commentPattern {
+        //             comment('retest terraform_projects_validation')
+        //         }
+        //         commitChanged()
+        //         description {
+        //             skipMsg('[skip ci]')
+        //         }
+        //         cancelQueued(true)
+        //         preStatus(true) 
+        //         abortRunning(true)
+        //     }
+        //     repoProviders {
+        //         githubPlugin {
+        //             cacheConnection(false)
+        //             manageHooks(false)
+        //             repoPermission('ADMIN')
+        //         }
+        //     }
+        //     branchRestriction {
+        //         targetBranch('main')
+        //     } 
+        // }
+
+
+    }
+  
+    definition {
+        cpsScm {
+            scm {
+                git {
+                    remote {
+                        url('https://github.com/ofiryy/devops-project.git')
+                        credentials('github_access')
+                        // refspec('+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
+                        refspec('+refs/heads/*:refs/remotes/origin/* +refs/pull/${ghprbPullId}/*:refs/remotes/origin/pr/${ghprbPullId}/*')
+                    }
+                    // branch('origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
+                    branch('${sha1}')
+                }
+            }
+            scriptPath('jenkinsfiles/test.groovy')
+      }
     }
 }
+
+
+

@@ -49,7 +49,8 @@ def lambda_handler(event, context):
 
     data = event['body'].encode('utf-8')
     endpoints = [
-        "github-webhook/"
+        "github-webhook/",
+        "ghprbhook/"
     ]
 
     try:
