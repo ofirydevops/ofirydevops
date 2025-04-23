@@ -8,5 +8,6 @@
   "region" : "eu-central-1",
   "domain" : "ofirydevops.com",
   "profile" : "OFIRYDEVOPS",
-  "git_repo" : "devops-project"
+  "git_repo" : "devops-project",
+  "email" : "yahavofir@gmail.com"
 }

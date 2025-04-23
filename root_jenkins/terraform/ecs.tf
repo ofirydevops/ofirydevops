@@ -1,64 +1,62 @@
 data "aws_ssm_parameter" "params" {
   for_each = local.ssm_params_to_read
-  name = each.value.key
+  name = each.value
+  with_decryption = true
 }
 locals {
 
     jenkins_casc_config_dir = "/var/jenkins_home/jcasc"
 
     ssm_params_to_read = {
-      "hosted_zone_id" : {
-          key = "hostedZoneId"
-      }
-      "root_jenkins_key_pair" : {
-          key = "rootJenkinsKeyPair"
-      }
-
-      "basic_100GB_amd64_ami_id" : {
-          key = "basic100GBAmd64AmiId"
-      }
-
-      "basic_100GB_arm64_ami_id" : {
-          key = "basic100GBArm64AmiId"
-      }
-
-      "root_jenkins_volume_az" : {
-          key = "rootJenkinsVolumeAz"
-      }
-
-      "root_jenkins_volume_id" : {
-          key = "rootJenkinsVolumeId"
-      }
-
-      "deep_learning_100GB_amd64_ami_id" : {
-          key = "deepLearning100GBAmd64AmiId"
-      }
-      "deep_learning_100GB_arm64_ami_id" : {
-          key = "deepLearning100GBArm64AmiId"
-      }
+      "hosted_zone_id"                   : "hostedZoneId"
+      "root_jenkins_key_pair"            : "rootJenkinsKeyPair"
+      "basic_100GB_amd64_ami_id"         : "basic100GBAmd64AmiId"
+      "basic_100GB_arm64_ami_id"         : "basic100GBArm64AmiId"
+      "root_jenkins_volume_az"           : "rootJenkinsVolumeAz"
+      "root_jenkins_volume_id"           : "rootJenkinsVolumeId"
+      "deep_learning_100GB_amd64_ami_id" : "deepLearning100GBAmd64AmiId"
+      "deep_learning_100GB_arm64_ami_id" : "deepLearning100GBArm64AmiId"
+      "root_jenkins_private_key"         : "/secrets/rootJenkinsPrivateKey"
+      "github_token"                     : "/secrets/github_token"
+      "github_username"                  : "/secrets/github_username"
+      "aws_access_key_id"                : "/secrets/aws_secret_access_key"
+      "aws_secret_access_key"            : "/secrets/jenkins_admin_password"
+      "jenkins_admin_password"           : "/secrets/jenkins_admin_password"
+      "github_jenkins_webhook_secret"    : "/secrets/github_jenkins_webhook_secret"
+      "domain_ssl_cert_private_key"      : "/sslcerts/ofirydevops.com/privateKey"
+      "domain_ssl_cert_chain"            : "/sslcerts/ofirydevops.com/chain"
+      "domain_ssl_cert"                  : "/sslcerts/ofirydevops.com/cert"
     }
 
     ecr_repos = [
       "root_jenkins"
     ]
 
-
-    image_tag = "hash_${substr(local.docker_dep_files_content_hash, 0, 20)}"
-    hosted_zone_id = data.aws_ssm_parameter.params["hosted_zone_id"].value
-    root_jenkins_key_pair = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
-    root_jenkins_ecr_repo_url = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
-    basic_100GB_amd64_ami_id = data.aws_ssm_parameter.params["basic_100GB_amd64_ami_id"].value
-    basic_100GB_arm64_ami_id = data.aws_ssm_parameter.params["basic_100GB_arm64_ami_id"].value
-    root_jenkins_volume_az = data.aws_ssm_parameter.params["root_jenkins_volume_az"].value
-    root_jenkins_volume_id = data.aws_ssm_parameter.params["root_jenkins_volume_id"].value
-    root_jenkins_subnet_id = data.aws_subnet.jenkins_subnet.id
+    hosted_zone_id                   = data.aws_ssm_parameter.params["hosted_zone_id"].value
+    root_jenkins_key_pair            = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
+    root_jenkins_ecr_repo_url        = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
+    basic_100GB_amd64_ami_id         = data.aws_ssm_parameter.params["basic_100GB_amd64_ami_id"].value
+    basic_100GB_arm64_ami_id         = data.aws_ssm_parameter.params["basic_100GB_arm64_ami_id"].value
+    root_jenkins_volume_az           = data.aws_ssm_parameter.params["root_jenkins_volume_az"].value
+    root_jenkins_volume_id           = data.aws_ssm_parameter.params["root_jenkins_volume_id"].value
+    root_jenkins_subnet_id           = data.aws_subnet.jenkins_subnet.id
     deep_learning_100GB_arm64_ami_id = data.aws_ssm_parameter.params["deep_learning_100GB_arm64_ami_id"].value
     deep_learning_100GB_amd64_ami_id = data.aws_ssm_parameter.params["deep_learning_100GB_amd64_ami_id"].value
+    root_jenkins_private_key         = data.aws_ssm_parameter.params["root_jenkins_private_key"].value
+    github_token                     = data.aws_ssm_parameter.params["github_token"].value
+    github_username                  = data.aws_ssm_parameter.params["github_username"].value
+    aws_access_key_id                = data.aws_ssm_parameter.params["aws_access_key_id"].value
+    aws_secret_access_key            = data.aws_ssm_parameter.params["aws_secret_access_key"].value
+    jenkins_admin_password           = data.aws_ssm_parameter.params["jenkins_admin_password"].value
+    github_jenkins_webhook_secret    = data.aws_ssm_parameter.params["github_jenkins_webhook_secret"].value
+    domain_ssl_cert_private_key      = data.aws_ssm_parameter.params["domain_ssl_cert_private_key"].value
+    domain_ssl_cert_chain            = data.aws_ssm_parameter.params["domain_ssl_cert_chain"].value
+    domain_ssl_cert                  = data.aws_ssm_parameter.params["domain_ssl_cert"].value
 
-
-    ecr_registry = split("/", local.root_jenkins_ecr_repo_url)[0]
+    image_tag     = "hash_${substr(local.docker_dep_files_content_hash, 0, 20)}"
+    ecr_registry  = split("/", local.root_jenkins_ecr_repo_url)[0]
     ecr_repo_name = split("/", local.root_jenkins_ecr_repo_url)[1]
-    image_url = "${local.ecr_registry}/${local.ecr_repo_name}:${local.image_tag}"
+    image_url     = "${local.ecr_registry}/${local.ecr_repo_name}:${local.image_tag}"
 
     arch_config = {
       "amd64" : {
@@ -71,18 +69,41 @@ locals {
       }
     }
 
+    domain_ssl_cert_files_conf = {
+      "cert" : {
+        path = "tmp/cert.pem"
+        content = local.domain_ssl_cert
+      }
+      "privatekey" : {
+        path = "tmp/privatekey.pem"
+        content = local.domain_ssl_cert_private_key
+      }
+      "chain" : {
+        path = "tmp/chain.pem"
+        content = local.domain_ssl_cert_chain
+      }
+    }  
+
     arch = "arm64"
     device_to_mount = "/dev/xvdh"
 
     docker_dep_files = [
       "${path.module}/../docker/Dockerfile",
-      "${path.module}/../docker/create_ssl_cert.sh",
+      "${path.module}/../docker/setup_jenkins_ssl.sh",
       "${path.module}/../jcasc/plugins.txt"
     ]
 
     docker_dep_files_content = [for file in local.docker_dep_files : file(file)]
     docker_dep_files_content_hash = sha256(join("", local.docker_dep_files_content))
 }
+
+resource "local_sensitive_file" "domain_cert_files" {
+  for_each = local.domain_ssl_cert_files_conf
+  filename = "${path.module}/../../${each.value.path}"
+  file_permission = "0755"
+  content  = each.value.content
+}
+
 
 data "aws_subnet" "jenkins_subnet" {
   availability_zone = local.root_jenkins_volume_az
@@ -104,15 +125,14 @@ resource "aws_ecr_lifecycle_policy" "ecr_repos" {
 
 resource "null_resource" "docker_build_and_push" {
   depends_on = [
-    aws_ecr_repository.ecr_repos
+    aws_ecr_repository.ecr_repos,
+    local_sensitive_file.domain_cert_files
     ]
   triggers = {
     hash = local.docker_dep_files_content_hash
   }
   provisioner "local-exec" {
     environment = {
-      AWS_ACCESS_KEY_ID     = local.secrets["aws_access_key_id"]
-      AWS_SECRET_ACCESS_KEY = local.secrets["aws_secret_access_key"]
       DOCKER_REGISTRY       = local.ecr_registry
       DOCKER_IMAGE_REPO     = local.ecr_repo_name
       DOCKER_IMAGE_TAG      = local.image_tag
@@ -120,6 +140,10 @@ resource "null_resource" "docker_build_and_push" {
       REGION                = local.region
       PROFILE               = "OFIRYDEVOPS"
       MODULE_PATH           = path.module
+      DOMAIN_CERT_FILE             = local.domain_ssl_cert_files_conf["cert"].path
+      DOMAIN_CERT_PRIVATE_KEY_FILE = local.domain_ssl_cert_files_conf["privatekey"].path
+      DOMAIN_CERT_CHAIN_FILE       = local.domain_ssl_cert_files_conf["chain"].path
+
     }
     command = "${path.module}/../docker/build_and_push.sh"
   }
@@ -393,7 +417,7 @@ resource "null_resource" "root_jenkins_ecs_setup" {
         type        = "ssh"
         host        = aws_instance.root_jenkins.public_ip
         user        = "ec2-user"
-        private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
+        private_key = local.root_jenkins_private_key
       }
       inline = [
         "sudo systemctl enable ecs",
@@ -410,14 +434,14 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     instance_profile                = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
     sg_name                         = aws_security_group.sgs["root_jenkins_worker"].name
     subnet_id                       = local.root_jenkins_subnet_id
-    jenkins_admin_password          = local.secrets["jenkins_admin_password"]
+    jenkins_admin_password          = local.jenkins_admin_password
     basic_100GB_amd64_ami_id         = local.basic_100GB_amd64_ami_id
     basic_100GB_arm64_ami_id         = local.basic_100GB_arm64_ami_id
     deep_learning_100GB_arm64_ami_id = local.deep_learning_100GB_arm64_ami_id
     deep_learning_100GB_amd64_ami_id = local.deep_learning_100GB_amd64_ami_id
-    github_username                 = local.secrets["github_username"]
-    github_token                    = local.secrets["github_token"]
-    workers_ssh_key                 = indent(20, "\n${file("${path.module}/../../root/key_pair/root_jenkins.secret.key")}")
+    github_username                 = local.github_username
+    github_token                    = local.github_token
+    workers_ssh_key                 = indent(20, "\n${local.root_jenkins_private_key}")
     worker_role_arn                 = aws_iam_role.roles["root_jenkins_worker"].arn
     default_profile_name            = "OFIRYDEVOPS"
     region                          = local.region
@@ -442,7 +466,7 @@ resource "null_resource" "root_jenkins_volume_mount" {
         type        = "ssh"
         host        = aws_instance.root_jenkins.public_ip
         user        = "ec2-user"
-        private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
+        private_key = local.root_jenkins_private_key
       }
       inline = [
         "if ! sudo file -s \"$(readlink -f ${local.device_to_mount})\" | grep -q \"filesystem\"; then sudo mkfs.ext4 ${local.device_to_mount}; fi",
@@ -466,7 +490,7 @@ resource "null_resource" "root_jenkins_jcasc_update" {
             type        = "ssh"
             host        = aws_instance.root_jenkins.public_ip
             user        = "ec2-user"
-            private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
+            private_key = local.root_jenkins_private_key
         }
         source      = local_sensitive_file.rendered_jcasc_config.filename
         destination = "${local.jenkins_casc_config_dir}/main.yaml"
@@ -476,7 +500,7 @@ resource "null_resource" "root_jenkins_jcasc_update" {
             type        = "ssh"
             host        = aws_instance.root_jenkins.public_ip
             user        = "ec2-user"
-            private_key = file("${path.module}/../../root/key_pair/root_jenkins.secret.key")
+            private_key = local.root_jenkins_private_key
         }
         inline = [
             "sudo chmod -R 600 ${local.jenkins_casc_config_dir}",
@@ -491,7 +515,7 @@ module "jenkins_github_webhook" {
   name                          = "ofiry"
   domain                        = local.domain
   hosted_zone_id                = local.hosted_zone_id
-  github_jenkins_webhook_secret = local.secrets["github_jenkins_webhook_secret"]
+  github_jenkins_webhook_secret = local.github_jenkins_webhook_secret
   vpc_id                        = local.default_vpc_id
   git_repo                      = local.global_conf["git_repo"]
   jenkins_server_subnet_id      = local.root_jenkins_subnet_id
@@ -510,6 +534,6 @@ resource "null_resource" "cleanup" {
     always = timestamp()
   }
   provisioner "local-exec" {
-    command = "rm ${module.jenkins_github_webhook.auth_lambda_zip_name} ${local_sensitive_file.rendered_jcasc_config.filename} || true"
+    command = "rm *.zip ${local_sensitive_file.rendered_jcasc_config.filename} || true"
   }
 }

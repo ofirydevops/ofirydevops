@@ -1,19 +1,26 @@
-FROM jenkins/jenkins:2.502-jdk17
+FROM jenkins/jenkins:2.506-jdk17
 
 USER root
 
-ARG AWS_ACCESS_KEY_ID
-ARG AWS_SECRET_ACCESS_KEY
 ARG DOMAIN
-ENV DOMAIN=$DOMAIN
+ARG DOMAIN_CERT_FILE
+ARG DOMAIN_CERT_PRIVATE_KEY_FILE
+ARG DOMAIN_CERT_CHAIN_FILE
 
-COPY ./root_jenkins/docker/create_ssl_cert.sh ./create_ssl_cert.sh
-RUN chmod +x create_ssl_cert.sh
-RUN ./create_ssl_cert.sh $DOMAIN
+ENV CERT_FILE=cert.pem
+ENV CERT_CHAIN_FILE=chain.pem
+ENV CERT_KEY_FILE=privatekey.pem
+
+COPY $DOMAIN_CERT_FILE $CERT_FILE
+COPY $DOMAIN_CERT_PRIVATE_KEY_FILE $CERT_KEY_FILE
+COPY $DOMAIN_CERT_CHAIN_FILE $CERT_CHAIN_FILE
+
+COPY ./root_jenkins/docker/setup_jenkins_ssl.sh ./setup_jenkins_ssl.sh
+RUN chmod +x setup_jenkins_ssl.sh
+RUN ./setup_jenkins_ssl.sh
 
 USER jenkins
 COPY ./root_jenkins/jcasc/plugins.txt /var/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /var/plugins.txt
 
 ENV JENKINS_OPTS --httpPort=-1 --httpsPort=8443 --httpsKeyStore=/var/jenkins.jks --httpsKeyStorePassword=changeme
-# ENV JENKINS_OPTS --httpPort=8443 --httpsPort=-1

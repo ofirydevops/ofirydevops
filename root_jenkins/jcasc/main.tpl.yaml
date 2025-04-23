@@ -160,3 +160,7 @@ unclassified:
     configs:
     - credentialsId: github_token
       manageHooks: false
+  ghprbTrigger:
+    githubAuth:
+    - credentialsId: github_token
+    manageWebhooks: false

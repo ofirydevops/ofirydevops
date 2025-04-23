@@ -1,7 +1,5 @@
 import argparse
 import subprocess
-import python_libs.utils as utils
-
 
 AWS_GITHUB_EUNNERS_TF_PROJECT = "github_aws_runners/terraform"
 
@@ -26,7 +24,7 @@ def deploy_aws_github_runners(destroy):
 def main():
     args = get_args()
 
-    utils.run_in_decrypted_git_repo(lambda: deploy_aws_github_runners(args["destroy"]))
+    deploy_aws_github_runners(args["destroy"])
 
 
 if __name__ == "__main__":

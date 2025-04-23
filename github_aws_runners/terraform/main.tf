@@ -5,12 +5,18 @@ data "http" "my_public_ip" {
 
 data "aws_ssm_parameter" "params" {
   for_each = local.ssm_params_to_read
-  name     = each.value.key
+  name     = each.value
 }
 
 locals {
-    secrets                = yamldecode(file("${path.module}/../../secrets.yaml"))
     global_conf            = jsondecode(file("${path.module}/../../global_conf.json"))
+
+    runners_key_name              = data.aws_ssm_parameter.params["runners_key_name"].value
+    aws_github_runner_app_id      = data.aws_ssm_parameter.params["aws_github_runner_app_id"].value
+    github_runner_webhook_secret  = data.aws_ssm_parameter.params["github_runner_webhook_secret"].value
+    github_token                  = data.aws_ssm_parameter.params["github_token"].value
+    github_runner_app_private_key = data.aws_ssm_parameter.params["github_runner_app_private_key"].value
+
     account_id             = data.aws_caller_identity.current.account_id
     region                 = local.global_conf["region"]
     name                   = "ofirydevops"
@@ -26,7 +32,7 @@ locals {
     ecr_registry_url = "${local.account_id}.dkr.ecr.${local.region}.amazonaws.com"
 
     instance_target_capacity_type = "on-demand"
-    runners_key_name              = data.aws_ssm_parameter.params["runners_key_name"].value
+
     enable_userdata               = true
     runner_metadata_options       = {
         instance_metadata_tags      = "enabled"
@@ -98,9 +104,11 @@ locals {
     }
 
     ssm_params_to_read = {
-      "runners_key_name" : {
-          key = "rootJenkinsKeyPair"
-      }
+      runners_key_name              = "rootJenkinsKeyPair"
+      github_runner_app_private_key = "/secrets/githubRunnerAppPrivateKey"
+      aws_github_runner_app_id      = "/secrets/aws_github_runner_app_id"
+      github_runner_webhook_secret  = "/secrets/github_runner_webhook_secret"
+      github_token                  = "/secrets/github_token"
     }
 
 }
@@ -210,9 +218,9 @@ module "runners" {
     Name = local.name
   }
   github_app = {
-    key_base64     = base64encode(file("${path.module}/../awsgithubrunner.secret.privatekey.pem"))
-    id             = local.secrets["aws_github_runner_app_id"]
-    webhook_secret = local.secrets["github_runner_webhook_secret"]
+    key_base64     = base64encode(local.github_runner_app_private_key)
+    id             = local.aws_github_runner_app_id
+    webhook_secret = local.github_runner_webhook_secret
   }
   eventbridge = {
     enable = false
@@ -325,7 +333,7 @@ resource "github_repository_webhook" "aws_runners" {
     url          = module.runners.webhook.endpoint
     content_type = "json"
     insecure_ssl = false
-    secret = local.secrets["github_runner_webhook_secret"]
+    secret = local.github_runner_webhook_secret
   }
 
   active = true
@@ -338,4 +346,13 @@ resource "github_actions_variable" "vars" {
   repository    = local.git_repository
   variable_name = each.key
   value         = each.value
+}
+
+
+resource "null_resource" "cleanup" {
+  depends_on = [module.runners]
+
+  provisioner "local-exec" {
+    command = "rm *.zip || true"
+  }
 }

@@ -6,8 +6,9 @@ services:
       context: ../../
       dockerfile: ./root_jenkins/docker/Dockerfile
       args:
-        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+        DOMAIN_CERT_FILE: ${DOMAIN_CERT_FILE}
+        DOMAIN_CERT_PRIVATE_KEY_FILE: ${DOMAIN_CERT_PRIVATE_KEY_FILE} 
+        DOMAIN_CERT_CHAIN_FILE: ${DOMAIN_CERT_CHAIN_FILE}   
         DOMAIN: ${DOMAIN}
     image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
     ports:

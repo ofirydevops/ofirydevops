@@ -3,6 +3,8 @@ data "aws_availability_zones" "azs" {}
 locals {
     global_conf = jsondecode(file("${path.module}/../../global_conf.json"))
 
+    secrets = yamldecode(file("${path.module}/../../secrets.yaml"))
+
     root_jenkins_volume_az = data.aws_availability_zones.azs.names[0]
 
     region = local.global_conf["region"]
@@ -30,7 +32,16 @@ locals {
             key = "rootJenkinsVolumeId"
             value = aws_ebs_volume.root_jenkins.id
         }
-        
+        "root_jenkins_private_key" : {
+            key = "/secrets/rootJenkinsPrivateKey"
+            value = file("${path.module}/../key_pair/root_jenkins.secret.key")
+            type = "SecureString"
+        }
+        "github_runner_app_private_key" : {
+            key = "/secrets/githubRunnerAppPrivateKey"
+            value = file("${path.module}/../../github_aws_runners/awsgithubrunner.secret.privatekey.pem")
+            type = "SecureString"
+        }
     }
     buckets = {}
 }
@@ -62,6 +73,13 @@ resource "aws_ebs_volume" "root_jenkins" {
 resource "aws_ssm_parameter" "params" {
     for_each = local.ssm_params
     name     = each.value.key
-    type     = "String"
+    type     = try(each.value.type, "String")
     value    = each.value.value
+}
+
+resource "aws_ssm_parameter" "more_secrets" {
+    for_each = local.secrets
+    name     = "/secrets/${each.key}"
+    type     = "SecureString"
+    value    = each.value
 }

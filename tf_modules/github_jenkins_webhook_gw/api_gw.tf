@@ -114,7 +114,7 @@ resource "aws_apigatewayv2_domain_name" "domains" {
       security_policy = "TLS_1_2"
     }
     depends_on = [  
-        aws_acm_certificate.api_gw
+        aws_route53_record.acm_validation_dns
     ]
 }
 

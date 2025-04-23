@@ -4,5 +4,5 @@ provider "aws" {
 }
 
 provider "github" {
-  token = local.secrets["github_token"]
+  token = local.github_token
 }

@@ -1,22 +1,5 @@
 #!/bin/bash
-
-DOMAIN=$1
-
-apt update
-apt install python3-certbot-dns-route53 certbot -y
-
-certbot certonly -v \
-    --dns-route53 \
-    -d ${DOMAIN} \
-    -d *.${DOMAIN} \
-    --non-interactive \
-    --agree-tos \
-    --email yahavofir@gmail.com \
-    --no-eff-email
-
-export CERT_FILE=/etc/letsencrypt/live/${DOMAIN}/cert.pem
-export CERT_CHAIN_FILE=/etc/letsencrypt/live/${DOMAIN}/chain.pem
-export CERT_KEY_FILE=/etc/letsencrypt/live/${DOMAIN}/privkey.pem
+set -e
 
 openssl pkcs12 -export -out jenkins.p12 \
     -passout 'pass:changeme' \

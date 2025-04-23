@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  main:
+    network_mode: bridge
+    image: jenkins/jenkins:2.506-jdk17
+    user: "0"
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      DOMAIN: ${DOMAIN}
+      EMAIL: ${EMAIL}
+    volumes:
+      - ../create_ssl_cert.sh:/create_ssl_cert.sh
+    entrypoint: ["/create_ssl_cert.sh"]
+    
+

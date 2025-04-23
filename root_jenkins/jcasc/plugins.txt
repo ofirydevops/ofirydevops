@@ -21,3 +21,6 @@ role-strategy
 pipeline-stage-view
 github-pullrequest
 ghprb
+github-checks
+parameterized-scheduler
+blueocean
