@@ -39,7 +39,12 @@ locals {
         }
         "github_runner_app_private_key" : {
             key = "/secrets/githubRunnerAppPrivateKey"
-            value = file("${path.module}/../../github_aws_runners/awsgithubrunner.secret.privatekey.pem")
+            value = file("${path.module}/../github_app_private_keys/awsgithubrunner.privatekey.secret.pem")
+            type = "SecureString"
+        }
+        "github_root_jenkins_app_private_key" : {
+            key = "/secrets/githubRootJenkinsAppPrivateKey"
+            value = file("${path.module}/../github_app_private_keys/rootjenkins.privatekey.secret.pem")
             type = "SecureString"
         }
     }

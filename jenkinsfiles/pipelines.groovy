@@ -11,10 +11,45 @@ def nodes = [
   'gpu_arm64_100GB'
   ]
 
+
 // Jenkins DSL api docs link: https://jenkins.ofirydevops.com/plugin/job-dsl/api-viewer/index.html
 def gitRepoAddress = "https://github.com/ofiryy/devops-project"
 
-pipelineJob('deploy_github_aws_runners') {
+def mainDomain = "ofirydevops.com"
+
+def prReRunPhrasePrefix = "rerun_"
+
+def folders = [
+  pull_request_tests : [
+    id : "pull_request_tests",
+    displayName : "Pull Request Tests"
+  ],
+  data_science : [
+    id : "data_science",
+    displayName : "Data Science"
+  ],
+  infra : [
+    id : "infra",
+    displayName : "Infra"
+  ]
+]
+
+def prPipelineConfigs = [
+  tf_project_validation : [
+    name : "${folders["pull_request_tests"]["id"]}/terraform_projects_validation",
+    jenkinsfile : "jenkinsfiles/tf_validation_pr.groovy",
+    prContext : "tf_validation"
+  ]
+]
+
+folders.each { _, config ->
+
+  folder(config["id"]) {
+      displayName(config["displayName"])
+  }
+}
+
+pipelineJob("${folders["infra"]["id"]}/deploy_github_aws_runners") {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         booleanParam('destroy', false, 'destroy github aws runners')
@@ -32,7 +67,7 @@ pipelineJob('deploy_github_aws_runners') {
              scm {
                git {
                  remote {
-                   url('https://github.com/ofiryy/devops-project.git')
+                   url(gitRepoAddress)
                    credentials('github_access')
                  }
                  branch('${ref}')
@@ -44,7 +79,7 @@ pipelineJob('deploy_github_aws_runners') {
 }
 
 
-pipelineJob('python_remote_dev') {
+pipelineJob("${folders["data_science"]["id"]}/python_remote_dev") {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('node', nodes, 'Node to run on')
@@ -70,7 +105,7 @@ pipelineJob('python_remote_dev') {
              scm {
                git {
                  remote {
-                   url('https://github.com/ofiryy/devops-project.git')
+                   url(gitRepoAddress)
                    credentials('github_access')
                  }
                  branch('${ref}')
@@ -82,7 +117,7 @@ pipelineJob('python_remote_dev') {
 }
 
 
-pipelineJob('python_env_cache_update') {
+pipelineJob("${folders["data_science"]["id"]}/python_env_cache_update") {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         
@@ -109,7 +144,7 @@ pipelineJob('python_env_cache_update') {
              scm {
                git {
                  remote {
-                   url('https://github.com/ofiryy/devops-project.git')
+                   url(gitRepoAddress)
                    credentials('github_access')
                  }
                  branch('${ref}')
@@ -120,7 +155,7 @@ pipelineJob('python_env_cache_update') {
     }
 }
 
-pipelineJob('python_env_runner') {
+pipelineJob("${folders["data_science"]["id"]}/python_env_runner") {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('node', nodes, 'Node to run on')
@@ -147,7 +182,7 @@ pipelineJob('python_env_runner') {
              scm {
                git {
                  remote {
-                   url('https://github.com/ofiryy/devops-project.git')
+                   url(gitRepoAddress)
                    credentials('github_access')
                  }
                  branch('${ref}')
@@ -159,116 +194,15 @@ pipelineJob('python_env_runner') {
 }
 
 
-pipelineJob('terraform_projects_validation') {
-    properties {
-        durabilityHint {
-            hint('PERFORMANCE_OPTIMIZED')
-        }
-        githubProjectUrl(gitRepoAddress)
-    }
-    triggers {
-        // ghprbTrigger {
-        //   useGitHubHooks(true)
-        //   triggerPhrase('retest terraform_projects_validation')
-        //   permitAll(true)
-        //   skipBuildPhrase('')
-        //   displayBuildErrorsOnDownstreamBuilds(true)
-        //   buildDescTemplate('PR #$pullId $abbrTitle url: $url')
-        //   commitStatusContext('')
-        //   whiteListTargetBranches {
-        //       ghprbBranch {
-        //           branch('main')
-        //       }
-        //   } 
-        //   extensions {
-        //     ghprbCancelBuildsOnUpdate {
-        //         overrideGlobal(true)
-        //     }
-        //     ghprbSimpleStatus {
-        //         commitStatusContext('$JOB_NAME')
-        //         showMatrixStatus(false)
-        //         statusUrl('')
-        //         triggeredStatus('')
-        //         startedStatus('')
-        //         addTestResults(true)
-        //     } 
-        //   }
-
-        //   adminlist('')
-        //   whitelist('')
-        //   orgslist('')
-        //   cron('')
-        //   onlyTriggerPhrase(false) 
-        //   autoCloseFailedPullRequests(false)
-        //   commentFilePath('')
-        //   blackListCommitAuthor('') 
-        //   allowMembersOfWhitelistedOrgsAsAdmin(false) 
-        //   msgSuccess('')
-        //   msgFailure('') 
-        //   gitHubAuthId('') 
-        //   blackListLabels('') 
-        //   whiteListLabels('')
-        //   includedRegions('')
-        //   excludedRegions('')
-
-        // }
-
-
-        githubPullRequests {
-            spec('')
-            triggerMode('HEAVY_HOOKS')
-            events {
-                Open()
-                commentPattern {
-                    comment('retest terraform_projects_validation')
-                }
-                commitChanged()
-                description {
-                    skipMsg('[skip ci]')
-                }
-                cancelQueued(true)
-                preStatus(true) 
-                abortRunning(true)
-            }
-            repoProviders {
-                githubPlugin {
-                    cacheConnection(false)
-                    manageHooks(false)
-                    repoPermission('ADMIN')
-                }
-            }
-            branchRestriction {
-                targetBranch('main')
-            }
-        }
-    }
-  
-    definition {
-        cpsScm {
-            scm {
-                git {
-                    remote {
-                        url('https://github.com/ofiryy/devops-project.git')
-                        credentials('github_access')
-                        refspec('+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
-                        // refspec('+refs/heads/*:refs/remotes/origin/* +refs/pull/${ghprbPullId}/*:refs/remotes/origin/pr/${ghprbPullId}/*')
-                    }
-                    branch('origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
-                    // branch('${sha1}')
-                }
-            }
-            scriptPath('jenkinsfiles/tf_validation_pr.groovy')
-      }
-    }
-}
-
-
-pipelineJob('ssl_cert_generator') {
+pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
     parameters {
         stringParam('ref', 'update2', 'branch / tag / commit')
         choiceParam('domain', 
                      [
-                      'ofirydevops.com'
+                      "${mainDomain}",
+                      "dev.${mainDomain}",
+                      "stg.${mainDomain}",
+                      "sbx.${mainDomain}"
                       ])
     }
 
@@ -276,6 +210,9 @@ pipelineJob('ssl_cert_generator') {
         parameterizedCron {
             parameterizedSpecification('''
             H H 1 * * % domain=ofirydevops.com
+            H H 1 * * % domain=dev.ofirydevops.com
+            H H 1 * * % domain=stg.ofirydevops.com
+            H H 1 * * % domain=sbx.ofirydevops.com
             ''')
         } 
     }
@@ -286,7 +223,6 @@ pipelineJob('ssl_cert_generator') {
         }
         githubProjectUrl(gitRepoAddress)
     }
-
     definition {
            cpsScm {
              scm {
@@ -302,3 +238,71 @@ pipelineJob('ssl_cert_generator') {
         }
     }
 }
+
+
+prPipelineConfigs.each { _, config ->
+
+  def rerunPhrase = "${prReRunPhrasePrefix}${config["prContext"]}"
+
+  pipelineJob(config["name"]) {
+
+    parameters {
+      stringParam('rerunPhrase', rerunPhrase)
+      stringParam('prContext', config["prContext"])
+    }
+      properties {
+          durabilityHint {
+              hint('PERFORMANCE_OPTIMIZED')
+          }
+          githubProjectUrl(gitRepoAddress)
+      }
+      triggers {
+
+          githubPullRequests {
+              spec('')
+              triggerMode('HEAVY_HOOKS')
+              events {
+                  Open()
+                  commentPattern {
+                      comment(rerunPhrase)
+                  }
+                  commitChanged()
+                  description {
+                      skipMsg('[skip ci]')
+                  }
+                  cancelQueued(true)
+                  preStatus(true) 
+                  abortRunning(true)
+              }
+              repoProviders {
+                  githubPlugin {
+                      cacheConnection(false)
+                      manageHooks(false)
+                      repoPermission('ADMIN')
+                  }
+              }
+              branchRestriction {
+                  targetBranch('main')
+              }
+          }
+      }
+    
+      definition {
+          cpsScm {
+              scm {
+                  git {
+                      remote {
+                          url(gitRepoAddress)
+                          credentials('github_access')
+                          refspec('+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
+                      }
+                      branch('origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
+                  }
+              }
+              scriptPath(config["jenkinsfile"])
+        }
+      }
+    }
+}
+
+

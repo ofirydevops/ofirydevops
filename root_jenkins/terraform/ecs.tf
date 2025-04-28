@@ -22,7 +22,9 @@ locals {
       "aws_access_key_id"                : "/secrets/aws_secret_access_key"
       "aws_secret_access_key"            : "/secrets/jenkins_admin_password"
       "jenkins_admin_password"           : "/secrets/jenkins_admin_password"
+      "github_root_jenkins_app_priv_key" : "/secrets/githubRootJenkinsAppPrivateKey"
       "github_jenkins_webhook_secret"    : "/secrets/github_jenkins_webhook_secret"
+      "github_root_jenkins_app_id"       : "/secrets/github_root_jenkins_app_id"
       "domain_ssl_cert_private_key"      : "/sslcerts/ofirydevops.com/privateKey"
       "domain_ssl_cert_chain"            : "/sslcerts/ofirydevops.com/chain"
       "domain_ssl_cert"                  : "/sslcerts/ofirydevops.com/cert"
@@ -34,7 +36,6 @@ locals {
 
     hosted_zone_id                   = data.aws_ssm_parameter.params["hosted_zone_id"].value
     root_jenkins_key_pair            = data.aws_ssm_parameter.params["root_jenkins_key_pair"].value
-    root_jenkins_ecr_repo_url        = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
     basic_100GB_amd64_ami_id         = data.aws_ssm_parameter.params["basic_100GB_amd64_ami_id"].value
     basic_100GB_arm64_ami_id         = data.aws_ssm_parameter.params["basic_100GB_arm64_ami_id"].value
     root_jenkins_volume_az           = data.aws_ssm_parameter.params["root_jenkins_volume_az"].value
@@ -52,7 +53,10 @@ locals {
     domain_ssl_cert_private_key      = data.aws_ssm_parameter.params["domain_ssl_cert_private_key"].value
     domain_ssl_cert_chain            = data.aws_ssm_parameter.params["domain_ssl_cert_chain"].value
     domain_ssl_cert                  = data.aws_ssm_parameter.params["domain_ssl_cert"].value
+    github_root_jenkins_app_priv_key = data.aws_ssm_parameter.params["github_root_jenkins_app_priv_key"].value
+    github_root_jenkins_app_id       = data.aws_ssm_parameter.params["github_root_jenkins_app_id"].value
 
+    root_jenkins_ecr_repo_url = aws_ecr_repository.ecr_repos["root_jenkins"].repository_url
     image_tag     = "hash_${substr(local.docker_dep_files_content_hash, 0, 20)}"
     ecr_registry  = split("/", local.root_jenkins_ecr_repo_url)[0]
     ecr_repo_name = split("/", local.root_jenkins_ecr_repo_url)[1]
@@ -90,12 +94,14 @@ locals {
     docker_dep_files = [
       "${path.module}/../docker/Dockerfile",
       "${path.module}/../docker/setup_jenkins_ssl.sh",
-      "${path.module}/../jcasc/plugins.txt"
+      "${path.module}/../docker/plugins.txt"
     ]
 
     docker_dep_files_content = [for file in local.docker_dep_files : file(file)]
     docker_dep_files_content_hash = sha256(join("", local.docker_dep_files_content))
 }
+
+
 
 resource "local_sensitive_file" "domain_cert_files" {
   for_each = local.domain_ssl_cert_files_conf
@@ -431,21 +437,23 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
   filename = "${path.module}/jcasc_config_tmp.yaml"
   file_permission = "0755"
   content  = templatefile("${path.module}/../jcasc/main.tpl.yaml", {
-    instance_profile                = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
-    sg_name                         = aws_security_group.sgs["root_jenkins_worker"].name
-    subnet_id                       = local.root_jenkins_subnet_id
-    jenkins_admin_password          = local.jenkins_admin_password
+    instance_profile                 = aws_iam_instance_profile.profiles["root_jenkins_worker"].arn
+    sg_name                          = aws_security_group.sgs["root_jenkins_worker"].name
+    subnet_id                        = local.root_jenkins_subnet_id
+    jenkins_admin_password           = local.jenkins_admin_password
     basic_100GB_amd64_ami_id         = local.basic_100GB_amd64_ami_id
     basic_100GB_arm64_ami_id         = local.basic_100GB_arm64_ami_id
     deep_learning_100GB_arm64_ami_id = local.deep_learning_100GB_arm64_ami_id
     deep_learning_100GB_amd64_ami_id = local.deep_learning_100GB_amd64_ami_id
-    github_username                 = local.github_username
-    github_token                    = local.github_token
-    workers_ssh_key                 = indent(20, "\n${local.root_jenkins_private_key}")
-    worker_role_arn                 = aws_iam_role.roles["root_jenkins_worker"].arn
-    default_profile_name            = "OFIRYDEVOPS"
-    region                          = local.region
-    ecr_registry                    = local.ecr_registry
+    github_username                  = local.github_username
+    github_token                     = local.github_token
+    workers_ssh_key                  = indent(20, "\n${local.root_jenkins_private_key}")
+    worker_role_arn                  = aws_iam_role.roles["root_jenkins_worker"].arn
+    default_profile_name             = "OFIRYDEVOPS"
+    region                           = local.region
+    ecr_registry                     = local.ecr_registry
+    gh_root_jenkins_app_id           = local.github_root_jenkins_app_id
+    gh_root_jenkins_app_priv_key     = indent(20, "\n${local.github_root_jenkins_app_priv_key}")
   })
 }
 

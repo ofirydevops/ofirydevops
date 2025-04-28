@@ -114,6 +114,12 @@ credentials:
               id: github_access
               username: ${github_username}
               password: ${github_token}
+          - gitHubApp:
+              appID: ${gh_root_jenkins_app_id}
+              description: GitHub app
+              id: gh_root_jenkins_app_priv_key
+              privateKey: |${gh_root_jenkins_app_priv_key}
+
           - basicSSHUserPrivateKey:
               scope: GLOBAL
               id: workers_ssh_access

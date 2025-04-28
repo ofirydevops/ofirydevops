@@ -1,14 +1,28 @@
+def setGhPrStatus(status) {
+    def messages = [
+        "SUCCESS" : "Passed",
+        "PENDING" : "In progress...",
+        "FAILURE" : "Failed. For re-run comment: ${env.rerunPhrase}"
+    ]
+
+    setGitHubPullRequestStatus state: status, context: env.prContext, message: messages[status]
+}
+
+setGhPrStatus("PENDING")
+
 node('basic_arm64_100GB') {
     ansiColor('xterm') {
         try {
+           
             main()
-            setGitHubPullRequestStatus state: 'SUCCESS', context: env.JOB_NAME, message: 'Passed'
+            setGhPrStatus("SUCCESS")
         } catch (Exception e) {
-            setGitHubPullRequestStatus state: 'FAILURE', context: env.JOB_NAME, message: 'Failed'
+            setGhPrStatus("FAILURE")
             throw e
         }
     }
 }
+
 
 
 def main() {
@@ -42,3 +56,5 @@ def getTfProjectValidationJob(tfProjectPath) {
         sh "cd ${tfProjectPath} && terraform init && terraform validate"
     }
 }
+
+

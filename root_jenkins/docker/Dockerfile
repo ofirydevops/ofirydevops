@@ -20,7 +20,7 @@ RUN chmod +x setup_jenkins_ssl.sh
 RUN ./setup_jenkins_ssl.sh
 
 USER jenkins
-COPY ./root_jenkins/jcasc/plugins.txt /var/plugins.txt
+COPY ./root_jenkins/docker/plugins.txt /var/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /var/plugins.txt
 
 ENV JENKINS_OPTS --httpPort=-1 --httpsPort=8443 --httpsKeyStore=/var/jenkins.jks --httpsKeyStorePassword=changeme
