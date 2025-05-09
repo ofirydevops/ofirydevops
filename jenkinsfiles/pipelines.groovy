@@ -4,6 +4,10 @@ def condaEnvs = [
   'py310_full'
   ]
 
+condaEnvsV2 = [
+  'data_science/conda_envs_v2/ofiry.yaml'
+]
+
 def nodes = [
   'basic_amd64_100GB', 
   'basic_arm64_100GB', 
@@ -246,10 +250,17 @@ prPipelineConfigs.each { _, config ->
 
   pipelineJob(config["name"]) {
 
-    parameters {
-      stringParam('rerunPhrase', rerunPhrase)
-      stringParam('prContext', config["prContext"])
-    }
+      environmentVariables {
+        envs([
+          "rerunPhrase" : rerunPhrase,
+          "prContext"   : config["prContext"]
+        ])
+      }
+
+      // parameters {
+      //   stringParam('rerunPhrase', rerunPhrase)
+      //   stringParam('prContext', config["prContext"])
+      // }
       properties {
           durabilityHint {
               hint('PERFORMANCE_OPTIMIZED')
@@ -306,3 +317,77 @@ prPipelineConfigs.each { _, config ->
 }
 
 
+pipelineJob("${folders["data_science"]["id"]}/python_env_runner_v2") {
+    parameters {
+        stringParam('ref', 'main', 'branch / tag / commit')
+        choiceParam('node', nodes, 'Node to run on')
+
+        stringParam('command', 'python data_science/hello_world.py', 'Command to run')
+
+        choiceParam('timeout_in_minutes', 
+                     ['10', '20', '40','80'])
+
+        choiceParam('py_env_conf_file', 
+                    condaEnvsV2, 
+                    'Python env to run')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(gitRepoAddress)
+    }
+
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(gitRepoAddress)
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/python_env_runner_v2.groovy')
+        }
+    }
+}
+
+pipelineJob("${folders["data_science"]["id"]}/python_remote_dev_v2") {
+    parameters {
+        stringParam('ref', 'main', 'branch / tag / commit')
+        choiceParam('node', nodes, 'Node to run on')
+
+        choiceParam('uptime_in_minutes', 
+                     ['10', '20', '40','80'], 
+                     'Amount of time to keep the node up')
+
+        choiceParam('py_env_conf_file', 
+                    condaEnvsV2, 
+                    'Python env to run')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(gitRepoAddress)
+    }
+
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(gitRepoAddress)
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/remote_development_v2.groovy')
+        }
+    }
+}

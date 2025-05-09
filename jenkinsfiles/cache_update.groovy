@@ -20,9 +20,10 @@ node(env.node) {
         }
 
         stage("Update CondaEnv Docker Cache") {
+            sh "stat data_science/conda_envs/${condaEnv}.yaml"
             sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
                 CONDA_ENV=${condaEnv} \
-                docker compose -f data_science/docker/docker-compose.yml build ${service}" // --builder dc"
+                docker compose -f data_science/docker/docker-compose.yml build ${service}"
         }
     }
 }

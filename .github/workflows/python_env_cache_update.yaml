@@ -14,6 +14,7 @@ on:
         required: true
         type: boolean
         default: false
+        description: ""
       conda_env:
         description: Conda environment name
         type: choice
@@ -22,7 +23,7 @@ on:
           - py310_gpu
           - py310_full
         required: true
-
+  
 
 env:
   DOCKER_IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}

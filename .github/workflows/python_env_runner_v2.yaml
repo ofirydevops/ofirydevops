@@ -1,4 +1,4 @@
-name: python_env_runner
+name: python_env_runner_v2
 
 on:
   workflow_dispatch:
@@ -13,13 +13,11 @@ on:
         type: choice
         options: [10, 20 , 40, 80]
         required: true
-      conda_env:
-        description: "Conda environment name"
+      py_env_file:
+        description: "Python environment file"
         type: choice
         options:
-          - ofiry
-          - py310_gpu
-          - py310_full
+          - data_science/conda_envs_v2/ofiry.yaml
         required: true
       node:
         description: "Runner node"
@@ -32,7 +30,6 @@ on:
 
 
 env:
-  SERVICE_PREFIX: main
   DOCKER_IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}
 
 jobs:
@@ -46,31 +43,21 @@ jobs:
 
       - name: ECR Auth
         run: |
-          docker buildx ls
-          sudo cat /etc/docker/daemon.json
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} --profile ${{ vars.AWS_DEFAULT_PROFILE }} | \
                     docker login --username AWS --password-stdin ${{ vars.AWS_ECR_REGISTRY }}
 
-      - name: Source and use get_dc_service
-        id: get_dc_service
-        run: |
-            source .github/scripts/utils.sh
-            service=$(get_dc_service ${{ env.SERVICE_PREFIX }} ${{ github.event.inputs.node }})
-            echo "Service name: $service"
-            echo "service=$service" >> $GITHUB_OUTPUT
 
       - name: Build Conda Env Docker
         run: |
-          stat data_science/conda_envs/${{ github.event.inputs.conda_env }}.yaml
-          docker compose -f data_science/docker/docker-compose.yml build ${{ steps.get_dc_service.outputs.service }}
-        env:
-          DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
-          CONDA_ENV: ${{ github.event.inputs.conda_env }}
+            pipenv run python3.10 -u -m data_science.scripts.build_py_env \
+                                            --py-env-conf-file ${{ github.event.inputs.py_env_file }} \
+                                            --docker-image-tag ${{ env.DOCKER_IMAGE_TAG }} \
+                                            --target runtime
 
       - name: Run Conda Env
         run: |
           TIMEOUT_SECONDS=$(( ${{ github.event.inputs.timeout }} * 60 ))
           timeout $TIMEOUT_SECONDS \
-          docker compose -f data_science/docker/docker-compose.yml run ${{ steps.get_dc_service.outputs.service }} ${{ github.event.inputs.command }}
-        env:
-          DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
+          pipenv run python3.10 -u -m data_science.scripts.run_py_env \
+                                        --docker-image-tag ${{ env.DOCKER_IMAGE_TAG }} \
+                                        --cmd \"${{ github.event.inputs.command }}\"

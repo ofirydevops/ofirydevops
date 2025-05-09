@@ -6,6 +6,9 @@ import uuid
 import boto3
 import yaml
 import base64
+import time
+import selectors
+import sys
 
 AWS_SM_SECRET_NAME = "general_secrets"
 GITCRYPT_KEY_SECRET_NAME = "DEVOPS_PROJECT_GITCRYPT_KEY"
@@ -57,3 +60,68 @@ def yaml_to_dict(file_path):
     return {}
 
 
+def run_command(command):
+    # Collect stderr for exception
+    stderr_output = []
+
+    # Ensure unbuffered output for Python subprocesses
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+
+    try:
+        # Start the subprocess
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            shell=True,
+            bufsize=1,
+            universal_newlines=True,
+            env=env
+        )
+
+        # Use selectors to monitor stdout and stderr in real-time
+        sel = selectors.DefaultSelector()
+        sel.register(process.stdout, selectors.EVENT_READ)
+        sel.register(process.stderr, selectors.EVENT_READ)
+
+        while True:
+            # Check for available data on stdout or stderr
+            events = sel.select(timeout=0.1)
+            for key, _ in events:
+                line = key.fileobj.readline().strip()
+                if not line:
+                    continue
+
+                if key.fileobj is process.stdout:
+                    print(line)
+                else:  # stderr
+                    stderr_output.append(line)
+                    print(line, file=sys.stderr)
+
+            # Check if the process has finished
+            if process.poll() is not None:
+                break
+
+        # Drain any remaining output
+        for stream, is_stderr in [(process.stdout, False), (process.stderr, True)]:
+            while line := stream.readline().strip():
+                if is_stderr:
+                    stderr_output.append(line)
+                    print(line, file=sys.stderr)
+                else:
+                    print(line)
+
+        # Check the return code and raise exception if command failed
+        return_code = process.returncode
+        if return_code != 0:
+            stderr_message = "\n".join(stderr_output) if stderr_output else f"Command exited with code {return_code}"
+            raise RuntimeError(stderr_message)
+
+        return return_code
+
+    finally:
+        # Clean up
+        process.stdout.close()
+        process.stderr.close()

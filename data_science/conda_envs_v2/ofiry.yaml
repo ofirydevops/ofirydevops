@@ -1,0 +1,7 @@
+
+base_image: ubuntu:22.04
+conda_env_yaml:
+  channels:
+    - conda-forge
+  dependencies:
+    - python=3.11

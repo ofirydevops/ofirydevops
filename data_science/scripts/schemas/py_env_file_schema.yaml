@@ -1,0 +1,27 @@
+base_image:
+  type: string
+  required: true
+  regex: '^([a-z0-9.-]+(/[a-z0-9.-]+)*)(:[a-z0-9_.-]+)?$'
+
+conda_env_yaml:
+  type: dict
+  required: true
+  schema:
+    channels:
+      type: list
+      required: true
+      schema:
+        type: string
+    dependencies:
+      type: list
+      required: true
+      schema:
+        anyof:
+          - type: string
+          - type: dict
+            schema:
+              pip:
+                type: list
+                required: true
+                schema:
+                  type: string

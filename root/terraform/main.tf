@@ -9,10 +9,9 @@ locals {
 
     region = local.global_conf["region"]
     domain = local.global_conf["domain"]
-    ecr_repos = {
-        "root_jenkins" : {}
-    }
-
+    ecr_repos = [
+        "data_science_docker_cache"
+    ]
     ssm_params = {
         "hosted_zone_id" : {
             key = "hostedZoneId"
@@ -47,6 +46,10 @@ locals {
             value = file("${path.module}/../github_app_private_keys/rootjenkins.privatekey.secret.pem")
             type = "SecureString"
         }
+        "data_science_cache_repo" : {
+            key = "dataScienceCacheRepo"
+            value = aws_ecr_repository.ecr_repos["data_science_docker_cache"].name
+        }
     }
     buckets = {}
 }
@@ -73,6 +76,13 @@ resource "aws_ebs_volume" "root_jenkins" {
   tags = {
     Name = "root_jenkins_volume_v3"
   }
+}
+
+resource "aws_ecr_repository" "ecr_repos" {
+    for_each = toset(local.ecr_repos)
+    name     = each.key
+    image_tag_mutability = "MUTABLE"
+    force_delete = true
 }
 
 resource "aws_ssm_parameter" "params" {

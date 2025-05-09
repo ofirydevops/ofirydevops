@@ -7,8 +7,9 @@ x-cpu_build_args: &cpu_build_args
   RUNTIME_IMAGE: ubuntu:22.04
 
 x-gpu_build_args: &gpu_build_args
-  RUNTIME_IMAGE: nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
-
+  # RUNTIME_IMAGE: nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
+  RUNTIME_IMAGE: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
+  
 
 x-build_args: &build_args
   CONDA_ENV_INTERNAL_NAME: main

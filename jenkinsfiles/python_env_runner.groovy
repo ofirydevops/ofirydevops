@@ -23,6 +23,7 @@ node(env.node) {
         }
 
         stage("Build Conda Env Docker") {
+            sh "stat data_science/conda_envs/${condaEnv}.yaml"
             sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
                 CONDA_ENV=${condaEnv} \
                 docker compose -f data_science/docker/docker-compose.yml build ${service}"

@@ -53,8 +53,9 @@ RUN curl ${AWS_CLI_DOWNLOAD_LINK} -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install
 
-ENV PATH="/opt/conda/envs/${CONDA_ENV_INTERNAL_NAME}/bin:/opt/conda/bin:$PATH"
-RUN echo "conda activate ${CONDA_ENV_INTERNAL_NAME}" >> ~/.bashrc
+ENV PATH=/opt/conda/envs/${CONDA_ENV_INTERNAL_NAME}/bin:/opt/conda/bin:$PATH
+RUN echo "export PATH=/opt/conda/envs/${CONDA_ENV_INTERNAL_NAME}/bin:/opt/conda/bin:$PATH" >> ~/.bashrc
+
 
 WORKDIR /app
 COPY . /app
@@ -96,6 +97,7 @@ ARG GIT_REF
 RUN git remote set-url origin https://github.com/ofiryy/devops-project.git
 RUN git config --global user.name "remote-user"
 RUN git config --global user.email @
+RUN git stash
 RUN git checkout $GIT_REF
 
 CMD ["/usr/sbin/sshd", "-D"]

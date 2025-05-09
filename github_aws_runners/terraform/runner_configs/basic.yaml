@@ -1,0 +1,14 @@
+basic_arm64_100GB:
+  runner_config:
+    ami_id_ssm_parameter_name: githubRunner100GBArm64AmiId
+    instance_types:
+      - t4g.xlarge
+    runner_architecture: arm64
+
+basic_amd64_100GB:
+  runner_config:
+    ami_id_ssm_parameter_name: githubRunner100GBAmd64AmiId
+    instance_types:
+      - t3.xlarge
+    runner_architecture: x64
+
