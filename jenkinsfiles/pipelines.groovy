@@ -5,7 +5,9 @@ def condaEnvs = [
   ]
 
 condaEnvsV2 = [
-  'data_science/conda_envs_v2/ofiry.yaml'
+  'data_science/conda_envs_v2/ofiry.yaml',
+  'data_science/conda_envs_v2/py310_gpu.yaml',
+  'data_science/conda_envs_v2/py310_full.yaml'
 ]
 
 def nodes = [
@@ -95,6 +97,7 @@ pipelineJob("${folders["data_science"]["id"]}/python_remote_dev") {
         choiceParam('conda_env', 
                     condaEnvs, 
                     'Conda env to run')
+                    
     }
 
     properties {
@@ -358,6 +361,7 @@ pipelineJob("${folders["data_science"]["id"]}/python_env_runner_v2") {
 pipelineJob("${folders["data_science"]["id"]}/python_remote_dev_v2") {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
+        stringParam('git_user_email', '', 'Email of user with which you want to access git')
         choiceParam('node', nodes, 'Node to run on')
 
         choiceParam('uptime_in_minutes', 

@@ -85,6 +85,14 @@ resource "aws_ecr_repository" "ecr_repos" {
     force_delete = true
 }
 
+resource "aws_ecr_lifecycle_policy" "ecr_repos" {
+    for_each = toset(local.ecr_repos)
+    repository = aws_ecr_repository.ecr_repos[each.key].name
+    policy = templatefile("${path.module}/ecr_lifecycle_policy.json", {
+      cache_image_tag_prefix = local.global_conf["cache_image_tag_prefix"]
+    })
+}
+
 resource "aws_ssm_parameter" "params" {
     for_each = local.ssm_params
     name     = each.value.key

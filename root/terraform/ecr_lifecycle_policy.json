@@ -1,0 +1,29 @@
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+            "description": "Keep only 1 last images with \"${cache_image_tag_prefix}\" prefix",
+            "selection": {
+                "tagStatus": "tagged",
+                "tagPrefixList": ["${cache_image_tag_prefix}"],
+                "countType": "imageCountMoreThan",
+                "countNumber": 1
+            },
+            "action": {
+                "type": "expire"
+            }
+        },
+        {
+            "rulePriority": 2,
+            "description": "Delete untagged artifacts",
+            "selection": {
+                "tagStatus": "untagged",
+                "countType": "imageCountMoreThan",
+                "countNumber": 1
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}

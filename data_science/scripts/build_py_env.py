@@ -1,5 +1,4 @@
 import argparse
-import subprocess
 import yaml
 from cerberus import Validator
 import os
@@ -9,7 +8,7 @@ import json
 import hashlib
 from botocore.exceptions import ClientError
 import python_libs.utils as utils
-
+import re
 
 CONFIG_BY_ARCH = {
     "arm64" : {
@@ -31,6 +30,21 @@ DOCKERFILE_PATH= "data_science/docker/Dockerfile"
 INPUT_SCHAME_FILE = "data_science/scripts/schemas/py_env_file_schema.yaml"
 GLOBAL_CONF_JSON = "global_conf.json"
 
+def validate_email(email):
+    email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    if not re.match(email_pattern, email):
+        raise argparse.ArgumentTypeError(
+            f"'{email}' is not a valid email address. Must match pattern: {email_pattern}"
+        )
+    return email
+class email_action(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values is None:
+            setattr(namespace, self.dest, parser.get_default(self.dest))
+        else:
+            validated_email = validate_email(values)
+            setattr(namespace, self.dest, validated_email)
+
 def get_args():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--py-env-conf-file',
@@ -50,10 +64,17 @@ def get_args():
                              default  = "runtime",
                              choices  = ["remote_dev", "runtime"],
                              dest     = 'target')
+    args_parser.add_argument('--git-user-email',
+                             nargs    = "?",
+                             action   = email_action,
+                             default  = "@",
+                             required = False,
+                             help     = "Git user email address (e.g., user@example.com). Defaults to '@'.")
 
 
     args = vars(args_parser.parse_args())
     return args
+
 
 
 def image_tag_exists(session, repo_name, tag, region):
@@ -65,11 +86,8 @@ def image_tag_exists(session, repo_name, tag, region):
         )
         return True
     except ClientError as e:
-        print(f'e.response["Error"]["Code"]: {e.response["Error"]["Code"]}')
         if e.response["Error"]["Code"] == "ImageNotFoundException":
-            print("Hllllllo")
             return False
-        print("WWaaatttt")
         raise
 
 
@@ -99,7 +117,7 @@ def get_and_validate_py_env_file(py_env_file_path):
         print("Py env validation successful!")
     else:
         print("Validation failed:", validator.errors)
-    return py_env_data
+    return validator.normalized(py_env_data)
 
 
 def create_conda_env_yaml(conda_env_data):
@@ -110,25 +128,25 @@ def create_conda_env_yaml(conda_env_data):
     return conda_env_yaml_file
 
 
-def get_cache_image_tag(py_env_conf_file):
+def get_cache_image_tag(py_env_conf_file, cache_image_tag_prefix):
     arch               = get_system_architecture()
     py_env_conf        = yaml_to_dict(py_env_conf_file)
     py_env_conf_string = json.dumps(py_env_conf, sort_keys=True)
-    arch_config        = json.dumps(CONFIG_BY_ARCH[arch], sort_keys=True)
+    arch_config_string = json.dumps(CONFIG_BY_ARCH[arch], sort_keys=True)
     with open(DOCKERFILE_PATH, "rb") as file:
         dockerfile_content = file.read()
     hash_obj = hashlib.new("sha256")
     hash_obj.update(py_env_conf_string.encode("utf-8"))
-    hash_obj.update(arch_config.encode("utf-8"))
+    hash_obj.update(arch_config_string.encode("utf-8"))
     hash_obj.update(arch.encode("utf-8"))
     hash_obj.update(dockerfile_content)
-    return f"hash_{hash_obj.hexdigest()}"
+    return f"{cache_image_tag_prefix}{hash_obj.hexdigest()[:20]}"
 
 
 def get_ecr_registry(boto3_session, region):
 
     sts_client = boto3_session.client("sts")
-    response = sts_client.get_caller_identity()
+    response   = sts_client.get_caller_identity()
     account_id = response["Account"]
     return f"{account_id}.dkr.ecr.{region}.amazonaws.com"
 
@@ -161,8 +179,12 @@ def build_py_env(args):
     arch             = get_system_architecture()
     ecr_repo_address = get_ecr_repo_address(session, global_conf["region"])
     repo_name        = ecr_repo_address.split("/")[1]
-    cache_image_tag  = get_cache_image_tag(args["py_env_conf_file"])
-    cache_exists     = image_tag_exists(session, repo_name, cache_image_tag, global_conf["region"])
+    cache_image_tag  = get_cache_image_tag(args["py_env_conf_file"],
+                                           global_conf["cache_image_tag_prefix"])
+    cache_exists     = image_tag_exists(session, 
+                                        repo_name, 
+                                        cache_image_tag, 
+                                        global_conf["region"])
 
     os.environ["DOCKER_IMAGE_TAG"]          = args["docker_image_tag"]
     os.environ["CONDA_ENV_FILE_PATH"]       = conda_env_yaml_file
@@ -172,6 +194,8 @@ def build_py_env(args):
     os.environ["AWS_REGITRY_REF_REPO"]      = ecr_repo_address
     os.environ["AWS_CLI_DOWNLOAD_LINK"]     = CONFIG_BY_ARCH[arch]["AWS_CLI_DOWNLOAD_LINK"]
     os.environ["GIT_REF"]                   = args["git_ref"]
+    os.environ["GIT_USER_EMAIL"]            = args["git_user_email"]
+
 
     if cache_exists:
         service = "build_and_read_cache"

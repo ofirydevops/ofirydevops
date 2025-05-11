@@ -13,3 +13,9 @@ def check_tensorflow_gpu():
 
 if __name__ == "__main__":
     check_tensorflow_gpu()
+
+
+
+
+
+

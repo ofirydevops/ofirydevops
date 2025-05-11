@@ -6,6 +6,7 @@ node(env.node) {
         def uptimeInMinuts = env.uptime_in_minutes.toInteger()
         def dockerImageTag = env.BUILD_TAG
         def pyEnvConfFile  = env.py_env_conf_file
+        def gitUserEmail   = env.git_user_email
         String IP
 
         if (uptimeInMinuts > maxUptime) {
@@ -32,7 +33,8 @@ node(env.node) {
                                             --py-env-conf-file ${pyEnvConfFile} \
                                             --docker-image-tag ${dockerImageTag} \
                                             --target remote_dev \
-                                            --git-ref ${ref}"
+                                            --git-ref ${ref} \
+                                            --git-user-email ${gitUserEmail}"
         }
 
         stage("Run Conda Env") {

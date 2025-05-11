@@ -6,7 +6,6 @@ import uuid
 import boto3
 import yaml
 import base64
-import time
 import selectors
 import sys
 
