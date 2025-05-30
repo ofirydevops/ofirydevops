@@ -24,14 +24,14 @@ echo "/usr/local/openssl/lib" | tee /etc/ld.so.conf.d/openssl.conf
 ldconfig -v
 cd ~
 
-# Install python3.8
-amazon-linux-extras enable python3.8
-yum install python3.8 -y
-yum install postgresql-devel -y
-yum install python3-devel -y
-yum install python38-devel -y
-ln -s -f /usr/bin/python3.8 /usr/bin/python3
-pip3.8 install aws-sam-cli==1.89.0
+# # Install python3.8
+# amazon-linux-extras enable python3.8
+# yum install python3.8 -y
+# yum install postgresql-devel -y
+# yum install python3-devel -y
+# yum install python38-devel -y
+# ln -s -f /usr/bin/python3.8 /usr/bin/python3
+# pip3.8 install aws-sam-cli==1.89.0
 
 
 # Install python3.10

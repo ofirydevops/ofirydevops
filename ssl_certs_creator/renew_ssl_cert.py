@@ -31,7 +31,8 @@ def create_ssl_cert(domain):
     os.environ["EMAIL"]                 = global_conf["email"]
     os.environ["AWS_ACCESS_KEY_ID"]     = credentials.access_key
     os.environ["AWS_SECRET_ACCESS_KEY"] = credentials.secret_key
-    os.environ["AWS_SESSION_TOKEN"]     = credentials.token
+    if credentials.token != None:
+        os.environ["AWS_SESSION_TOKEN"] = credentials.token
 
     subprocess.run(["docker", "compose", "-f", "ssl_certs_creator/docker/docker-compose.yml", "run", "main"], check=True)
 

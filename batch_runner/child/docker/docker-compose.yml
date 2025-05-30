@@ -1,0 +1,30 @@
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+
+x-main_conf: &main_conf
+  network_mode: bridge
+  image: ${CHILDJOB_IMAGE}
+  volumes:
+    - ${CHILDJOB_VOLUME_PATH}:${CHILDJOB_VOLUME_PATH}
+    - /var/run/docker.sock:/var/run/docker.sock
+  environment:
+    CHILDJOB_NAME: ${CHILDJOB_NAME}
+    CHILDJOB_BATCH_RUN_ID: ${CHILDJOB_BATCH_RUN_ID}
+    CHILDJOB_VOLUME_PATH: ${CHILDJOB_VOLUME_PATH}
+    CHILDJOB_INPUT_PATH: ${CHILDJOB_INPUT_PATH}
+  entrypoint: sh -c "${CHILDJOB_ENTERYPOINT}"
+
+services:
+  standard:
+    <<: [*main_conf]
+
+
+  gpu:
+    <<: [*main_conf, *gpu]

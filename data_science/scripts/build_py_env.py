@@ -8,7 +8,9 @@ import json
 import hashlib
 from botocore.exceptions import ClientError
 import python_libs.utils as utils
+import data_science.scripts.cnfg as cnfg
 import re
+import subprocess
 
 CONFIG_BY_ARCH = {
     "arm64" : {
@@ -26,9 +28,8 @@ CONFIG_BY_ARCH = {
     }
 }
 
-DOCKERFILE_PATH= "data_science/docker/Dockerfile"
+DOCKERFILE_PATH   = "data_science/docker/Dockerfile"
 INPUT_SCHAME_FILE = "data_science/scripts/schemas/py_env_file_schema.yaml"
-GLOBAL_CONF_JSON = "global_conf.json"
 
 def validate_email(email):
     email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
@@ -51,14 +52,20 @@ def get_args():
                              required = True,
                              type     = str,
                              dest     = 'py_env_conf_file')
-    args_parser.add_argument('--git-ref',
-                             required = True,
-                             type     = str,
-                             dest     = 'git_ref')
     args_parser.add_argument('--docker-image-tag',
                              required = True,
                              type     = str,
                              dest     = 'docker_image_tag')
+    args_parser.add_argument('--docker-image-repo',
+                             required = False,
+                             type     = str,
+                             default  = cnfg.DEFAULT_DOCKER_IMAGE_REPO,
+                             dest     = 'docker_image_repo')
+    args_parser.add_argument('--git-ref',
+                             required = False,
+                             type     = str,
+                             default  = 'main',
+                             dest     = 'git_ref')
     args_parser.add_argument('--target',
                              required = False,
                              default  = "runtime",
@@ -74,7 +81,6 @@ def get_args():
 
     args = vars(args_parser.parse_args())
     return args
-
 
 
 def image_tag_exists(session, repo_name, tag, region):
@@ -103,9 +109,8 @@ def yaml_to_dict(file_path):
     return {}
 
 
-def get_system_architecture():
+def get_system_arch():
     arch = platform.machine()
-    print(f"System Architecture: {arch}")
     return arch
 
 
@@ -129,7 +134,7 @@ def create_conda_env_yaml(conda_env_data):
 
 
 def get_cache_image_tag(py_env_conf_file, cache_image_tag_prefix):
-    arch               = get_system_architecture()
+    arch               = get_system_arch()
     py_env_conf        = yaml_to_dict(py_env_conf_file)
     py_env_conf_string = json.dumps(py_env_conf, sort_keys=True)
     arch_config_string = json.dumps(CONFIG_BY_ARCH[arch], sort_keys=True)
@@ -143,16 +148,8 @@ def get_cache_image_tag(py_env_conf_file, cache_image_tag_prefix):
     return f"{cache_image_tag_prefix}{hash_obj.hexdigest()[:20]}"
 
 
-def get_ecr_registry(boto3_session, region):
-
-    sts_client = boto3_session.client("sts")
-    response   = sts_client.get_caller_identity()
-    account_id = response["Account"]
-    return f"{account_id}.dkr.ecr.{region}.amazonaws.com"
-
-
 def get_ecr_repo_address(session, region):
-    ecr_registry = get_ecr_registry(session, region)
+    ecr_registry = utils.get_ecr_registry(session, region)
 
     ssm = session.client('ssm')
     response = ssm.get_parameter(
@@ -165,46 +162,75 @@ def get_ecr_repo_address(session, region):
 
 def build_py_env(args):
 
+    print(json.dumps(args, indent=4))
+
     py_env_data = get_and_validate_py_env_file(args["py_env_conf_file"])
 
     conda_env_yaml_file = create_conda_env_yaml(py_env_data["conda_env_yaml"])
 
-    with open(GLOBAL_CONF_JSON, "r") as file:
+    with open(cnfg.GLOBAL_CONF_JSON, "r") as file:
         global_conf = json.load(file)
 
     session = boto3.session.Session(
         region_name = global_conf["region"],
         profile_name = global_conf["profile"]
     )
-    arch             = get_system_architecture()
+    arch             = get_system_arch()
     ecr_repo_address = get_ecr_repo_address(session, global_conf["region"])
-    repo_name        = ecr_repo_address.split("/")[1]
+    cache_repo_name  = ecr_repo_address.split("/")[1]
+    ecr_registry     = ecr_repo_address.split("/")[0]
     cache_image_tag  = get_cache_image_tag(args["py_env_conf_file"],
                                            global_conf["cache_image_tag_prefix"])
+    
+    
     cache_exists     = image_tag_exists(session, 
-                                        repo_name, 
+                                        cache_repo_name, 
                                         cache_image_tag, 
                                         global_conf["region"])
+    
+    print(f"cache_image_tag: {cache_image_tag}, cache_exists: {cache_exists}")
 
-    os.environ["DOCKER_IMAGE_TAG"]          = args["docker_image_tag"]
+    os.environ["DOCKER_IMAGE_TAG"]          = args.get("docker_image_tag", cnfg.DEFAULT_DOCKER_IMAGE_TAG)
+    os.environ["DOCKER_IMAGE_REPO"]         = args.get("docker_image_repo", cnfg.DEFAULT_DOCKER_IMAGE_REPO)
+    os.environ["DOCKER_REGISTRY"]           = ecr_registry
+
     os.environ["CONDA_ENV_FILE_PATH"]       = conda_env_yaml_file
-    os.environ["COMPOSE_BUILD_TARGET"]      = args["target"]
+    os.environ["COMPOSE_BUILD_TARGET"]      = args.get("target", "runtime")
     os.environ["RUNTIME_IMAGE"]             = py_env_data["base_image"]
     os.environ["CONDA_ENV_CACHE_IMAGE_TAG"] = cache_image_tag
     os.environ["AWS_REGITRY_REF_REPO"]      = ecr_repo_address
     os.environ["AWS_CLI_DOWNLOAD_LINK"]     = CONFIG_BY_ARCH[arch]["AWS_CLI_DOWNLOAD_LINK"]
-    os.environ["GIT_REF"]                   = args["git_ref"]
-    os.environ["GIT_USER_EMAIL"]            = args["git_user_email"]
+    os.environ["GIT_REF"]                   = args.get("git_ref", "main")
+    os.environ["GIT_USER_EMAIL"]            = args.get("git_user_email", "@")
 
 
     if cache_exists:
         service = "build_and_read_cache"
     else:
         service = "build_and_write_cache"
-    print(f"service: {service}")
-    try:
-        utils.run_command(f"docker compose -f data_science/docker/docker-compose-v2.yml build {service}")
 
+    try:
+        utils.auth_ecr(region      = global_conf["region"], 
+                       profile     = global_conf["profile"], 
+                       ecr_registry= ecr_registry)
+
+        utils.run_command(f"docker compose -f data_science/docker/docker-compose-v2.yml build {service}")
+        result = subprocess.run(
+            "docker compose -f data_science/docker/docker-compose-v2.yml config --format json",
+            capture_output = True,
+            text           = True,
+            check          = True,
+            shell          = True
+        )
+
+        
+        docker_compose_config = json.loads(result.stdout)
+
+        print(json.dumps(docker_compose_config, indent=4))
+        
+        image_url = docker_compose_config["services"][service]["image"]
+        
+        return image_url
     finally:
         os.remove(conda_env_yaml_file)
 

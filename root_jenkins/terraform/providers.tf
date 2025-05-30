@@ -4,5 +4,5 @@ provider "aws" {
 }
 
 provider "github" {
-  token = local.github_token
+  token = local.ssm["/secrets/github_token"]
 }

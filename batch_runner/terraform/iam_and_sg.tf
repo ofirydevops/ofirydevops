@@ -4,17 +4,6 @@ data "http" "my_public_ip" {
 
 locals {
 
-    batch_trust_policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [{
-        Effect = "Allow"
-        Principal = {
-            Service = "batch.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-        }]
-    })
-
     ec2_trust_policy = jsonencode({
         Version = "2012-10-17"
         Statement = [{
@@ -29,17 +18,14 @@ locals {
     runner_public_ip = trimspace(data.http.my_public_ip.response_body)
 
     iam_roles = {
-        "aws_batch_service_role" : {
-            name                = "aws_batch_service_role"
-            assume_role_policy  = local.batch_trust_policy
-            managed_policy_arns = [
-                "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
-            ]
-        }
         "main_batch_worker" : {
+            name = "main_batch_worker"
             assume_role_policy = local.ec2_trust_policy
             create_instance_profile = true
-            policy = jsonencode({
+            managed_policy_arns = [
+                "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+            ]
+            inline_policy = jsonencode({
                 Version = "2012-10-17"
                 Statement = [
                     {
@@ -84,6 +70,10 @@ locals {
     }
 }
 
+resource "aws_iam_service_linked_role" "batch" {
+  aws_service_name = "batch.amazonaws.com"
+}
+
 
 resource "aws_security_group" "sgs" {
   for_each = local.sgs
@@ -111,15 +101,15 @@ resource "aws_security_group_rule" "sg_rules" {
 
 resource "aws_iam_role" "iam_roles" {
   for_each            = local.iam_roles
-  name                = each.key
+  name                = each.value.name
   managed_policy_arns = try(each.value.managed_policy_arns, null)
   assume_role_policy  = each.value.assume_role_policy
 
   dynamic "inline_policy" {
     for_each = lookup(each.value, "inline_policy", null) != null ? [each.value] : []
     content {
-      name = try(inline_policy.value.name, "inline_policy")
-      policy = inline_policy.value.policy
+      name = "inline_policy"
+      policy = inline_policy.value.inline_policy
     }
   }
 }

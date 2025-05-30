@@ -32,7 +32,7 @@ locals {
             ]
           }, try(cfg.matcherConfig, {}))
 
-          runner_config = merge( 
+          runner_config = merge(
           {
             runner_name_prefix                      = "${local.prefix}_${runner_name}"
             runner_ec2_tags                         = { "Name" : "${local.prefix}_${runner_name}" }
@@ -127,7 +127,8 @@ locals {
                       "ssm:*",
                       "logs:*",
                       "secretsmanager:*",
-                      "events:*"
+                      "events:*",
+                      "route53:*"
                       ]
                   Effect   = "Allow"
                   Resource = "*"

@@ -3,13 +3,11 @@ node(env.node) {
     ansiColor('xterm') {
 
         def maxTimeoutInMinutes = 80
-        def timeoutInMinutes = env.timeout_in_minutes.toInteger()
-        def dockerImageTag = env.BUILD_TAG
-        def condaEnv       = env.conda_env
-        def nodeLabel      = env.node
-        def service        = null
-        def servicePrefix  = "main"
-        def command        = env.command
+        def timeoutInMinutes    = env.timeout_in_minutes.toInteger()
+        def dockerImageTag      = env.BUILD_TAG
+        def condaEnv            = env.conda_env
+        def command             = env.command
+        def pyEnvConfFile       = env.py_env_conf_file
 
         if (timeoutInMinutes > maxTimeoutInMinutes) {
             timeoutInMinutes = maxTimeoutInMinutes
@@ -17,24 +15,25 @@ node(env.node) {
 
         stage('Checkout') {
             checkout scm
-            def utils = load 'jenkinsfiles/utils.groovy'
-            service = utils.getDcService(servicePrefix, nodeLabel)
-            utils.setUpEcrAuthAndFilesPermission(this)
+        }
+
+        stage('Install python libs') {
+            sh "pipenv install"
         }
 
         stage("Build Conda Env Docker") {
-            sh "stat data_science/conda_envs/${condaEnv}.yaml"
-            sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
-                CONDA_ENV=${condaEnv} \
-                docker compose -f data_science/docker/docker-compose.yml build ${service}"
+            sh "pipenv run python3.10 -u -m data_science.scripts.build_py_env \
+                                            --py-env-conf-file ${pyEnvConfFile} \
+                                            --docker-image-tag ${dockerImageTag} \
+                                            --target runtime"
         }
-
 
         stage("Run Conda Env") {
 
             timeout(time: timeoutInMinutes, unit: 'MINUTES') {
-                sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
-                    docker compose -f data_science/docker/docker-compose.yml run ${service} ${command}"
+                sh "pipenv run python3.10 -u -m data_science.scripts.run_py_env \
+                                             --docker-image-tag ${dockerImageTag} \
+                                             --cmd \"${command}\""
             }
         }
     }

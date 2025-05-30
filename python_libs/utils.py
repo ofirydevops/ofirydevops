@@ -13,6 +13,19 @@ AWS_SM_SECRET_NAME = "general_secrets"
 GITCRYPT_KEY_SECRET_NAME = "DEVOPS_PROJECT_GITCRYPT_KEY"
 
 
+def auth_ecr(region, profile, ecr_registry):
+    ecr_auth_cmd = f'aws ecr get-login-password --region {region} --profile {profile} | ' \
+                   f'docker login --username AWS --password-stdin {ecr_registry}'
+    subprocess.run(ecr_auth_cmd, check=True,  shell=True)
+
+
+def get_ecr_registry(session, region):
+
+    sts_client = session.client("sts")
+    response   = sts_client.get_caller_identity()
+    account_id = response["Account"]
+    return f"{account_id}.dkr.ecr.{region}.amazonaws.com"
+
 def decrypt_git_repo():
     session = boto3.session.Session(
         region_name = "eu-central-1",

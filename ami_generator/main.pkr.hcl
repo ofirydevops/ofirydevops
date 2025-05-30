@@ -37,6 +37,11 @@ locals {
       base_ami_name_filter = "Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.6.0 (Amazon Linux 2023) 20250328"
       instance_type = "t4g.xlarge"
     }
+    "amd64_amzn2_gpu" : {
+      installation_script_path = "ami_generator/installation_scripts/basic_amd64.sh"
+      base_ami_name_filter = "amzn2-ami-ecs-gpu-hvm-2.0.20250121-x86_64-ebs"
+      instance_type = "t3.xlarge"
+    }
   }
 
 

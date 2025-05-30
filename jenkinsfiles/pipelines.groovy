@@ -1,10 +1,4 @@
-def condaEnvs = [
-  'ofiry',
-  'py310_gpu',
-  'py310_full'
-  ]
-
-condaEnvsV2 = [
+def condaEnvsV2 = [
   'data_science/conda_envs_v2/ofiry.yaml',
   'data_science/conda_envs_v2/py310_gpu.yaml',
   'data_science/conda_envs_v2/py310_full.yaml'
@@ -37,6 +31,10 @@ def folders = [
   infra : [
     id : "infra",
     displayName : "Infra"
+  ],
+  batch_runner : [
+    id : "batch_runner",
+    displayName : "Batch Runner"
   ]
 ]
 
@@ -85,122 +83,6 @@ pipelineJob("${folders["infra"]["id"]}/deploy_github_aws_runners") {
 }
 
 
-pipelineJob("${folders["data_science"]["id"]}/python_remote_dev") {
-    parameters {
-        stringParam('ref', 'main', 'branch / tag / commit')
-        choiceParam('node', nodes, 'Node to run on')
-
-        choiceParam('uptime_in_minutes', 
-                     ['10', '20', '40','80'], 
-                     'Amount of time to keep the node up')
-
-        choiceParam('conda_env', 
-                    condaEnvs, 
-                    'Conda env to run')
-                    
-    }
-
-    properties {
-        durabilityHint {
-            hint('PERFORMANCE_OPTIMIZED')
-        }
-        githubProjectUrl(gitRepoAddress)
-    }
-
-    definition {
-           cpsScm {
-             scm {
-               git {
-                 remote {
-                   url(gitRepoAddress)
-                   credentials('github_access')
-                 }
-                 branch('${ref}')
-               }
-             }
-            scriptPath('jenkinsfiles/remote_development.groovy')
-        }
-    }
-}
-
-
-pipelineJob("${folders["data_science"]["id"]}/python_env_cache_update") {
-    parameters {
-        stringParam('ref', 'main', 'branch / tag / commit')
-        
-        choiceParam('node', 
-        [
-        'basic_amd64_100GB',
-        'basic_arm64_100GB'
-        ])
-        booleanParam('gpu', false)
-        choiceParam('conda_env', 
-                    condaEnvs, 
-                    'Conda env for which the cache will be updated')
-    }
-
-    properties {
-        durabilityHint {
-            hint('PERFORMANCE_OPTIMIZED')
-        }
-        githubProjectUrl(gitRepoAddress)
-    }
-
-    definition {
-           cpsScm {
-             scm {
-               git {
-                 remote {
-                   url(gitRepoAddress)
-                   credentials('github_access')
-                 }
-                 branch('${ref}')
-               }
-             }
-            scriptPath('jenkinsfiles/cache_update.groovy')
-        }
-    }
-}
-
-pipelineJob("${folders["data_science"]["id"]}/python_env_runner") {
-    parameters {
-        stringParam('ref', 'main', 'branch / tag / commit')
-        choiceParam('node', nodes, 'Node to run on')
-
-        stringParam('command', 'python data_science/hello_world.py', 'Command to run')
-
-        choiceParam('timeout_in_minutes', 
-                     ['10', '20', '40','80'])
-
-        choiceParam('conda_env', 
-                    condaEnvs, 
-                    'Conda env to run')
-    }
-
-    properties {
-        durabilityHint {
-            hint('PERFORMANCE_OPTIMIZED')
-        }
-        githubProjectUrl(gitRepoAddress)
-    }
-
-    definition {
-           cpsScm {
-             scm {
-               git {
-                 remote {
-                   url(gitRepoAddress)
-                   credentials('github_access')
-                 }
-                 branch('${ref}')
-               }
-             }
-            scriptPath('jenkinsfiles/python_env_runner.groovy')
-        }
-    }
-}
-
-
 pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
     parameters {
         stringParam('ref', 'update2', 'branch / tag / commit')
@@ -242,6 +124,62 @@ pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
                }
              }
             scriptPath('jenkinsfiles/ssl_cert_generator.groovy')
+        }
+    }
+}
+
+
+pipelineJob("${folders["batch_runner"]["id"]}/build_batch_runner") {
+    parameters {
+        stringParam('ref', 'update2', 'branch / tag / commit')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(gitRepoAddress)
+    }
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(gitRepoAddress)
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/build_batch_runner.groovy')
+        }
+    }
+}
+
+
+pipelineJob("${folders["batch_runner"]["id"]}/test_batch_runner") {
+    parameters {
+        stringParam('ref', 'update2', 'branch / tag / commit')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(gitRepoAddress)
+    }
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(gitRepoAddress)
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/test_batch_runner.groovy')
         }
     }
 }
@@ -353,7 +291,7 @@ pipelineJob("${folders["data_science"]["id"]}/python_env_runner_v2") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkinsfiles/python_env_runner_v2.groovy')
+            scriptPath('jenkinsfiles/python_env_runner.groovy')
         }
     }
 }
@@ -391,7 +329,7 @@ pipelineJob("${folders["data_science"]["id"]}/python_remote_dev_v2") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkinsfiles/remote_development_v2.groovy')
+            scriptPath('jenkinsfiles/remote_development.groovy')
         }
     }
 }

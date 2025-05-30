@@ -3,8 +3,8 @@
 set -e
 
 apt update
-apt install python3-certbot-dns-route53 certbot unzip less -y
-# curl unzip less jq openjdk-17-jdk
+apt install python3-certbot-dns-route53 certbot less -y
+# curl unzip less openjdk-17-jdk
 
 curl "https://awscli.amazonaws.com/awscli-exe-linux-$(arch).zip" -o "awscliv2.zip"
 unzip awscliv2.zip

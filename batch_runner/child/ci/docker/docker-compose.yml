@@ -1,0 +1,8 @@
+services:
+
+  main:
+    network_mode: bridge
+    build:
+      context: ../../
+      dockerfile: ./batch_runner/child/ci/docker/Dockerfile
+    image: ${DOCKER_IMAGE}

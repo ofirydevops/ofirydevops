@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  main:
+    platform: linux/amd64
+    network_mode: bridge
+    build:
+      context: ../../../
+      dockerfile: ./batch_runner/test/docker/Dockerfile
+    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}

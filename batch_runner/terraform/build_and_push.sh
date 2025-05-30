@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+CURRENT_DRIVER=$(docker buildx ls | grep '\*' | awk '{print $1}' | sed 's/\*//')
+
+docker run --privileged --rm tonistiigi/binfmt --install all
+
+docker buildx create --use --name multiarch-builder || true
+docker buildx inspect --bootstrap
+
+aws ecr get-login-password --region ${REGION} --profile ${PROFILE} | \
+    docker login --username AWS --password-stdin ${DOCKER_REGISTRY}
+
+docker buildx bake -f ${DOCKER_COMPOSE_PATH} --push --set *.platform=linux/amd64,linux/arm64
+
+docker buildx use ${CURRENT_DRIVER}

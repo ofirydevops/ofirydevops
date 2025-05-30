@@ -30,7 +30,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 USER root
 
 RUN apt-get update
-RUN apt-get install ca-certificates curl unzip -y
+RUN apt-get install ca-certificates curl unzip --fix-missing -y
 RUN install -m 0755 -d /etc/apt/keyrings
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 RUN chmod a+r /etc/apt/keyrings/docker.asc

@@ -5,11 +5,8 @@ node(env.node) {
         def maxUptime      = 80
         def uptimeInMinuts = env.uptime_in_minutes.toInteger()
         def dockerImageTag = env.BUILD_TAG
-        def gitRef         = env.ref
-        def condaEnv       = env.conda_env
-        def nodeLabel      = env.node
-        def service        = null
-        def servicePrefix  = "remote_dev"
+        def pyEnvConfFile  = env.py_env_conf_file
+        def gitUserEmail   = env.git_user_email
         String IP
 
         if (uptimeInMinuts > maxUptime) {
@@ -18,9 +15,10 @@ node(env.node) {
 
         stage('Checkout') {
             checkout scm
-            def utils = load 'jenkinsfiles/utils.groovy'
-            service = utils.getDcService(servicePrefix, nodeLabel)
-            utils.setUpEcrAuthAndFilesPermission(this)
+        }
+
+        stage('Install python libs') {
+            sh "pipenv install"
         }
 
         stage('Display Public IP') {
@@ -29,22 +27,22 @@ node(env.node) {
         }
 
         stage("Build Conda Env Docker") {
-            sh "stat data_science/conda_envs/${condaEnv}.yaml"
-            sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
-                GIT_REF=${gitRef} \
-                CONDA_ENV=${condaEnv} \
-                docker compose -f data_science/docker/docker-compose.yml build ${service}"
+            sh "pipenv run python3.10 -u -m data_science.scripts.build_py_env \
+                                            --py-env-conf-file ${pyEnvConfFile} \
+                                            --docker-image-tag ${dockerImageTag} \
+                                            --target remote_dev \
+                                            --git-ref ${ref} \
+                                            --git-user-email ${gitUserEmail}"
         }
-
 
         stage("Run Conda Env") {
 
             echo "For remote development you can ssh to root@${IP} on port 5000"
 
             timeout(time: uptimeInMinuts, unit: 'MINUTES') {
-            
-                sh "DOCKER_IMAGE_TAG=${dockerImageTag} \
-                    docker compose -f data_science/docker/docker-compose.yml run --service-ports ${service}"
+                sh "pipenv run python3.10 -u -m data_science.scripts.run_py_env \
+                                             --remote-dev \
+                                             --docker-image-tag ${dockerImageTag}"
             }
         }
     }

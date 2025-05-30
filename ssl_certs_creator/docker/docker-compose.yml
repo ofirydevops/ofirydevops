@@ -2,7 +2,7 @@ version: "3.9"
 services:
   main:
     network_mode: bridge
-    image: jenkins/jenkins:2.506-jdk17
+    image: openjdk:11
     user: "0"
     environment:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}

@@ -1,23 +1,27 @@
-name: python_remote_development
+name: python_remote_development_v2
 
 on:
   workflow_dispatch:
     inputs:
+      git_user_email:
+        description: 'Git user email (Optional)'
+        type: string
+        required: false
       uptime_in_minutes:
         description: "Max uptime in minutes for Conda run"
         type: choice
         options: [10, 20 , 40, 80]
         required: true
-      conda_env:
-        description: "Conda environment name"
+      py_env_file:
+        description: "Python environment file"
         type: choice
         options:
-          - ofiry
-          - py310_gpu
-          - py310_full
+          - data_science/conda_envs_v2/ofiry.yaml
+          - data_science/conda_envs_v2/py310_gpu.yaml
+          - data_science/conda_envs_v2/py310_full.yaml
         required: true
       node:
-        description: "Runner"
+        description: "Runner node"
         type: choice
         options:
           - basic_amd64_100GB
@@ -27,42 +31,28 @@ on:
 
 env:
   MAX_UPTIME: 80
-  SERVICE_PREFIX: "remote_dev"
   DOCKER_IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}
 
 jobs:
-  build-and-run:
-    runs-on: 
+  build_and_run:
+    runs-on:
       - self-hosted
       - ${{ github.event.inputs.node }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: ECR Auth
-        run: |
-          aws ecr get-login-password --region ${{ vars.AWS_REGION }} --profile ${{ vars.AWS_DEFAULT_PROFILE }} | \
-                    docker login --username AWS --password-stdin ${{ vars.AWS_ECR_REGISTRY }}
 
-      - name: Source and use get_dc_service
-        id: get_dc_service
-        env:
-            SERVICE_PREFIX: remote_dev
+      - name: Validate Uptime
         run: |
-            source .github/scripts/utils.sh
-            service=$(get_dc_service ${{ env.SERVICE_PREFIX }} ${{ github.event.inputs.node }})
-            echo "Service name: $service"
-            echo "service=$service" >> $GITHUB_OUTPUT
-
-      - name: Set Environment Variables
-        run: |
-          UPTIME_MINUTES=${{ github.event.inputs.uptime_in_minutes }}
-          if [ "$UPTIME_MINUTES" -gt "${{ env.MAX_UPTIME }}" ]; then
-            UPTIME_MINUTES=${{ env.MAX_UPTIME }}
+          UPTIME_IN_MINUTES=${{ github.event.inputs.uptime_in_minutes }}
+          if [ "$UPTIME_IN_MINUTES" -gt "${{ env.MAX_UPTIME }}" ]; then
+            UPTIME_IN_MINUTES=${{ env.MAX_UPTIME }}
           fi
-          echo "UPTIME_IN_MINUTES=$UPTIME_MINUTES"              >> $GITHUB_ENV
-          echo "CONDA_ENV=${{ github.event.inputs.conda_env }}" >> $GITHUB_ENV
+          echo "UPTIME_IN_MINUTES=$UPTIME_IN_MINUTES" >> $GITHUB_ENV
 
-
+      - name: Pipenv Install
+        run: pipenv install
+            
       - name: Get Public IP
         id: get_public_ip
         run: |
@@ -72,18 +62,20 @@ jobs:
 
       - name: Build Conda Env Docker
         run: |
-          docker compose -f data_science/docker/docker-compose.yml build ${{ steps.get_dc_service.outputs.service }}
-        env:
-          DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
-          GIT_REF: ${{ github.ref_name }}
-          CONDA_ENV: ${{ github.event.inputs.conda_env }}
+            pipenv run python3.10 -u -m data_science.scripts.build_py_env \
+                                            --py-env-conf-file ${{ github.event.inputs.py_env_file }} \
+                                            --docker-image-tag ${{ env.DOCKER_IMAGE_TAG }} \
+                                            --target remote_dev \
+                                            --git-ref ${{ github.ref_name }} \
+                                            --git-user-email ${{ github.event.inputs.git_user_email }}
 
       - name: Run Conda Env
         run: |
           TIMEOUT_SECONDS=$(( ${{ env.UPTIME_IN_MINUTES }} * 60 ))
           echo "For remote development you can ssh to root@${{ steps.get_public_ip.outputs.public_ip }} on port 5000"
           timeout $TIMEOUT_SECONDS \
-          docker compose -f data_science/docker/docker-compose.yml run --service-ports ${{ steps.get_dc_service.outputs.service }} || true
-        env:
-          DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
+          pipenv run python3.10 -u -m data_science.scripts.run_py_env \
+                                        --remote-dev \
+                                        --docker-image-tag ${{ env.DOCKER_IMAGE_TAG }} || true
+
 

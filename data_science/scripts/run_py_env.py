@@ -2,7 +2,9 @@ import argparse
 import subprocess
 import os
 import python_libs.utils as utils
-
+import json
+import data_science.scripts.cnfg as cnfg
+import boto3
 
 GLOBAL_CONF_JSON = "global_conf.json"
 
@@ -12,6 +14,11 @@ def get_args():
                              required = True,
                              type     = str,
                              dest     = 'docker_image_tag')
+    args_parser.add_argument('--docker-image-repo',
+                             required = False,
+                             type     = str,
+                             default  = cnfg.DEFAULT_DOCKER_IMAGE_REPO,
+                             dest     = 'docker_image_repo')
     args_parser.add_argument('--cmd',
                              required = False,
                              default  = "",
@@ -25,6 +32,20 @@ def get_args():
 
     args = vars(args_parser.parse_args())
     return args
+
+
+def get_ecr_registry():
+    with open(cnfg.GLOBAL_CONF_JSON, "r") as file:
+        global_conf = json.load(file)
+
+    session = boto3.session.Session(
+        region_name  = global_conf["region"],
+        profile_name = global_conf["profile"]
+    )
+
+    ecr_registry = utils.get_ecr_registry(session, global_conf["region"])
+
+    return ecr_registry
 
 
 def check_nvidia_gpu():
@@ -51,6 +72,8 @@ def check_nvidia_gpu():
 
 def run_py_env(args):
 
+    print(json.dumps(args))
+
     if args["remote_dev"]:
         flags = "--service-ports"
     else:
@@ -61,8 +84,14 @@ def run_py_env(args):
     else:
         service = "run_with_no_gpu"
 
-    os.environ["DOCKER_IMAGE_TAG"] = args["docker_image_tag"]
+    os.environ["DOCKER_IMAGE_TAG"]  = args.get("docker_image_tag", cnfg.DEFAULT_DOCKER_IMAGE_TAG)
+    os.environ["DOCKER_IMAGE_REPO"] = args.get("docker_image_repo", cnfg.DEFAULT_DOCKER_IMAGE_REPO)
+    os.environ["DOCKER_REGISTRY"]   = get_ecr_registry()
+
     command = args["cmd"]
+
+    utils.run_command(f"docker images")
+
     utils.run_command(f"docker compose -f data_science/docker/docker-compose-v2.yml run {flags} {service} {command}")
 
 
