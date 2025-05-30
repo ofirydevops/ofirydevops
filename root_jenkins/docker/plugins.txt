@@ -25,3 +25,4 @@ github-checks
 parameterized-scheduler
 blueocean
 checks-api
+envinject

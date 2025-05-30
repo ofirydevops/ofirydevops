@@ -29,7 +29,8 @@ def main() {
 
     def tfProjects = [
         "github_aws_runners" : "github_aws_runners/terraform",
-        "root_jenkins" : "root_jenkins/terraform"
+        "root_jenkins" : "root_jenkins/terraform",
+        "batch_runner" : "batch_runner/terraform"
     ]
     def jobs = [:]
 

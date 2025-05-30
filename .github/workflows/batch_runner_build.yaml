@@ -1,0 +1,24 @@
+name: batch_runner_build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_batch_runner:
+    runs-on: 
+      - self-hosted
+      - basic_amd64_100GB
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pipenv Install
+        run: pipenv install
+
+      - name: Build Batch Runner
+        run: |
+            cd batch_runner/terraform
+            terraform init
+            terraform apply -auto-approve
+
