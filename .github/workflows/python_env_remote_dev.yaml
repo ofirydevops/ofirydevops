@@ -1,4 +1,4 @@
-name: python_remote_development_v2
+name: python_remote_development
 
 on:
   workflow_dispatch:

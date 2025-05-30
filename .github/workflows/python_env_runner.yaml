@@ -1,4 +1,4 @@
-name: python_env_runner_v2
+name: python_env_runner
 
 on:
   workflow_dispatch:
