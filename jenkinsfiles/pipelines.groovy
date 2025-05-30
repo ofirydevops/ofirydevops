@@ -258,7 +258,7 @@ prPipelineConfigs.each { _, config ->
 }
 
 
-pipelineJob("${folders["data_science"]["id"]}/python_env_runner_v2") {
+pipelineJob("${folders["data_science"]["id"]}/python_env_runner") {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         choiceParam('node', nodes, 'Node to run on')
@@ -296,7 +296,7 @@ pipelineJob("${folders["data_science"]["id"]}/python_env_runner_v2") {
     }
 }
 
-pipelineJob("${folders["data_science"]["id"]}/python_remote_dev_v2") {
+pipelineJob("${folders["data_science"]["id"]}/python_remote_dev") {
     parameters {
         stringParam('ref', 'main', 'branch / tag / commit')
         stringParam('git_user_email', '', 'Email of user with which you want to access git')
