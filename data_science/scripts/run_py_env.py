@@ -19,11 +19,11 @@ def get_args():
                              type     = str,
                              default  = cnfg.DEFAULT_DOCKER_IMAGE_REPO,
                              dest     = 'docker_image_repo')
-    args_parser.add_argument('--cmd',
+    args_parser.add_argument('--entrypoint',
                              required = False,
-                             default  = "",
+                             default  = "top",
                              type     = str,
-                             dest     = 'cmd')
+                             dest     = 'entrypoint')
     args_parser.add_argument('--remote-dev',
                              action = 'store_true',
                              dest   = 'remote_dev')
@@ -87,12 +87,9 @@ def run_py_env(args):
     os.environ["DOCKER_IMAGE_TAG"]  = args.get("docker_image_tag", cnfg.DEFAULT_DOCKER_IMAGE_TAG)
     os.environ["DOCKER_IMAGE_REPO"] = args.get("docker_image_repo", cnfg.DEFAULT_DOCKER_IMAGE_REPO)
     os.environ["DOCKER_REGISTRY"]   = get_ecr_registry()
+    os.environ["ENTRYPOINT"]        = args["entrypoint"]
 
-    command = args["cmd"]
-
-    utils.run_command(f"docker images")
-
-    utils.run_command(f"docker compose -f data_science/docker/docker-compose-v2.yml run {flags} {service} {command}")
+    utils.run_shell_cmd_without_buffering(f"docker compose -f {cnfg.DOCKER_COMPOSE_FILE} run {flags} {service}")
 
 
 def main():

@@ -4,13 +4,73 @@ from os.path import dirname
 import os
 import subprocess
 import uuid
-import boto3
 import datetime
 import python_libs.utils as utils
 
 
-
 PACKER_CONF_FILE = "ami_generator/main_conf.yaml"
+
+
+def get_default_vpc_id():
+    session = utils.get_boto3_session()
+    ec2 = session.client('ec2')
+
+    response = ec2.describe_vpcs(
+        Filters=[
+            {
+                'Name': 'is-default',
+                'Values': ['true']
+            }
+        ]
+    )
+    vpc_id = response['Vpcs'][0]['VpcId']
+
+    return vpc_id
+
+
+def get_public_subnet_id(vpc_id):
+    session = utils.get_boto3_session()
+    ec2 = session.client('ec2')
+    
+    try:
+        response = ec2.describe_subnets(
+            Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}]
+        )
+        subnets = response['Subnets']
+        if not subnets:
+            print(f"No subnets found for VPC {vpc_id}")
+            return None
+
+        for subnet in subnets:
+            subnet_id = subnet['SubnetId']
+            
+            route_tables_response = ec2.describe_route_tables(
+                Filters=[{'Name': 'association.subnet-id', 'Values': [subnet_id]}]
+            )
+            
+            # If no explicit route table association, check the VPC's main route table
+            if not route_tables_response['RouteTables']:
+                route_tables_response = ec2.describe_route_tables(
+                    Filters=[
+                        {'Name': 'vpc-id', 'Values': [vpc_id]},
+                        {'Name': 'association.main', 'Values': ['true']}
+                    ]
+                )
+            
+            # Check each route table for an Internet Gateway route
+            for route_table in route_tables_response['RouteTables']:
+                for route in route_table['Routes']:
+                    if route.get('DestinationCidrBlock') == '0.0.0.0/0' and 'GatewayId' in route and route['GatewayId'].startswith('igw-'):
+                        print(f"Public subnet found: {subnet_id}")
+                        return subnet_id
+        
+        print(f"No public subnets found in VPC {vpc_id}")
+        return None
+    
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None
+
 
 def get_args():
     args_parser = argparse.ArgumentParser()
@@ -22,27 +82,31 @@ def get_args():
     return args
 
 def get_formatted_timestamp():
-    timestamp = datetime.datetime.now().timestamp()
+    timestamp           = datetime.datetime.now().timestamp()
     formatted_timestamp = datetime.datetime.fromtimestamp(timestamp).strftime("%d_%m_%Y__%H_%M")
     return formatted_timestamp
 
 
-def run_packer(input_dict):
-    packer_input_file_name = f'{uuid.uuid4()}.json'
-
-    with open(packer_input_file_name, "w") as packer_input_file:
+def create_packer_input_file(input_dict):
+    tmp_dir_path = "tmp"
+    os.makedirs(tmp_dir_path, exist_ok=True)
+    packer_input_file_path = os.path.join(tmp_dir_path, f'pkr_input_{uuid.uuid4()}.json')
+    with open(packer_input_file_path, "w") as packer_input_file:
         packer_input_file.write(json.dumps(input_dict))
+    return packer_input_file_path
     
-    subprocess.run(["packer", "init", dirname(input_dict["packer_hcl_path"])], check=True)
-    subprocess.run(["packer", "build", f"-var-file={packer_input_file_name}", input_dict["packer_hcl_path"]], check=True)
-    os.remove(packer_input_file_name)
+
+
+def run_packer(packer_hcl_path, packer_input_file_path):
+    
+    subprocess.run(["packer", "init", dirname(packer_hcl_path)], check=True)
+    subprocess.run(["packer", "build", f"-var-file={packer_input_file_path}", packer_hcl_path], check=True)
+    os.remove(packer_input_file_path)
 
 
 def store_ami_ids_in_ssm(input_dict):
-    session = boto3.session.Session(
-        region_name = "eu-central-1",
-        profile_name = "OFIRYDEVOPS"
-    )
+
+    session = utils.get_boto3_session()
     ec2 = session.client('ec2')
     ssm = session.client('ssm')
 
@@ -69,20 +133,53 @@ def store_ami_ids_in_ssm(input_dict):
         )
 
 
+def get_ssh_private_key_file():
+    tmp_dir_path = "tmp"
+    os.makedirs(tmp_dir_path, exist_ok=True)
+
+    ssh_private_key_file = os.path.join(tmp_dir_path, f"{utils.generate_random_string()}_private_key.pem")
+    ssh_private_key      = utils.get_ssm_param("/secrets/main_ssh_key_pair_privete_key")
+    with open(ssh_private_key_file, "w") as file:
+        file.write(ssh_private_key)
+    return ssh_private_key_file
+
+
+def get_ssh_keypair_name():
+    ssh_keypair_name = utils.get_ssm_param("mainKeyPairName")
+    return ssh_keypair_name
+
+
 def main():
-    args = get_args()
+    args       = get_args()
     input_dict = utils.yaml_to_dict(PACKER_CONF_FILE)[args["conf"]]
 
-    print(json.dumps(input_dict, indent=4))
+    vpc_id               = get_default_vpc_id()
+    profile, region      = utils.get_profile_and_region()
+    ssh_private_key_file = get_ssh_private_key_file()
+    subnet_id            = get_public_subnet_id(vpc_id)
+    ssh_keypair_name     = get_ssh_keypair_name()
+ 
+    input_dict["ssh_private_key_file"] = ssh_private_key_file
+    input_dict["ssh_keypair_name"]     = ssh_keypair_name
+    input_dict["subnet_id"]            = subnet_id
+    input_dict["vpc_id"]               = vpc_id
+    input_dict["profile"]              = profile
+    input_dict["region"]               = region
 
     timestamp = get_formatted_timestamp()
 
     for ami in input_dict["images"]:
         input_dict["images"][ami]["ami_name"] = f'PACKER_{ami}__{timestamp}'
 
-    utils.run_in_decrypted_git_repo(lambda: run_packer(input_dict))
+    print(json.dumps(input_dict, indent=4))
 
-    store_ami_ids_in_ssm(input_dict)
+    try:
+        packer_input_file_path = create_packer_input_file(input_dict)
+        run_packer(input_dict["packer_hcl_path"], packer_input_file_path)
+        store_ami_ids_in_ssm(input_dict)
+    finally:
+        os.remove(ssh_private_key_file)
+        os.remove(packer_input_file_path)
 
 
 if __name__ == "__main__":

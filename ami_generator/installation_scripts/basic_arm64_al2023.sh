@@ -34,6 +34,9 @@ cd ..
 # Install pipenv ans sam cli
 pip3.10 install pipenv==2023.3.20 aws-sam-cli==1.135.0
 
+# Inatall build and twine for pypi packages management
+pip3.10 install build==1.2.2.post1 twine==6.1.0
+
 # Install Docker Compose
 curl -SL "https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/libexec/docker/cli-plugins/docker-compose
 chmod +x /usr/libexec/docker/cli-plugins/docker-compose

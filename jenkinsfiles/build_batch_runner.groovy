@@ -7,7 +7,9 @@ node('basic_amd64_100GB') {
 
         stage("Build Batch Runner") {
 
-            sh "cd batch_runner/terraform && terraform init && terraform apply -auto-approve"
+            sh "cd batch_runner/terraform && \
+                terraform init -backend-config=../../backend.config && \
+                terraform apply -auto-approve"
         }
     }
 }

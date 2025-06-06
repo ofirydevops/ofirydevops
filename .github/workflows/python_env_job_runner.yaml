@@ -1,4 +1,4 @@
-name: python_env_runner
+name: python_env_job_runner
 
 on:
   workflow_dispatch:
@@ -59,4 +59,4 @@ jobs:
           timeout $TIMEOUT_SECONDS \
           pipenv run python3.10 -u -m data_science.scripts.run_py_env \
                                         --docker-image-tag ${{ env.DOCKER_IMAGE_TAG }} \
-                                        --cmd "${{ github.event.inputs.command }}"
+                                        --entrypoint "${{ github.event.inputs.command }}"

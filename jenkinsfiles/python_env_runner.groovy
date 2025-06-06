@@ -33,7 +33,7 @@ node(env.node) {
             timeout(time: timeoutInMinutes, unit: 'MINUTES') {
                 sh "pipenv run python3.10 -u -m data_science.scripts.run_py_env \
                                              --docker-image-tag ${dockerImageTag} \
-                                             --cmd \"${command}\""
+                                             --entrypoint \"${command}\""
             }
         }
     }

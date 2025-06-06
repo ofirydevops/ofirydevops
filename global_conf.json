@@ -1,10 +1,4 @@
 {
-  "default_vpc_id" : "vpc-0a14c761771d9689f",
-  "default_public_subnets" : [
-    "subnet-0812e396970cafd31",
-    "subnet-07b71a3039d2a984f",
-    "subnet-0f421aff16ab32706"
-  ],
   "region" : "eu-central-1",
   "domain" : "ofirydevops.com",
   "profile" : "OFIRYDEVOPS",

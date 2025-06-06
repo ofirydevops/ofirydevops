@@ -1,6 +1,6 @@
 data "aws_ssm_parameter" "params" {
-  for_each = toset(local.ssm_params_to_read)
-  name = each.value
+  for_each        = toset(local.ssm_params_to_read)
+  name            = each.value
   with_decryption = true
 }
 locals {
@@ -8,23 +8,23 @@ locals {
     jenkins_casc_config_dir = "/var/jenkins_home/jcasc"
     ssm_params_to_read = [
       "hostedZoneId",
-      "rootJenkinsKeyPair",
-      "basic100GBAmd64AmiId",
-      "basic100GBArm64AmiId",
+      "mainKeyPairName",
+      "/ami_id/basic_amd64_100GB",
+      "/ami_id/basic_arm64_100GB",
       "rootJenkinsVolumeAz",
       "rootJenkinsVolumeId",
-      "deepLearning100GBAmd64AmiId",
-      "deepLearning100GBArm64AmiId",
-      "/secrets/rootJenkinsPrivateKey",
+      "/ami_id/gpu_amd64_100GB",
+      "/secrets/main_ssh_key_pair_privete_key",
       "/secrets/github_token",
       "/secrets/github_username",
       "/secrets/jenkins_admin_password",
-      "/secrets/githubRootJenkinsAppPrivateKey",
+      "/secrets/jenkins_admin_username",
+      "/secrets/github_jenkins_app_private_key_converted",
       "/secrets/github_jenkins_webhook_secret",
-      "/secrets/github_root_jenkins_app_id",
-      "/sslcerts/ofirydevops.com/privateKey",
-      "/sslcerts/ofirydevops.com/chain",
-      "/sslcerts/ofirydevops.com/cert"
+      "/secrets/github_jenkins_app_id",
+      "/sslcerts/${local.domain}/privateKey",
+      "/sslcerts/${local.domain}/chain",
+      "/sslcerts/${local.domain}/cert"
     ]
 
     ssm = { for name in local.ssm_params_to_read : name => data.aws_ssm_parameter.params[name].value }
@@ -55,15 +55,15 @@ locals {
     domain_ssl_cert_files_conf = {
       "cert" : {
         path = "tmp/cert.pem"
-        content = local.ssm["/sslcerts/ofirydevops.com/cert"]
+        content = local.ssm["/sslcerts/${local.domain}/cert"]
       }
       "privatekey" : {
         path = "tmp/privatekey.pem"
-        content = local.ssm["/sslcerts/ofirydevops.com/privateKey"]
+        content = local.ssm["/sslcerts/${local.domain}/privateKey"]
       }
       "chain" : {
         path = "tmp/chain.pem"
-        content = local.ssm["/sslcerts/ofirydevops.com/chain"]
+        content = local.ssm["/sslcerts/${local.domain}/chain"]
       }
     }  
 
@@ -76,36 +76,36 @@ locals {
       "${path.module}/../docker/plugins.txt"
     ]
 
-    docker_dep_files_content = [for file in local.docker_dep_files : file(file)]
+    docker_dep_files_content      = [for file in local.docker_dep_files : file(file)]
     docker_dep_files_content_hash = sha256(join("", local.docker_dep_files_content))
 }
 
 
 
 resource "local_sensitive_file" "domain_cert_files" {
-  for_each = local.domain_ssl_cert_files_conf
-  filename = "${path.module}/../../${each.value.path}"
+  for_each        = local.domain_ssl_cert_files_conf
+  filename        = "${path.module}/../../${each.value.path}"
   file_permission = "0755"
-  content  = each.value.content
+  content         = each.value.content
 }
 
 
 data "aws_subnet" "jenkins_subnet" {
   availability_zone = local.ssm["rootJenkinsVolumeAz"]
-  vpc_id = local.default_vpc_id
+  vpc_id            = local.default_vpc_id
 }
 
 resource "aws_ecr_repository" "ecr_repos" {
-    for_each = toset(local.ecr_repos)
-    name     = each.key
+    for_each             = toset(local.ecr_repos)
+    name                 = each.key
     image_tag_mutability = "MUTABLE"
-    force_delete = true
+    force_delete         = true
 }
 
 resource "aws_ecr_lifecycle_policy" "ecr_repos" {
-    for_each = toset(local.ecr_repos)
+    for_each   = toset(local.ecr_repos)
     repository = aws_ecr_repository.ecr_repos[each.key].name
-    policy = file("${path.module}/policies/ecr_lifecycle_policy.json")
+    policy     = file("${path.module}/policies/ecr_lifecycle_policy.json")
 }
 
 resource "null_resource" "docker_build_and_push" {
@@ -118,13 +118,13 @@ resource "null_resource" "docker_build_and_push" {
   }
   provisioner "local-exec" {
     environment = {
-      DOCKER_REGISTRY       = local.ecr_registry
-      DOCKER_IMAGE_REPO     = local.ecr_repo_name
-      DOCKER_IMAGE_TAG      = local.image_tag
-      DOMAIN                = local.domain
-      REGION                = local.region
-      PROFILE               = "OFIRYDEVOPS"
-      MODULE_PATH           = path.module
+      DOCKER_REGISTRY   = local.ecr_registry
+      DOCKER_IMAGE_REPO = local.ecr_repo_name
+      DOCKER_IMAGE_TAG  = local.image_tag
+      DOMAIN            = local.domain
+      REGION            = local.region
+      PROFILE           = local.profile
+      MODULE_PATH       = path.module
       DOMAIN_CERT_FILE             = local.domain_ssl_cert_files_conf["cert"].path
       DOMAIN_CERT_PRIVATE_KEY_FILE = local.domain_ssl_cert_files_conf["privatekey"].path
       DOMAIN_CERT_CHAIN_FILE       = local.domain_ssl_cert_files_conf["chain"].path
@@ -213,7 +213,9 @@ locals {
                       "logs:*",
                       "secretsmanager:*",
                       "events:*",
-                      "batch:*"
+                      "batch:*",
+                      "codeartifact:*",
+                      "sts:*"
                       ]
                   Effect   = "Allow"
                   Resource = "*"
@@ -326,7 +328,7 @@ resource "aws_instance" "root_jenkins" {
   subnet_id     = local.root_jenkins_subnet_id
   vpc_security_group_ids = [aws_security_group.sgs["root_jenkins_master"].id]
   iam_instance_profile = aws_iam_instance_profile.profiles["root_jenkins_master"].name
-  key_name = local.ssm["rootJenkinsKeyPair"]
+  key_name = local.ssm["mainKeyPairName"]
   
 
   user_data = <<-EOF
@@ -403,7 +405,7 @@ resource "null_resource" "root_jenkins_ecs_setup" {
         type        = "ssh"
         host        = aws_instance.root_jenkins.public_ip
         user        = "ec2-user"
-        private_key = local.ssm["/secrets/rootJenkinsPrivateKey"]
+        private_key = local.ssm["/secrets/main_ssh_key_pair_privete_key"]
       }
       inline = [
         "sudo systemctl enable ecs",
@@ -422,19 +424,19 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     sg_name                          = aws_security_group.sgs["root_jenkins_worker"].name
     subnet_id                        = local.root_jenkins_subnet_id
     jenkins_admin_password           = local.ssm["/secrets/jenkins_admin_password"]
-    basic_100GB_amd64_ami_id         = local.ssm["basic100GBAmd64AmiId"]
-    basic_100GB_arm64_ami_id         = local.ssm["basic100GBArm64AmiId"]
-    deep_learning_100GB_arm64_ami_id = local.ssm["deepLearning100GBArm64AmiId"]
-    deep_learning_100GB_amd64_ami_id = local.ssm["deepLearning100GBAmd64AmiId"]
+    jenkins_admin_username           = local.ssm["/secrets/jenkins_admin_username"]
+    basic_100GB_amd64_ami_id         = local.ssm["/ami_id/basic_amd64_100GB"]
+    basic_100GB_arm64_ami_id         = local.ssm["/ami_id/basic_arm64_100GB"]
+    deep_learning_100GB_amd64_ami_id = local.ssm["/ami_id/gpu_amd64_100GB"]
     github_username                  = local.ssm["/secrets/github_username"]
     github_token                     = local.ssm["/secrets/github_token"]
-    workers_ssh_key                  = indent(20, "\n${local.ssm["/secrets/rootJenkinsPrivateKey"]}")
+    workers_ssh_key                  = indent(20, "\n${local.ssm["/secrets/main_ssh_key_pair_privete_key"]}")
     worker_role_arn                  = aws_iam_role.roles["root_jenkins_worker"].arn
-    default_profile_name             = "OFIRYDEVOPS"
+    default_profile_name             = local.profile
     region                           = local.region
     ecr_registry                     = local.ecr_registry
-    gh_root_jenkins_app_id           = local.ssm["/secrets/github_root_jenkins_app_id"]
-    gh_root_jenkins_app_priv_key     = indent(20, "\n${local.ssm["/secrets/githubRootJenkinsAppPrivateKey"]}")
+    gh_root_jenkins_app_id           = local.ssm["/secrets/github_jenkins_app_id"]
+    gh_root_jenkins_app_priv_key     = indent(20, "\n${local.ssm["/secrets/github_jenkins_app_private_key_converted"]}")
   })
 }
 
@@ -455,7 +457,7 @@ resource "null_resource" "root_jenkins_volume_mount" {
         type        = "ssh"
         host        = aws_instance.root_jenkins.public_ip
         user        = "ec2-user"
-        private_key = local.ssm["/secrets/rootJenkinsPrivateKey"]
+        private_key = local.ssm["/secrets/main_ssh_key_pair_privete_key"]
       }
       inline = [
         "if ! sudo file -s \"$(readlink -f ${local.device_to_mount})\" | grep -q \"filesystem\"; then sudo mkfs.ext4 ${local.device_to_mount}; fi",
@@ -479,7 +481,7 @@ resource "null_resource" "root_jenkins_jcasc_update" {
             type        = "ssh"
             host        = aws_instance.root_jenkins.public_ip
             user        = "ec2-user"
-            private_key = local.ssm["/secrets/rootJenkinsPrivateKey"]
+            private_key = local.ssm["/secrets/main_ssh_key_pair_privete_key"]
         }
         source      = local_sensitive_file.rendered_jcasc_config.filename
         destination = "${local.jenkins_casc_config_dir}/main.yaml"
@@ -489,7 +491,7 @@ resource "null_resource" "root_jenkins_jcasc_update" {
             type        = "ssh"
             host        = aws_instance.root_jenkins.public_ip
             user        = "ec2-user"
-            private_key = local.ssm["/secrets/rootJenkinsPrivateKey"]
+            private_key = local.ssm["/secrets/main_ssh_key_pair_privete_key"]
         }
         inline = [
             "sudo chmod -R 600 ${local.jenkins_casc_config_dir}",

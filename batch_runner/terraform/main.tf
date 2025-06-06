@@ -9,7 +9,7 @@ data "aws_vpc" "default" {
 
 data "aws_subnet" "subnet" {
   availability_zone = local.ssm["rootJenkinsVolumeAz"]
-  vpc_id = local.default_vpc_id
+  vpc_id            = local.default_vpc_id
 }
 
 locals {
@@ -18,10 +18,10 @@ locals {
 
     ssm_params_to_read = [
       "rootJenkinsVolumeAz",
-      "rootJenkinsKeyPair",
-      "basic100GBAmd64AmiId",
-      "basic100GBArm64AmiId",
-      "batchGpu100GBAmd64AmiId"
+      "mainKeyPairName",
+      "/ami_id/basic_amd64_100GB",
+      "/ami_id/basic_arm64_100GB",
+      "/ami_id/batch_gpu_amd64_100GB"
     ]
     ssm = { for name in local.ssm_params_to_read : name => data.aws_ssm_parameter.params[name].value }
 
@@ -53,14 +53,14 @@ locals {
         main_arm64 = {
             name                   = "main_arm64"
             instance_role          = aws_iam_instance_profile.iam_profiles["main_batch_worker"].arn
-            ec2_key_pair           = local.ssm["rootJenkinsKeyPair"]
+            ec2_key_pair           = local.ssm["mainKeyPairName"]
             instance_type          = ["c6g.2xlarge"]
             max_vcpus              = 10
             min_vcpus              = 0
             security_group_ids     = [aws_security_group.sgs["main_batch_worker"].id]
             subnets                = [local.subnet_id]
             compute_resources_type = "SPOT"
-            image_id_override      = local.ssm["basic100GBArm64AmiId"]
+            image_id_override      = local.ssm["/ami_id/basic_arm64_100GB"]
             image_type             = "ECS_AL2023"
             allocation_strategy    = "BEST_FIT_PROGRESSIVE"
             vcpus_per_childjob     = 2
@@ -70,14 +70,14 @@ locals {
         main_amd64 = {
             name                   = "main_amd64"
             instance_role          = aws_iam_instance_profile.iam_profiles["main_batch_worker"].arn
-            ec2_key_pair           = local.ssm["rootJenkinsKeyPair"]
+            ec2_key_pair           = local.ssm["mainKeyPairName"]
             instance_type          = ["c6a.2xlarge"]
             max_vcpus              = 10
             min_vcpus              = 0
             security_group_ids     = [aws_security_group.sgs["main_batch_worker"].id]
             subnets                = [local.subnet_id]
             compute_resources_type = "SPOT"
-            image_id_override      = local.ssm["basic100GBAmd64AmiId"]
+            image_id_override      = local.ssm["/ami_id/basic_amd64_100GB"]
             image_type             = "ECS_AL2023"
             allocation_strategy    = "BEST_FIT_PROGRESSIVE"
             vcpus_per_childjob     = 2
@@ -87,14 +87,14 @@ locals {
         gpu_amd64 = {
             name                   = "gpu_amd64"
             instance_role          = aws_iam_instance_profile.iam_profiles["main_batch_worker"].arn
-            ec2_key_pair           = local.ssm["rootJenkinsKeyPair"]
+            ec2_key_pair           = local.ssm["mainKeyPairName"]
             instance_type          = ["g4dn.xlarge"]
             max_vcpus              = 10
             min_vcpus              = 0
             security_group_ids     = [aws_security_group.sgs["main_batch_worker"].id]
             subnets                = [local.subnet_id]
             compute_resources_type = "EC2"
-            image_id_override      = local.ssm["batchGpu100GBAmd64AmiId"]
+            image_id_override      = local.ssm["/ami_id/batch_gpu_amd64_100GB"]
             image_type             = "ECS_AL2_NVIDIA"
             allocation_strategy    = "BEST_FIT_PROGRESSIVE"
             vcpus_per_childjob     = 1

@@ -17,7 +17,7 @@ def deploy_aws_github_runners(destroy):
     if destroy:
         action = "destroy"
 
-    subprocess.run(["terraform", "init"], check=True, cwd=AWS_GITHUB_EUNNERS_TF_PROJECT)
+    subprocess.run(["terraform", "init", "-backend-config=../../backend.config"], check=True, cwd=AWS_GITHUB_EUNNERS_TF_PROJECT)
     subprocess.run(["terraform", action, "-auto-approve"], check=True, cwd=AWS_GITHUB_EUNNERS_TF_PROJECT)
 
 

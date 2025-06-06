@@ -1,10 +1,6 @@
 terraform {
   backend "s3" {
-    bucket  = "ofirydevops-root-terraform-state"
-    key     = "batch-runner.tfstate"
-    region  = "eu-central-1"
-    encrypt = "true"
-    profile = "OFIRYDEVOPS"
+    key = "batch-runner.tfstate"
   }
 
   required_providers {

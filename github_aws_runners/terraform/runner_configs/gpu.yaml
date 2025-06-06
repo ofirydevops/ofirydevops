@@ -3,4 +3,4 @@ gpu_amd64_100GB:
     runner_architecture: x64
     instance_types:
       - g4dn.xlarge
-    ami_id_ssm_parameter_name: githubRunner100GBAmd64GpuAmiId
+    ami_id_ssm_parameter_name: /ami_id/ghrunner_gpu_amd64_100GB

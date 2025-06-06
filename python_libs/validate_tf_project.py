@@ -16,7 +16,7 @@ def get_args():
 
 def validate_tf_project(path):
     
-    subprocess.run(["terraform", "init"], cwd=path, check=True)
+    subprocess.run(["terraform", "init", "-backend-config=../../backend.config"], cwd=path, check=True)
     subprocess.run(["terraform", "validate"], cwd=path, check=True)
 
 

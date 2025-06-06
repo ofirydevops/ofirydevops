@@ -24,15 +24,15 @@ echo "/usr/local/openssl/lib" | tee /etc/ld.so.conf.d/openssl.conf
 ldconfig -v
 cd ~
 
-# Install python3.8
-amazon-linux-extras enable python3.8
-yum install python3.8 -y
-# yum install libpq-dev -y
-yum install postgresql-devel -y
-yum install python3-devel -y
-yum install python38-devel -y
-ln -s -f /usr/bin/python3.8 /usr/bin/python3
-pip3.8 install aws-sam-cli==1.89.0
+# # Install python3.8
+# amazon-linux-extras enable python3.8
+# yum install python3.8 -y
+# # yum install libpq-dev -y
+# yum install postgresql-devel -y
+# yum install python3-devel -y
+# yum install python38-devel -y
+# ln -s -f /usr/bin/python3.8 /usr/bin/python3
+# pip3.8 install aws-sam-cli==1.89.0
 
 # Install python3.10
 yum groupinstall "Development Tools" -y
@@ -44,6 +44,9 @@ make -j $(nproc)
 sudo make altinstall
 cd ..
 /usr/local/bin/pip3.10 install pipenv==2023.3.20
+
+# Inatall build and twine for pypi packages management
+/usr/local/bin/pip3.10 install build==1.2.2.post1 twine==6.1.0
 
 # Install docker compose
 curl -SL "https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/libexec/docker/cli-plugins/docker-compose
@@ -76,11 +79,7 @@ chmod 700 get_helm.sh
 # Install terraform and packer
 yum install -y yum-utils
 yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
-<<<<<<< HEAD
-yum -y install terraform-1.5.3 packer-1.9.1
-=======
 yum -y install terraform-1.11.0 packer-1.9.1
->>>>>>> update2
 
 # Install awscli
 curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.13.1.zip" -o "awscliv2.zip"

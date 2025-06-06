@@ -54,7 +54,9 @@ def main() {
 
 def getTfProjectValidationJob(tfProjectPath) {
     return {
-        sh "cd ${tfProjectPath} && terraform init && terraform validate"
+        sh "cd ${tfProjectPath} && \
+            terraform init -backend-config=../../backend.config && \
+            terraform validate"
     }
 }
 

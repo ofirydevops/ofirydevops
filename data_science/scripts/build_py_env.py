@@ -30,6 +30,8 @@ CONFIG_BY_ARCH = {
 
 DOCKERFILE_PATH   = "data_science/docker/Dockerfile"
 INPUT_SCHAME_FILE = "data_science/scripts/schemas/py_env_file_schema.yaml"
+FILE_PERMISSIONS  = 0o644
+
 
 def validate_email(email):
     email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
@@ -129,7 +131,7 @@ def create_conda_env_yaml(conda_env_data):
     conda_env_yaml_file = "conda_env.yaml"
     with open(conda_env_yaml_file, "w") as file:
         yaml.dump(conda_env_data, file)
-    os.chmod(conda_env_yaml_file, 0o644)
+    os.chmod(conda_env_yaml_file, FILE_PERMISSIONS)
     return conda_env_yaml_file
 
 
@@ -160,6 +162,10 @@ def get_ecr_repo_address(session, region):
     return f"{ecr_registry}/{repo_name}"
 
 
+def set_dockerfile_permissions():
+    os.chmod(DOCKERFILE_PATH, FILE_PERMISSIONS)
+
+
 def build_py_env(args):
 
     print(json.dumps(args, indent=4))
@@ -181,6 +187,7 @@ def build_py_env(args):
     ecr_registry     = ecr_repo_address.split("/")[0]
     cache_image_tag  = get_cache_image_tag(args["py_env_conf_file"],
                                            global_conf["cache_image_tag_prefix"])
+    set_dockerfile_permissions()
     
     
     cache_exists     = image_tag_exists(session, 
@@ -214,9 +221,9 @@ def build_py_env(args):
                        profile     = global_conf["profile"], 
                        ecr_registry= ecr_registry)
 
-        utils.run_command(f"docker compose -f data_science/docker/docker-compose-v2.yml build {service}")
+        utils.run_shell_cmd_without_buffering(f"docker compose -f {cnfg.DOCKER_COMPOSE_FILE} build {service}")
         result = subprocess.run(
-            "docker compose -f data_science/docker/docker-compose-v2.yml config --format json",
+            f"docker compose -f {cnfg.DOCKER_COMPOSE_FILE} config --format json",
             capture_output = True,
             text           = True,
             check          = True,

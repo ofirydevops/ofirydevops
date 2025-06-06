@@ -72,10 +72,11 @@ locals {
   
     ssm = { for name in local.ssm_params_to_read : name => data.aws_ssm_parameter.params[name].value }
 
-    account_id             = data.aws_caller_identity.current.account_id
-    region                 = local.global_conf["region"]
-    git_repository         = "devops-project"
-    laptop_public_ip       = trimspace(data.http.my_public_ip.response_body)
+    account_id        = data.aws_caller_identity.current.account_id
+    region            = local.global_conf["region"]
+    profile           = local.global_conf["profile"]
+    git_repository    = local.global_conf["git_repo"]
+    laptop_public_ip  = trimspace(data.http.my_public_ip.response_body)
 
     ecr_registry_url = "${local.account_id}.dkr.ecr.${local.region}.amazonaws.com"
     gh_actions_variables = {
@@ -128,7 +129,8 @@ locals {
                       "logs:*",
                       "secretsmanager:*",
                       "events:*",
-                      "route53:*"
+                      "route53:*",
+                      "batch:*"
                       ]
                   Effect   = "Allow"
                   Resource = "*"
@@ -142,10 +144,10 @@ locals {
     }
 
     ssm_params_to_read = [
-      "rootJenkinsKeyPair",
-      "/secrets/githubRunnerAppPrivateKey",
+      "mainKeyPairName",
+      "/secrets/aws_github_runner_app_private_key",
       "/secrets/aws_github_runner_app_id",
-      "/secrets/github_runner_webhook_secret",
+      "/secrets/aws_github_runner_webhook_secret",
       "/secrets/github_token"
     ]
 }
@@ -248,7 +250,7 @@ module "runners" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.public_subnets
   prefix     = local.prefix
-  key_name   = local.ssm["rootJenkinsKeyPair"]
+  key_name   = local.ssm["mainKeyPairName"]
   associate_public_ipv4_address = true
 
   multi_runner_config = local.multi_runner_config
@@ -257,9 +259,9 @@ module "runners" {
     Name = local.prefix
   }
   github_app = {
-    key_base64     = base64encode(local.ssm["/secrets/githubRunnerAppPrivateKey"])
+    key_base64     = base64encode(local.ssm["/secrets/aws_github_runner_app_private_key"])
     id             = local.ssm["/secrets/aws_github_runner_app_id"]
-    webhook_secret = local.ssm["/secrets/github_runner_webhook_secret"]
+    webhook_secret = local.ssm["/secrets/aws_github_runner_webhook_secret"]
   }
   eventbridge = {
     enable = false
@@ -278,7 +280,7 @@ resource "github_repository_webhook" "aws_runners" {
     url          = module.runners.webhook.endpoint
     content_type = "json"
     insecure_ssl = false
-    secret = local.ssm["/secrets/github_runner_webhook_secret"]
+    secret = local.ssm["/secrets/aws_github_runner_webhook_secret"]
   }
 
   active = true

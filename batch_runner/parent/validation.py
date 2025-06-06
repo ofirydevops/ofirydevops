@@ -108,7 +108,7 @@ INPUTS_SCHEMA = {
     "name": {
         "type": "string",
         "required": True,
-        "regex": r"^[a-zA-Z]+[a-zA-Z0-9._-]{0,30}$"
+        "regex": r"^[a-zA-Z]+[a-zA-Z0-9._-]{0,50}$"
     },
     "child_inputs": {
         "type": "dict",

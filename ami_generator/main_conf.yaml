@@ -1,71 +1,81 @@
+# The creation of the AMI will also create an SSM param for the ami-id
+# The SSM param name format will be: "/ami_id/<ami-conf-name>_<volume-size-in-gb>GB"
+# For example: "/ami_id/basic_amd64_100GB"
+
+# basic_amd64:
+#   packer_hcl_path: ami_generator/main.pkr.hcl
+#   kind: amd64_al2023
+#   image_volume_sizes_in_gb: 
+#   - 100
+
 basic_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: amd64_al2023
   images:
-    basic_amd64_100_GB:
+    basic_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: basic100GBAmd64AmiId
+      ami_id_ssm_key: /ami_id/basic_amd64_100GB
 
 basic_arm64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: arm64_al2023
   images:
-    basic_arm64_100_GB:
+    basic_arm64_100GB:
       volume_size: 100
-      ami_id_ssm_key: basic100GBArm64AmiId
+      ami_id_ssm_key: /ami_id/basic_arm64_100GB
 
-deep_learning_amd64:
+gpu_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: amd64_al2023_gpu
   images:
-    deep_learning_amd64_100_GB:
+    gpu_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: deepLearning100GBAmd64AmiId
+      ami_id_ssm_key: /ami_id/gpu_amd64_100GB
+
+gpu_arm64:
+  packer_hcl_path: ami_generator/main.pkr.hcl
+  kind: arm64_al2023_gpu
+  images:
+    gpu_arm64_100GB:
+      volume_size: 100
+      ami_id_ssm_key: /ami_id/gpu_arm64_100GB
+
+ghrunner_arm64:
+  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
+  kind: arm64_al2023
+  images:
+    ghrunner_arm64_100GB:
+      volume_size: 100
+      ami_id_ssm_key: /ami_id/ghrunner_arm64_100GB
+
+ghrunner_amd64:
+  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
+  kind: amd64_al2023
+  images:
+    ghrunner_amd64_100GB:
+      volume_size: 100
+      ami_id_ssm_key: /ami_id/ghrunner_amd64_100GB
+
+ghrunner_gpu_arm64:
+  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
+  kind: arm64_al2023_gpu
+  images:
+    ghrunner_gpu_arm64_100GB:
+      volume_size: 100
+      ami_id_ssm_key: /ami_id/ghrunner_gpu_arm64_100GB
+
+ghrunner_gpu_amd64:
+  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
+  kind: amd64_al2023_gpu
+  images:
+    ghrunner_gpu_amd64_100GB:
+      volume_size: 100
+      ami_id_ssm_key: /ami_id/ghrunner_gpu_amd64_100GB
 
 batch_gpu_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
   kind: amd64_amzn2_gpu
   images:
-    batch_gpu_amd64_100_GB:
+    batch_gpu_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: batchGpu100GBAmd64AmiId
-
-deep_learning_arm64:
-  packer_hcl_path: ami_generator/main.pkr.hcl
-  kind: arm64_al2023_gpu
-  images:
-    deep_learning_arm64_100_GB:
-      volume_size: 100
-      ami_id_ssm_key: deepLearning100GBArm64AmiId
-
-github_runner_arm64:
-  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
-  kind: arm64_al2023
-  images:
-    github_runner_arm64_100_GB:
-      volume_size: 100
-      ami_id_ssm_key: githubRunner100GBArm64AmiId
-
-github_runner_amd64:
-  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
-  kind: amd64_al2023
-  images:
-    github_runner_amd64_100_GB:
-      volume_size: 100
-      ami_id_ssm_key: githubRunner100GBAmd64AmiId
-
-github_runner_arm64_gpu:
-  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
-  kind: arm64_al2023_gpu
-  images:
-    github_runner_arm64_gpu_100_GB:
-      volume_size: 100
-      ami_id_ssm_key: githubRunner100GBArm64GpuAmiId
-
-github_runner_amd64_gpu:
-  packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
-  kind: amd64_al2023_gpu
-  images:
-    github_runner_amd64_gpu_100_GB:
-      volume_size: 100
-      ami_id_ssm_key: githubRunner100GBAmd64GpuAmiId
+      ami_id_ssm_key: /ami_id/batch_gpu_amd64_100GB

@@ -8,9 +8,35 @@ import yaml
 import base64
 import selectors
 import sys
+import string
+import random
 
-AWS_SM_SECRET_NAME = "general_secrets"
-GITCRYPT_KEY_SECRET_NAME = "DEVOPS_PROJECT_GITCRYPT_KEY"
+GLOBAL_CONF_JSON         = "global_conf.json"
+
+def get_profile_and_region():
+    with open(GLOBAL_CONF_JSON, "r") as global_conf_file:
+        global_conf = json.load(global_conf_file)
+    
+    return global_conf["profile"], global_conf["region"]
+
+
+def get_boto3_session():
+    profile, region = get_profile_and_region()
+    session = boto3.session.Session(
+        region_name  = region,
+        profile_name = profile
+    )
+    return session
+
+
+def get_ssm_param(param_name):
+    session  = get_boto3_session()
+    ssm      = session.client('ssm')
+    response = ssm.get_parameter(
+                      Name=param_name, 
+                      WithDecryption=True
+                      )
+    return response['Parameter']['Value']
 
 
 def auth_ecr(region, profile, ecr_registry):
@@ -26,17 +52,17 @@ def get_ecr_registry(session, region):
     account_id = response["Account"]
     return f"{account_id}.dkr.ecr.{region}.amazonaws.com"
 
-def decrypt_git_repo():
-    session = boto3.session.Session(
-        region_name = "eu-central-1",
-        profile_name = "OFIRYDEVOPS"
-    )
-    sm = session.client('secretsmanager')
-    response = sm.get_secret_value(SecretId = AWS_SM_SECRET_NAME)
-    secret_string = response["SecretString"]
-    gitcrypt_key_base64 = json.loads(secret_string)[GITCRYPT_KEY_SECRET_NAME]
-    gitcrypt_key = base64.b64decode(gitcrypt_key_base64)
+def decrypt_git_repo(sm_secret_name, sm_secret_key_name):
+
+    session                = get_boto3_session()
+    sm                     = session.client('secretsmanager')
+    response               = sm.get_secret_value(SecretId = sm_secret_name)
+    secret_string          = response["SecretString"]
+    gitcrypt_key_base64    = json.loads(secret_string)[sm_secret_key_name]
+    gitcrypt_key           = base64.b64decode(gitcrypt_key_base64)
     gitcrypt_key_file_name = str(uuid.uuid4())
+
+
     with open(gitcrypt_key_file_name, 'wb') as gitcrypt_key_file:
         gitcrypt_key_file.write(gitcrypt_key)
     try:
@@ -72,7 +98,7 @@ def yaml_to_dict(file_path):
     return {}
 
 
-def run_command(command):
+def run_shell_cmd_without_buffering(command):
     # Collect stderr for exception
     stderr_output = []
 
@@ -134,6 +160,11 @@ def run_command(command):
         return return_code
 
     finally:
-        # Clean up
         process.stdout.close()
         process.stderr.close()
+
+
+def generate_random_string(length=10):
+    lowercase_letters = string.ascii_lowercase
+    random_string = ''.join(random.choice(lowercase_letters) for _ in range(length))
+    return random_string

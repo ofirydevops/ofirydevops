@@ -52,7 +52,7 @@ jenkins:
     local:
       allowsSignup: false
       users:
-        - id: ofiry
+        - id: ${jenkins_admin_username}
           name: Ofir Yahav
           password: ${jenkins_admin_password}
   authorizationStrategy:
@@ -82,14 +82,6 @@ jenkins:
         tags:
         - name: Name
           value: root_jenkins_basic_arm64_100GB
-        <<: *worker_config
-      - ami: ${deep_learning_100GB_arm64_ami_id}
-        description: gpu_arm64_100GB
-        labelString: gpu_arm64_100GB
-        type: g5g.xlarge
-        tags:
-        - name: Name
-          value: root_jenkins_gpu_arm64_100GB
         <<: *worker_config
       - ami: ${deep_learning_100GB_amd64_ami_id}
         description: gpu_amd64_100GB

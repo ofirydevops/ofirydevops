@@ -330,7 +330,82 @@ pipelineJob("${folders["data_science"]["id"]}/python_remote_dev") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkinsfiles/remote_development.groovy')
+            scriptPath('jenkinsfiles/python_env_remote_dev.groovy')
+        }
+    }
+}
+
+
+pipelineJob("${folders["data_science"]["id"]}/python_env_batch_runner") {
+    parameters {
+        stringParam('ref', 'update2', 'branch / tag / commit')
+
+        stringParam('child_job_entrypoint', 'python -m data_science.batch_test.child', 'Command to run')
+
+        stashedFile {
+            name('py_env_conf.yaml')
+            description('Python env conf file')
+        }
+
+        stashedFile {
+            name('child_jobs_input.yaml')
+            description('File with inputs of all child jobs')
+        }
+
+        choiceParam('batch_env', 
+                    ["main_arm64", "main_amd64", "gpu_amd64"], 
+                    'Batch env to use')
+
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(gitRepoAddress)
+    }
+
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(gitRepoAddress)
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/python_env_batch_runner.groovy')
+        }
+    }
+}
+
+
+pipelineJob("${folders["infra"]["id"]}/build_codeartifact") {
+    parameters {
+        stringParam('ref', 'main', 'branch / tag / commit')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(gitRepoAddress)
+    }
+
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(gitRepoAddress)
+                   credentials('github_access')
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkinsfiles/build_codeartifact.groovy')
         }
     }
 }

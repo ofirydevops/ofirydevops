@@ -2,12 +2,12 @@
     "rules": [
         {
             "rulePriority": 1,
-            "description": "Keep only 1 last images with \"${cache_image_tag_prefix}\" prefix",
+            "description": "Keep only 3 last images with \"${cache_image_tag_prefix}\" prefix",
             "selection": {
                 "tagStatus": "tagged",
                 "tagPrefixList": ["${cache_image_tag_prefix}"],
                 "countType": "imageCountMoreThan",
-                "countNumber": 1
+                "countNumber": 3
             },
             "action": {
                 "type": "expire"

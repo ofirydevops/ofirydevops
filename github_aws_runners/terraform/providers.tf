@@ -1,5 +1,5 @@
 provider "aws" {
-  profile = "OFIRYDEVOPS"
+  profile = local.profile
   region  = local.region
 }
 

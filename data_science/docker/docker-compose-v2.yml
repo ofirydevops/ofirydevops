@@ -18,6 +18,9 @@ x-build: &build
   args:
     <<: *build_args
 
+x-entrypoint: &entrypoint
+  entrypoint: sh -c "${ENTRYPOINT}"
+
 x-main_conf: &main_conf
   <<: *image
   network_mode: bridge
@@ -57,7 +60,7 @@ services:
         <<: *build_args
 
   run_with_no_gpu:
-    <<: *main_conf
+    <<: [*main_conf, *entrypoint]
 
   run_with_gpu:
-    <<: [*main_conf, *gpu]
+    <<: [*main_conf, *gpu, *entrypoint]
