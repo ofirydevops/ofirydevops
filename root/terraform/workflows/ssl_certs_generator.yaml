@@ -1,0 +1,25 @@
+name: ssl_certs_generator
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate_ssl_cert:
+    runs-on: 
+      - self-hosted
+      - basic_arm64_100GB
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ofiryy/devops-project
+          token: ${{ secrets.DEVOPS_PROJECT_TOKEN }}
+          ref: update2
+
+      - name: Pipenv Install
+        run: pipenv install
+
+      - name: Generate SSL Cert
+        run: |
+            pipenv run python3.10 -m ssl_cert_generator.generate_ssl_cert
+

@@ -5,8 +5,7 @@ import os
 import subprocess
 import uuid
 import datetime
-import python_libs.utils as utils
-
+from pylib.ofirydevops.utils import main as utils
 
 PACKER_CONF_FILE = "ami_generator/main_conf.yaml"
 
@@ -101,14 +100,14 @@ def run_packer(packer_hcl_path, packer_input_file_path):
     
     subprocess.run(["packer", "init", dirname(packer_hcl_path)], check=True)
     subprocess.run(["packer", "build", f"-var-file={packer_input_file_path}", packer_hcl_path], check=True)
-    os.remove(packer_input_file_path)
 
 
 def store_ami_ids_in_ssm(input_dict):
 
-    session = utils.get_boto3_session()
-    ec2 = session.client('ec2')
-    ssm = session.client('ssm')
+    session   = utils.get_boto3_session()
+    ec2       = session.client('ec2')
+    ssm       = session.client('ssm')
+    namespace = utils.get_namespace()
 
     for ami_conf in input_dict["images"].values():
         if "ami_id_ssm_key" not in ami_conf:
@@ -126,26 +125,31 @@ def store_ami_ids_in_ssm(input_dict):
         ami_id = response["Images"][0]["ImageId"]
 
         ssm.put_parameter(
-            Name = ami_conf["ami_id_ssm_key"],
-            Value = ami_id,
-            Type = 'String',
+            Name      = ami_conf["ami_id_ssm_key"].format(namespace=namespace),
+            Value     = ami_id,
+            Type      = 'String',
+            DataType  = 'aws:ec2:image',
             Overwrite = True
         )
+
+        print(f'Successfully stored ami id {ami_id} in {ami_conf["ami_id_ssm_key"]}')
 
 
 def get_ssh_private_key_file():
     tmp_dir_path = "tmp"
     os.makedirs(tmp_dir_path, exist_ok=True)
+    namespace = utils.get_namespace()
 
     ssh_private_key_file = os.path.join(tmp_dir_path, f"{utils.generate_random_string()}_private_key.pem")
-    ssh_private_key      = utils.get_ssm_param("/secrets/main_ssh_key_pair_privete_key")
+    ssh_private_key      = utils.get_ssm_param(f"/{namespace}/secrets/main_keypair_privete_key")
     with open(ssh_private_key_file, "w") as file:
         file.write(ssh_private_key)
     return ssh_private_key_file
 
 
 def get_ssh_keypair_name():
-    ssh_keypair_name = utils.get_ssm_param("mainKeyPairName")
+    namespace = utils.get_namespace()
+    ssh_keypair_name = utils.get_ssm_param(f"/{namespace}/main_keypair_name")
     return ssh_keypair_name
 
 

@@ -5,7 +5,7 @@ locals {
     lambdas = {
         "gh_jenkins_webhook_auth" = {
             source_dir      = "${path.module}/jwg_auth_lambda"
-            output_zip_path = "${timestamp()}-jwg_auth_lambda.zip"
+            output_zip_path = "${path.module}/${timestamp()}-jwg_auth_lambda.zip"
             function_name   = "${var.name}_gh_jenkins_webhook_auth"
             role_arn        = aws_iam_role.jwg_iam_roles["jgw_auth_lambda"].arn
             handler         = "app.lambda_handler"
@@ -14,7 +14,7 @@ locals {
             sg_ids          = [aws_security_group.jwg_sgs["jwg_auth_lambda"].id]
             subnet_ids      = [var.jenkins_server_subnet_id]
             env_vars        = {
-                GITHUB_WEBHOOK_SECRET = var.github_jenkins_webhook_secret
+                GITHUB_WEBHOOK_SECRET = local.github_jenkins_webhook_secret
                 JENKINS_URL = "https://${var.jenkins_server_private_ip}"
             }
         }
@@ -57,4 +57,16 @@ resource "aws_lambda_function" "lambdas" {
       subnet_ids         = each.value.subnet_ids
       security_group_ids = each.value.sg_ids
     }
+}
+
+resource "null_resource" "cleanup" {
+  depends_on = [
+    aws_lambda_function.lambdas
+    ]
+  triggers = {
+    always = timestamp()
+  }
+  provisioner "local-exec" {
+    command = "rm ${path.module}/*.zip || true"
+  }
 }

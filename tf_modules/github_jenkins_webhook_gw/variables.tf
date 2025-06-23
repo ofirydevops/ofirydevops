@@ -10,15 +10,11 @@ variable "hosted_zone_id" {
     type = string
 }
 
-variable "github_jenkins_webhook_secret" {
-    type = string
-}
-
 variable "vpc_id" {
     type = string
 }
 
-variable "git_repo" {
+variable "github_repo" {
     type = string
 }
 

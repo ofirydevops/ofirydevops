@@ -215,6 +215,8 @@ tee /opt/actions-runner/.setup_info <<EOL
 ]
 EOL
 
+echo "[INFO] Waiting for cloud-init to finish..."
+
 ## Start the runner
 echo "Starting runner after $(awk '{print int($1/3600)":"int(($1%3600)/60)":"int($1%60)}' /proc/uptime)"
 echo "Starting the runner as user $run_as"
@@ -248,3 +250,18 @@ else
   echo "Starting the runner in persistent mode"
   ./svc.sh start
 fi
+
+# # Wait up to 5 minutes for cloud-init to finish
+# timeout=300
+# elapsed=0
+# while ! cloud-init status | grep -q "done"; do
+#     if [ "$elapsed" -ge "$timeout" ]; then
+#         echo "[WARN] cloud-init did not finish within $timeout seconds. Proceeding anyway."
+#         break
+#     fi
+#     echo "[INFO] cloud-init still running... ($elapsed/$timeout)"
+#     sleep 1
+#     elapsed=$((elapsed + 1))
+# done
+
+# echo "[INFO] cloud-init complete. Starting runner..."

@@ -1,0 +1,18 @@
+services:
+  main:
+    network_mode: bridge
+    build:
+      context: ../../
+      dockerfile: ./tf_modules/jenkins/docker/Dockerfile
+      args:
+        DOMAIN_CERT_FILE: ${DOMAIN_CERT_FILE}
+        DOMAIN_CERT_PRIVATE_KEY_FILE: ${DOMAIN_CERT_PRIVATE_KEY_FILE} 
+        DOMAIN_CERT_CHAIN_FILE: ${DOMAIN_CERT_CHAIN_FILE}   
+        DOMAIN: ${DOMAIN}
+    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
+    ports:
+      - 443:8443
+    volumes:
+      - jenkins_home:/var/jenkins_home
+volumes:
+  jenkins_home:

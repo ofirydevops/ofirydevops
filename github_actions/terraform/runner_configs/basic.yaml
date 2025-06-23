@@ -1,0 +1,15 @@
+basic_arm64_100GB:
+  runner_config:
+    instance_types:
+      - t4g.xlarge
+    runner_architecture: arm64
+    ami:
+      id_ssm_parameter_name: /${namespace}/ami_id/ghrunner_arm64_100GB
+
+basic_amd64_100GB:
+  runner_config:
+    instance_types:
+      - t3.xlarge
+    runner_architecture: x64
+    ami:
+      id_ssm_parameter_name: /${namespace}/ami_id/ghrunner_amd64_100GB

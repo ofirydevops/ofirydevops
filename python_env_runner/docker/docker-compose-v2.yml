@@ -1,0 +1,66 @@
+version: "3.9"
+
+x-image: &image
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
+
+x-build_args: &build_args
+  CONDA_ENV_INTERNAL_NAME: main
+  CONDA_ENV_FILE_PATH: ${CONDA_ENV_FILE_PATH}
+  RUNTIME_IMAGE: ${RUNTIME_IMAGE}
+  AWS_CLI_DOWNLOAD_LINK: ${AWS_CLI_DOWNLOAD_LINK}
+  GIT_REF: ${GIT_REF}
+  GIT_USER_EMAIL: ${GIT_USER_EMAIL}
+
+x-build: &build
+  context: ../../
+  dockerfile: python_env_runner/docker/Dockerfile
+  target: ${COMPOSE_BUILD_TARGET}
+  args:
+    <<: *build_args
+
+x-entrypoint: &entrypoint
+  entrypoint: sh -c "${ENTRYPOINT}"
+
+x-main_conf: &main_conf
+  <<: *image
+  network_mode: bridge
+  ports:
+    - 5000:22
+
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+x-cache_to: &cache_to
+  cache_to:
+  - type=registry,ref=${AWS_REGITRY_REF_REPO}:${CONDA_ENV_CACHE_IMAGE_TAG},mode=max,image-manifest=true,oci-mediatypes=true
+
+x-cache_from: &cache_from
+  cache_from:
+  - type=registry,ref=${AWS_REGITRY_REF_REPO}:${CONDA_ENV_CACHE_IMAGE_TAG}
+
+services:
+  build_and_read_cache:
+    <<: *main_conf
+    build:
+      <<: [*build, *cache_from]
+      args:
+        <<: *build_args
+
+  build_and_write_cache:
+    <<: *main_conf
+    build:
+      <<: [*build, *cache_from, *cache_to]
+      args:
+        <<: *build_args
+
+  run_with_no_gpu:
+    <<: [*main_conf, *entrypoint]
+
+  run_with_gpu:
+    <<: [*main_conf, *gpu, *entrypoint]

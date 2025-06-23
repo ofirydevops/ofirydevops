@@ -1,0 +1,18 @@
+root:
+  path: root/terraform
+
+jenkins:
+  path: jenkins/terraform
+
+github_actions:
+  path: github_actions/terraform
+
+codeartifact:
+  path: codeartifact/terraform
+
+batch_runner:
+  path: batch_runner/terraform
+
+python_env_runner:
+  path: python_env_runner/terraform
+

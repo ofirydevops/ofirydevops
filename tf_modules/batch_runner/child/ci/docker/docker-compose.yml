@@ -1,0 +1,8 @@
+services:
+
+  main:
+    network_mode: bridge
+    build:
+      context: ../../
+      dockerfile: ./tf_modules/batch_runner/child/ci/docker/Dockerfile
+    image: ${DOCKER_IMAGE}

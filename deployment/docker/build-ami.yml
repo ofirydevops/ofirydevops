@@ -1,0 +1,104 @@
+x-main_conf: &main_conf
+  network_mode: bridge
+  build:
+    context: ../../
+    dockerfile: ./deployment/docker/Dockerfile
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
+  volumes:
+  - ../../:/workspace
+  - /var/run/docker.sock:/var/run/docker.sock
+  - ~/.aws/credentials:/root/.aws/credentials
+
+
+services:
+
+  basic_amd64:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf basic_amd64"
+    profiles:
+    - basic
+    - cpu
+    - amd64
+    - all
+
+  basic_arm64:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf basic_arm64"
+    profiles:
+    - basic
+    - cpu
+    - arm64
+    - all
+
+
+  gpu_amd64:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf gpu_amd64"
+    profiles:
+    - basic
+    - gpu
+    - amd64
+    - all
+
+
+  # gpu_arm64:
+  #   <<: *main_conf
+  #   entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf gpu_arm64"
+  #   profiles:
+  #   - basic
+  #   - gpu
+  #   - arm64
+  #   - all
+
+  ghrunner_arm64:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf ghrunner_arm64"
+    profiles:
+    - ghrunner
+    - cpu
+    - arm64
+    - all
+
+
+  ghrunner_amd64:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf ghrunner_amd64"
+    profiles:
+    - ghrunner
+    - cpu
+    - amd64
+    - all
+
+
+  # ghrunner_gpu_arm64:
+  #   <<: *main_conf
+  #   entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf ghrunner_gpu_arm64"
+  #   profiles:
+  #   - ghrunner
+  #   - gpu
+  #   - arm64
+  #   - all
+
+
+  ghrunner_gpu_amd64:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf ghrunner_gpu_amd64"
+    profiles:
+    - ghrunner
+    - gpu
+    - amd64
+    - all
+
+
+
+  batch_gpu_amd64:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ami_generator.ami_generator --conf batch_gpu_amd64"
+    profiles:
+    - batch
+    - gpu
+    - amd64
+    - all
+
+
+

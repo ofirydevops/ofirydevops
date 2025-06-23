@@ -1,0 +1,8 @@
+gpu_amd64_100GB:
+  runner_config:
+    runner_architecture: x64
+    instance_types:
+      - g4dn.xlarge
+    instance_target_capacity_type: "on-demand"
+    ami:
+      id_ssm_parameter_name: /${namespace}/ami_id/ghrunner_gpu_amd64_100GB
