@@ -1,4 +1,4 @@
-# Welcome To devops-project
+# Welcome To `ofirydevops`
 
 This project is a collection of self-hosted automations that use AWS infra to do usefull stuff.
 
