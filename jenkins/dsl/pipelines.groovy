@@ -8,14 +8,12 @@ def nodes = [
   'basic_amd64_100GB', 
   'basic_arm64_100GB', 
   'gpu_amd64_100GB',
-  'gpu_arm64_100GB'
   ]
 
 
-// Jenkins DSL api docs link: https://jenkins.ofirydevops.com/plugin/job-dsl/api-viewer/index.html
-def gitRepoAddress = "https://github.com/ofiryy/devops-project"
+// Jenkins DSL api docs link: https://jenkins.<domain>/plugin/job-dsl/api-viewer/index.html
+def gitRepoAddress = "https://github.com/ofirydevops/ofirydevops.git"
 
-def mainDomain = "ofirydevops.com"
 
 def prReRunPhrasePrefix = "rerun_"
 
@@ -57,24 +55,6 @@ folders.each { _, config ->
 pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
     parameters {
         stringParam('ref', 'update2', 'branch / tag / commit')
-        choiceParam('domain', 
-                     [
-                      "${mainDomain}",
-                      "dev.${mainDomain}",
-                      "stg.${mainDomain}",
-                      "sbx.${mainDomain}"
-                      ])
-    }
-
-    triggers {
-        parameterizedCron {
-            parameterizedSpecification('''
-            H H 1 * * % domain=ofirydevops.com
-            H H 1 * * % domain=dev.ofirydevops.com
-            H H 1 * * % domain=stg.ofirydevops.com
-            H H 1 * * % domain=sbx.ofirydevops.com
-            ''')
-        } 
     }
 
     properties {
@@ -89,7 +69,6 @@ pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
                git {
                  remote {
                    url(gitRepoAddress)
-                   credentials('github_access')
                  }
                  branch('${ref}')
                }
@@ -117,7 +96,6 @@ pipelineJob("${folders["batch_runner"]["id"]}/test_batch_runner") {
                git {
                  remote {
                    url(gitRepoAddress)
-                   credentials('github_access')
                  }
                  branch('${ref}')
                }
@@ -189,7 +167,6 @@ prPipelineConfigs.each { _, config ->
                   git {
                       remote {
                           url(gitRepoAddress)
-                          credentials('github_access')
                           refspec('+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
                       }
                       branch('origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
@@ -230,7 +207,6 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_runner") {
                git {
                  remote {
                    url(gitRepoAddress)
-                   credentials('github_access')
                  }
                  branch('${ref}')
                }
@@ -268,7 +244,6 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_remote_dev") {
                git {
                  remote {
                    url(gitRepoAddress)
-                   credentials('github_access')
                  }
                  branch('${ref}')
                }
@@ -314,7 +289,6 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
                git {
                  remote {
                    url(gitRepoAddress)
-                   credentials('github_access')
                  }
                  branch('${ref}')
                }
@@ -362,7 +336,6 @@ pipelineJob("${folders["infra"]["id"]}/manage_tf_infra") {
                git {
                  remote {
                    url(gitRepoAddress)
-                   credentials('github_access')
                  }
                  branch('${ref}')
                }

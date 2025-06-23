@@ -95,7 +95,7 @@ RUN git-crypt lock || true
 
 ARG GIT_REF
 ARG GIT_USER_EMAIL
-RUN git remote set-url origin https://github.com/ofiryy/devops-project.git
+RUN git remote set-url origin https://github.com/ofirydevops/ofirydevops.git
 RUN git config --global user.name "remote-user"
 RUN git config --global user.email $GIT_USER_EMAIL
 RUN git stash
