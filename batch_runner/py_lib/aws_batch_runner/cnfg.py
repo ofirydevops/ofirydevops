@@ -1,7 +1,0 @@
-CHILD_JOBS_INPUT_PATH      = "/tmp/input"
-CHILD_JOBS_INPUT_VOL_NAME  = "input"
-DOCKER_SOCK_PATH           = "/var/run/docker.sock"
-DOCKER_SOCK_VOL_NAME       = "docker_sock"
-MAIN_PROFILE               = "OFIRYDEVOPS"
-MAIN_REGION                = "eu-central-1"
-BATCH_ENV_SSM_PARAM_PREFIX = "/batch_runner_conf/"

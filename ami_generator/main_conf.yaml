@@ -1,6 +1,6 @@
 # The creation of the AMI will also create an SSM param for the ami-id
 # The SSM param name format will be: "/ami_id/<ami-conf-name>_<volume-size-in-gb>GB"
-# For example: "/ami_id/basic_amd64_100GB"
+# For example: "/<namespace>/ami_id/basic_amd64_100GB"
 
 # basic_amd64:
 #   packer_hcl_path: ami_generator/main.pkr.hcl
@@ -14,7 +14,7 @@ basic_amd64:
   images:
     basic_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/basic_amd64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/basic_amd64_100GB
 
 basic_arm64:
   packer_hcl_path: ami_generator/main.pkr.hcl
@@ -22,7 +22,7 @@ basic_arm64:
   images:
     basic_arm64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/basic_arm64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/basic_arm64_100GB
 
 gpu_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
@@ -30,7 +30,7 @@ gpu_amd64:
   images:
     gpu_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/gpu_amd64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/gpu_amd64_100GB
 
 gpu_arm64:
   packer_hcl_path: ami_generator/main.pkr.hcl
@@ -38,7 +38,7 @@ gpu_arm64:
   images:
     gpu_arm64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/gpu_arm64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/gpu_arm64_100GB
 
 ghrunner_arm64:
   packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
@@ -46,7 +46,7 @@ ghrunner_arm64:
   images:
     ghrunner_arm64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/ghrunner_arm64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/ghrunner_arm64_100GB
 
 ghrunner_amd64:
   packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
@@ -54,7 +54,7 @@ ghrunner_amd64:
   images:
     ghrunner_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/ghrunner_amd64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/ghrunner_amd64_100GB
 
 ghrunner_gpu_arm64:
   packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
@@ -62,7 +62,7 @@ ghrunner_gpu_arm64:
   images:
     ghrunner_gpu_arm64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/ghrunner_gpu_arm64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/ghrunner_gpu_arm64_100GB
 
 ghrunner_gpu_amd64:
   packer_hcl_path: ami_generator/github_runner/main.pkr.hcl
@@ -70,7 +70,7 @@ ghrunner_gpu_amd64:
   images:
     ghrunner_gpu_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/ghrunner_gpu_amd64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/ghrunner_gpu_amd64_100GB
 
 batch_gpu_amd64:
   packer_hcl_path: ami_generator/main.pkr.hcl
@@ -78,4 +78,4 @@ batch_gpu_amd64:
   images:
     batch_gpu_amd64_100GB:
       volume_size: 100
-      ami_id_ssm_key: /ami_id/batch_gpu_amd64_100GB
+      ami_id_ssm_key: /{namespace}/ami_id/batch_gpu_amd64_100GB

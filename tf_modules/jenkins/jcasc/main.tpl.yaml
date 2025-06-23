@@ -1,0 +1,164 @@
+x-worker_config: &worker_config
+  amiType:
+    unixData:
+      sshPort: 22
+  associatePublicIp: true
+  connectBySSHProcess: false
+  connectionStrategy: PRIVATE_IP
+  deleteRootOnTermination: true
+  hostKeyVerificationStrategy: 'OFF'
+  iamInstanceProfile: ${instance_profile}
+  idleTerminationMinutes: 5
+  instanceCapStr: 3
+  javaPath: java
+  metadataEndpointEnabled: true
+  metadataTokensRequired: false
+  mode: EXCLUSIVE
+  numExecutors: 1
+  remoteAdmin: ec2-user
+  remoteFS: /home/ec2-user/jenkins
+  securityGroups: ${sg_name}
+  stopOnTerminate: false
+  initScript: |
+    #!/bin/bash
+    mkdir -p /home/ec2-user/.aws
+    tee /home/ec2-user/.aws/config <<EOF
+    [profile ${default_profile_name}]
+    EOF
+    sudo tee /etc/docker/daemon.json <<EOF
+    {
+      "features": {
+        "containerd-snapshotter": true
+      }
+    }
+    EOF
+    sudo service docker restart
+
+jenkins:
+  globalNodeProperties:
+  - envVars:
+      env:
+      - key: AWS_ECR_REGISTRY
+        value: ${ecr_registry}
+      - key: AWS_DEFAULT_PROFILE
+        value: ${default_profile_name}
+      - key: AWS_REGION
+        value: ${region}
+      - key: DOCKER_CONTAINER_DRIVER_NAME
+        value: dc
+  numExecutors: 0
+  systemMessage: "Configured with JCasC!"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: ${jenkins_admin_username}
+          name: Ofir Yahav
+          password: ${jenkins_admin_password}
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  clouds:
+  - amazonEC2:
+      name: root_main
+      region: ${region}
+      sshKeysCredentialsId: workers_ssh_access
+      useInstanceProfileForCredentials: true
+      templates:
+      - ami: ${basic_100GB_amd64_ami_id}
+        description: basic_amd64_100GB
+        labelString: basic_amd64_100GB
+        subnetId: ${subnet_id}
+        type: t3.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_basic_amd64_100GB
+        <<: *worker_config
+      - ami: ${basic_100GB_arm64_ami_id}
+        description: basic_arm64_100GB
+        labelString: basic_arm64_100GB
+        subnetId: ${subnet_id}
+        type: t4g.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_basic_arm64_100GB
+        <<: *worker_config
+      - ami: ${deep_learning_100GB_amd64_ami_id}
+        description: gpu_amd64_100GB
+        labelString: gpu_amd64_100GB
+        type: g4dn.xlarge
+        tags:
+        - name: Name
+          value: root_jenkins_gpu_amd64_100GB
+        <<: *worker_config
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - string:
+              description: github_token
+              id: github_token
+              scope: GLOBAL
+              secret: ${github_token}
+          - usernamePassword:
+              scope: GLOBAL
+              id: github_access
+              username: ${github_username}
+              password: ${github_token}
+          - gitHubApp:
+              appID: ${gh_root_jenkins_app_id}
+              description: GitHub app
+              id: jenkins_gh_app
+              privateKey: |${jenkins_gh_app_priv_key}
+
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: workers_ssh_access
+              username: ec2-user
+              privateKeySource:
+                directEntry:
+                  privateKey: |${workers_ssh_key}
+
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+
+jobs:
+  - script: >
+      job('seed_job') {
+        label('basic_arm64_100GB')
+        parameters {
+          stringParam('ref', 'main', 'branch / tag / commit')
+          choiceParam('file_to_provision', 
+              [
+              'jenkins/dsl/pipelines.groovy'
+              ], 
+              'The pipelines file to provision')
+        }
+        scm {
+          git {
+            remote {
+              url('https://github.com/${github_username}/${github_repo}.git')
+              credentials('jenkins_gh_app')
+            }
+            branch('$ref')
+          }
+        }
+        steps {
+          dsl {
+            external('$file_to_provision')
+            removeAction('DELETE')
+          }
+        }
+      }
+
+unclassified:
+  gitHubPluginConfig:
+    configs:
+    - credentialsId: github_token
+      manageHooks: false
+  ghprbTrigger:
+    githubAuth:
+    - credentialsId: github_token
+    manageWebhooks: false

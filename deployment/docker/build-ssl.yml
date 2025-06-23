@@ -1,0 +1,17 @@
+x-main_conf: &main_conf
+  network_mode: bridge
+  build:
+    context: ../../
+    dockerfile: ./deployment/docker/Dockerfile
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
+  volumes:
+  - ../../:/workspace
+  - /var/run/docker.sock:/var/run/docker.sock
+  - ~/.aws/credentials:/root/.aws/credentials
+
+
+services:
+
+  generate_ssl_cert:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m ssl_cert_generator.generate_ssl_cert"

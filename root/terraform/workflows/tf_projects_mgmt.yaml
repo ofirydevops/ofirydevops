@@ -1,0 +1,48 @@
+name: tf_projects_mgmt
+
+on:
+  workflow_dispatch:
+    inputs:
+      tf_project:
+        description: Terraform project
+        type: choice
+        required: true
+        options:
+          - jenkins
+          - github_actions
+          - codeartifact
+          - batch_runner
+          - python_env_runner
+      tf_action:
+        description: Terraform action to run
+        type: choice
+        options:
+          - apply
+          - destroy
+          - plan
+          - validate
+        required: true
+
+jobs:
+  build_batch_runner:
+    runs-on: 
+      - self-hosted
+      - basic_amd64_100GB
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ofiryy/devops-project
+          token: ${{ secrets.DEVOPS_PROJECT_TOKEN }}
+          ref: update2
+
+      - name: Pipenv Install
+        run: pipenv install
+
+      - name: Run Terraform Action
+        run: |
+            pipenv run python3.10 -m deployment.tf_manager \
+                                      --tf-action ${{ github.event.inputs.tf_action }} \
+                                      --tf-project ${{ github.event.inputs.tf_project }}
+

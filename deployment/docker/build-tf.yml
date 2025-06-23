@@ -1,0 +1,69 @@
+x-main_conf: &main_conf
+  network_mode: bridge
+  build:
+    context: ../../
+    dockerfile: ./deployment/docker/Dockerfile
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
+  volumes:
+  - ../../:/workspace
+  - /var/run/docker.sock:/var/run/docker.sock
+  - ~/.aws/credentials:/root/.aws/credentials
+
+
+services:
+
+  build_root:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action apply \
+                                                --tf-project root"
+    profiles:
+    - root
+
+  build_jenkins:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action apply \
+                                                --tf-project jenkins"
+    profiles:
+    - jenkins
+    - all
+
+  build_github_actions:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action apply \
+                                                --tf-project github_actions"
+    profiles:
+    - githubactions
+    - all
+
+  build_codeartifact:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action apply \
+                                                --tf-project codeartifact"
+    profiles:
+    - githubactions
+    - jenkins
+    - all
+
+  build_python_env_runner:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action apply \
+                                                --tf-project python_env_runner"
+    profiles:
+    - githubactions
+    - jenkins
+    - all
+
+  build_batch_runner:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action apply \
+                                                --tf-project batch_runner"
+    profiles:
+    - githubactions
+    - jenkins
+    - all

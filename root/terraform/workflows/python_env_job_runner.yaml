@@ -1,0 +1,66 @@
+name: python_env_job_runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Run command"
+        type: string
+        required: true
+        default: python python_env_runner/hello_world.py
+      timeout:
+        description: "Runner timeout"
+        type: choice
+        options: [10, 20 , 40, 80]
+        required: true
+      py_env_file:
+        description: "Python environment file"
+        type: choice
+        options:
+          - python_env_runner/conda_envs_v2/ofiry.yaml
+          - python_env_runner/conda_envs_v2/py310_gpu.yaml
+          - python_env_runner/conda_envs_v2/py310_full.yaml
+        required: true
+      node:
+        description: "Runner node"
+        type: choice
+        options:
+          - basic_amd64_100GB
+          - basic_arm64_100GB
+          - gpu_amd64_100GB
+        required: true
+
+
+env:
+  DOCKER_IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}
+
+jobs:
+  build_and_run:
+    runs-on: 
+      - self-hosted
+      - ${{ github.event.inputs.node }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ofiryy/devops-project
+          token: ${{ secrets.DEVOPS_PROJECT_TOKEN }}
+          ref: update2
+      
+      - name: Pipenv Install
+        run: pipenv install
+
+      - name: Build Conda Env Docker
+        run: |
+            pipenv run python3.10 -u -m python_env_runner.scripts.build_py_env \
+                                            --py-env-conf-file ${{ github.event.inputs.py_env_file }} \
+                                            --docker-image-tag ${{ env.DOCKER_IMAGE_TAG }} \
+                                            --target runtime
+
+      - name: Run Job
+        run: |
+          TIMEOUT_SECONDS=$(( ${{ github.event.inputs.timeout }} * 60 ))
+          timeout $TIMEOUT_SECONDS \
+          pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \
+                                        --docker-image-tag ${{ env.DOCKER_IMAGE_TAG }} \
+                                        --entrypoint "${{ github.event.inputs.command }}"
