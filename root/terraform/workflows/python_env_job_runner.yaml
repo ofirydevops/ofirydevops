@@ -43,9 +43,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: ofiryy/devops-project
-          token: ${{ secrets.DEVOPS_PROJECT_TOKEN }}
-          ref: update2
+          repository: ofirydevops/ofirydevops
+          ref: v0.0.0
       
       - name: Pipenv Install
         run: pipenv install

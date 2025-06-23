@@ -27,8 +27,8 @@ It includes 8 subprojects:
 ### 1. Clone the repo to your local machine.
 Run this:
 ```
-git clone https://github.com/ofiryy/devops-project.git
-cd devops-project
+git clone https://github.com/ofirydevops/ofirydevops.git
+cd ofirydevops
 ```
 
 ### 2. Create AWS admin credentials

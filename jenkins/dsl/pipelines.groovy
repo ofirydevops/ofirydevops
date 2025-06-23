@@ -13,7 +13,7 @@ def nodes = [
 
 
 // Jenkins DSL api docs link: https://jenkins.ofirydevops.com/plugin/job-dsl/api-viewer/index.html
-def gitRepoAddress = "https://github.com/ofiryy/devops-project"
+def gitRepoAddress = "https://github.com/ofirydevops/ofirydevops.git"
 
 def mainDomain = "ofirydevops.com"
 
