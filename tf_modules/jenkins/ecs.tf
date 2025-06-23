@@ -403,7 +403,6 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     default_profile_name             = var.profile
     region                           = var.region
     ecr_registry                     = local.ecr_registry
-    github_username                  = var.github_username
     github_token                     = var.github_token
     github_repo                      = var.github_repo
     gh_root_jenkins_app_id           = var.github_jenkins_app_id

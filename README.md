@@ -260,7 +260,6 @@ then it is required for all the subprojects that depend on it.
 | `main_keypair_privete_key`            | `root`                  |
 | `main_keypair_pub_key`                | `root`                  |
 | `github_token`                        | `root`                  |
-| `github_username`                     | `jenkins`               |
 | `jenkins_admin_username`              | `jenkins`               |
 | `jenkins_admin_password`              | `jenkins`               |
 | `github_jenkins_app_id`               | `jenkins`               |
