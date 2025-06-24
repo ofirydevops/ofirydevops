@@ -409,7 +409,7 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     ecr_registry                     = local.ecr_registry
     github_token                     = var.github_token
     github_repo                      = var.github_repo
-    gh_root_jenkins_app_id           = var.github_jenkins_app_id
+    jenkins_gh_app_id                = var.github_jenkins_app_id
     jenkins_gh_app_priv_key          = indent(20, "\n${var.github_jenkins_app_private_key_converted}")
   })
 }
