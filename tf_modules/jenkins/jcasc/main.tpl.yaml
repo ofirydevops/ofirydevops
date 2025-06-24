@@ -70,7 +70,7 @@ jenkins:
         type: t3.xlarge
         tags:
         - name: Name
-          value: root_jenkins_basic_amd64_100GB
+          value: ${namespace}_jenkins_basic_amd64_100GB
         <<: *worker_config
       - ami: ${basic_100GB_arm64_ami_id}
         description: basic_arm64_100GB
@@ -79,7 +79,7 @@ jenkins:
         type: t4g.xlarge
         tags:
         - name: Name
-          value: root_jenkins_basic_arm64_100GB
+          value: ${namespace}_jenkins_basic_arm64_100GB
         <<: *worker_config
       - ami: ${deep_learning_100GB_amd64_ami_id}
         description: gpu_amd64_100GB
@@ -87,7 +87,7 @@ jenkins:
         type: g4dn.xlarge
         tags:
         - name: Name
-          value: root_jenkins_gpu_amd64_100GB
+          value: ${namespace}_jenkins_gpu_amd64_100GB
         <<: *worker_config
 
 credentials:
@@ -100,7 +100,7 @@ credentials:
               scope: GLOBAL
               secret: ${github_token}
           - gitHubApp:
-              appID: ${gh_root_jenkins_app_id}
+              appID: ${jenkins_gh_app_id}
               description: GitHub app
               id: jenkins_gh_app
               privateKey: |${jenkins_gh_app_priv_key}
