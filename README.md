@@ -248,7 +248,7 @@ and under it define the folowing variables and their values:
     - Define the value of `aws_github_runner_app_private_key` to be the content of private key file that was downloaded to your machine.
 
 
-For summary, here is a table that tells you what secrets are required for the subprojects. 
+For summary, here is a table that tells you what secrets are required for the subprojects.  
 Note: Please consider that if a variable is required for a certain subproject,  
 then it is required for all the subprojects that depend on it.
 
