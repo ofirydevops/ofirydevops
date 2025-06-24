@@ -40,7 +40,6 @@ locals {
       "/${local.namespace}/secrets/main_keypair_privete_key",
       "/${local.namespace}/secrets/main_keypair_pub_key",
       "/${local.namespace}/secrets/github_token",
-      "/${local.namespace}/secrets/github_username",
       "/${local.namespace}/secrets/jenkins_admin_password",
       "/${local.namespace}/secrets/jenkins_admin_username",
       "/${local.namespace}/secrets/github_jenkins_app_private_key_converted",
@@ -75,7 +74,6 @@ module "jenkins" {
     github_jenkins_app_private_key_converted = local.ssm["/${local.namespace}/secrets/github_jenkins_app_private_key_converted"]
     github_jenkins_app_id                    = local.ssm["/${local.namespace}/secrets/github_jenkins_app_id"]
     github_token                             = local.ssm["/${local.namespace}/secrets/github_token"]
-    github_username                          = local.ssm["/${local.namespace}/secrets/github_username"]
     jenkins_admin_username                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_username"]
     jenkins_admin_password                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_password"]
     domain_route53_hosted_zone_id            = local.ssm["/${local.namespace}/secrets/domain_route53_hosted_zone_id"]

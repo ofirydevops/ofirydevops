@@ -60,7 +60,7 @@ jenkins:
       allowAnonymousRead: false
   clouds:
   - amazonEC2:
-      name: root_main
+      name: main
       region: ${region}
       sshKeysCredentialsId: workers_ssh_access
       useInstanceProfileForCredentials: true
@@ -101,11 +101,6 @@ credentials:
               id: github_token
               scope: GLOBAL
               secret: ${github_token}
-          - usernamePassword:
-              scope: GLOBAL
-              id: github_access
-              username: ${github_username}
-              password: ${github_token}
           - gitHubApp:
               appID: ${gh_root_jenkins_app_id}
               description: GitHub app
@@ -139,8 +134,7 @@ jobs:
         scm {
           git {
             remote {
-              url('https://github.com/${github_username}/${github_repo}.git')
-              credentials('jenkins_gh_app')
+              url('https://github.com/ofirydevops/ofirydevops.git')
             }
             branch('$ref')
           }

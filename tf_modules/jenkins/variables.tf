@@ -54,12 +54,6 @@ variable "github_token" {
   sensitive = true
 }
 
-variable "github_username" {
-  type      = string
-  sensitive = true
-}
-
-
 variable "domain_ssl_cert" {
   type      = string
   sensitive = true

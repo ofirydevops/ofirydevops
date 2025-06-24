@@ -1,4 +1,4 @@
-# Welcome To devops-project
+# Welcome To `ofirydevops`
 
 This project is a collection of self-hosted automations that use AWS infra to do usefull stuff.
 
@@ -27,8 +27,8 @@ It includes 8 subprojects:
 ### 1. Clone the repo to your local machine.
 Run this:
 ```
-git clone https://github.com/ofiryy/devops-project.git
-cd devops-project
+git clone https://github.com/ofirydevops/ofirydevops.git
+cd ofirydevops
 ```
 
 ### 2. Create AWS admin credentials
@@ -260,7 +260,6 @@ then it is required for all the subprojects that depend on it.
 | `main_keypair_privete_key`            | `root`                  |
 | `main_keypair_pub_key`                | `root`                  |
 | `github_token`                        | `root`                  |
-| `github_username`                     | `jenkins`               |
 | `jenkins_admin_username`              | `jenkins`               |
 | `jenkins_admin_password`              | `jenkins`               |
 | `github_jenkins_app_id`               | `jenkins`               |
