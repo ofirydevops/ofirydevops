@@ -60,7 +60,7 @@ jenkins:
       allowAnonymousRead: false
   clouds:
   - amazonEC2:
-      name: root_main
+      name: main
       region: ${region}
       sshKeysCredentialsId: workers_ssh_access
       useInstanceProfileForCredentials: true
@@ -134,7 +134,7 @@ jobs:
         scm {
           git {
             remote {
-              url('https://github.com/ofirydevopos/ofirydevopos.git')
+              url('https://github.com/ofirydevops/ofirydevops.git')
             }
             branch('$ref')
           }

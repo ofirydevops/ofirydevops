@@ -132,7 +132,10 @@ locals {
                         "events:*",
                         "batch:*",
                         "codeartifact:*",
-                        "sts:*"
+                        "sts:*",
+                        "route53:*",
+                        "wafv2:*",
+                        "acm:*"
                         ]
                     Effect   = "Allow"
                     Resource = "*"
