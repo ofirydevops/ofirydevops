@@ -405,6 +405,7 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     worker_role_arn                  = aws_iam_role.roles["jenkins_worker"].arn
     default_profile_name             = var.profile
     region                           = var.region
+    namespace                        = var.namespace
     ecr_registry                     = local.ecr_registry
     github_token                     = var.github_token
     github_repo                      = var.github_repo
