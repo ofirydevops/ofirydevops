@@ -38,14 +38,12 @@ jenkins:
   globalNodeProperties:
   - envVars:
       env:
-      - key: AWS_ECR_REGISTRY
-        value: ${ecr_registry}
-      - key: AWS_DEFAULT_PROFILE
+      - key: MAIN_AWS_PROFILE
         value: ${default_profile_name}
-      - key: AWS_REGION
+      - key: MAIN_AWS_REGION
         value: ${region}
-      - key: DOCKER_CONTAINER_DRIVER_NAME
-        value: dc
+      - key: NAMESPACE
+        value: ${namespace}
   numExecutors: 0
   systemMessage: "Configured with JCasC!"
   securityRealm:

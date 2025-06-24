@@ -7,7 +7,7 @@ node('basic_arm64_100GB') {
 
         stage('Install python libs') {
             sh "cp batch_runner/test/Pipfile* ."
-            sh "./codeartifact/pipenv_install_with_codeartifact.sh eu-central-1 OFIRYDEVOPS /codeartifact/batch_runner_main"
+            sh "./codeartifact/pipenv_install_with_codeartifact.sh ${env.MAIN_AWS_REGION} ${env.MAIN_AWS_PROFILE} /${env.NAMESPACE}/codeartifact/ofirydevops_main"
         }
 
         stage("Test Batch Runner") {
