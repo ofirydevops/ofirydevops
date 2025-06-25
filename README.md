@@ -68,7 +68,7 @@ Run this:
 touch personal_info_and_secrets.yaml
 ```
 
-The `personal_info_and_secrets.yaml` file must have 3 root level properties:
+The `personal_info_and_secrets.yaml` file have 3 root level properties:
 - `tf_backend_config` (required)
 - `secrets` (required)
 - `github_repos` (optional)
