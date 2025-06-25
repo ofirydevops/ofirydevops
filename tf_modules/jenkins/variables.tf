@@ -45,8 +45,8 @@ variable "github_jenkins_app_id" {
   sensitive = true
 }
 
-variable "github_repo" {
-  type = string
+variable "github_repos" {
+  type = list(string)
 }
 
 variable "github_token" {

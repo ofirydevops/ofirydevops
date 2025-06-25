@@ -75,10 +75,8 @@ locals {
     account_id       = data.aws_caller_identity.current.account_id
     region           = var.region
     profile          = var.profile
-    github_repo      = var.github_repo
 
     ecr_registry_url     = "${local.account_id}.dkr.ecr.${local.region}.amazonaws.com"
-    gh_actions_variables = {}
 
     lambdas = [
       {

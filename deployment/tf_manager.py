@@ -1,11 +1,13 @@
 import argparse
 import os
 import json
+from cerberus import Validator
 from pylib.ofirydevops.utils import main as utils
 
-TF_PROJECTS_CONF_FILE = "deployment/tf_projects.yaml"
-SECRETS_FILE          = "personal_info_and_secrets.yaml"
-
+TF_PROJECTS_CONF_FILE        = "deployment/tf_projects.yaml"
+TF_PROJECTS_CONF_FILE_SCHEMA = "deployment/schemas/tf_projects_file_schema.yaml"
+INFO_SECRETS_FILE            = "personal_info_and_secrets.yaml"
+INFO_SECRETS_FILE_SCHEMA     = "deployment/schemas/info_file_schema.yaml"
 
 def get_args():
     args_parser = argparse.ArgumentParser()
@@ -25,10 +27,12 @@ def generate_tf_config_backend_file(namespace, project):
 
     tf_backend_config_file = f"backend.config-{utils.generate_random_string()}.json"
     if project == "root":
-        if not os.path.exists(SECRETS_FILE):
-            raise Exception(f"The root TF project must run from where the {SECRETS_FILE} file is available (usually local workstation).")
+        if not os.path.exists(INFO_SECRETS_FILE):
+            raise Exception(f"The root TF project must run from where the {INFO_SECRETS_FILE} file is available (usually local workstation).")
         
-        tf_backend_config = utils.yaml_to_dict(SECRETS_FILE)["tf_backend_config"]
+        validate_file_and_normalize(INFO_SECRETS_FILE, INFO_SECRETS_FILE_SCHEMA)
+        
+        tf_backend_config = utils.yaml_to_dict(INFO_SECRETS_FILE)["tf_backend_config"]
 
         with open(tf_backend_config_file, "w") as f:
             json.dump(tf_backend_config, f, indent=4)
@@ -42,9 +46,22 @@ def generate_tf_config_backend_file(namespace, project):
     return tf_backend_config_file
 
 
+def validate_file_and_normalize(data_file, schema_file):
+    data      = utils.yaml_to_dict(data_file)
+    schema    = utils.yaml_to_dict(schema_file)
+    validator = Validator(schema)
+    if validator.validate(data):
+        print(f"{data_file} validation successful!")
+    else:
+        raise Exception(f"{data_file} validation failed: {validator.errors}")
+    return validator.normalized(data)
+
+
+
 def main():
     args = get_args()
 
+    validate_file_and_normalize(TF_PROJECTS_CONF_FILE, TF_PROJECTS_CONF_FILE_SCHEMA)
 
     tf_projects_conf = utils.yaml_to_dict(TF_PROJECTS_CONF_FILE)
     project          = args["tf_project"]

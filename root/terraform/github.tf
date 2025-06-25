@@ -10,9 +10,7 @@ locals {
         NAMESPACE        = local.namespace
     }
 
-    gh_actions_secrets = {
-        DEVOPS_PROJECT_TOKEN = local.secrets["devops_project_token"]
-    }
+    gh_actions_secrets = {}
 }
 
 resource "github_repository" "main" {

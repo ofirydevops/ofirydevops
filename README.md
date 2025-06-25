@@ -68,9 +68,10 @@ Run this:
 touch personal_info_and_secrets.yaml
 ```
 
-The `personal_info_and_secrets.yaml` file must have 2 root level properties:
-- `tf_backend_config`
-- `secrets`
+The `personal_info_and_secrets.yaml` file must have 3 root level properties:
+- `tf_backend_config` (required)
+- `secrets` (required)
+- `github_repos` (optional)
 
 I prepared an exmple file [personal_info_and_secrets.example.yaml](personal_info_and_secrets.example.yaml) 
 (with fake values) to demostrate to you how this file should typically look eventually. 
@@ -103,7 +104,7 @@ tf_backend_config:
 I just use the admin profile we deifined on step 2.
 
 
-#### 5. Set the `secrets` property
+#### 2. Set the `secrets` property
 In `personal_info_and_secrets.yaml` root level, add a `secrets` property,  
 and under it define the folowing variables and their values:
 
@@ -128,7 +129,7 @@ and under it define the folowing variables and their values:
     is the SSH key pair that will be used to access the EC2s that will be defined in the Terraform projects
   - The key pair should be created with this command:  
     ```
-    ssh-keygen -t rsa -b 4096 -f ~/.ssh/my-ec2-key
+    ssh-keygen -t rsa -b 4096 -m PEM -f ~/.ssh/my-ec2-key
     ```
     It will generate 2 files:
       - The private key file: `~/.ssh/my-ec2-key`
@@ -267,6 +268,10 @@ then it is required for all the subprojects that depend on it.
 | `aws_github_runner_app_id`            | `github_actions`    |
 | `aws_github_runner_app_private_key`   | `github_actions`    |
 
+#### 3. Set the `github_repos` property (optional)
+
+You have an option to define a list of github repos in your github account,  
+so that the `jenkins` and `github_actions` projects will support it by defining webhooks in them.
 
 ### 6. Build the resources
 

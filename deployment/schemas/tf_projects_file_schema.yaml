@@ -1,0 +1,47 @@
+root:
+  type: dict
+  required: true
+  schema:
+    path:
+      type: string
+      required: true
+
+jenkins:
+  type: dict
+  required: true
+  schema:
+    path:
+      type: string
+      required: true
+
+github_actions:
+  type: dict
+  required: true
+  schema:
+    path:
+      type: string
+      required: true
+
+codeartifact:
+  type: dict
+  required: true
+  schema:
+    path:
+      type: string
+      required: true
+
+batch_runner:
+  type: dict
+  required: true
+  schema:
+    path:
+      type: string
+      required: true
+
+python_env_runner:
+  type: dict
+  required: true
+  schema:
+    path:
+      type: string
+      required: true

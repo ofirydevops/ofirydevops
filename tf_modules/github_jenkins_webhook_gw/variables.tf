@@ -14,8 +14,8 @@ variable "vpc_id" {
     type = string
 }
 
-variable "github_repo" {
-    type = string
+variable "github_repos" {
+    type = list(string)
 }
 
 variable "jenkins_server_subnet_id" {

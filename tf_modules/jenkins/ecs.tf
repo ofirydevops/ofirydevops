@@ -408,7 +408,6 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     namespace                        = var.namespace
     ecr_registry                     = local.ecr_registry
     github_token                     = var.github_token
-    github_repo                      = var.github_repo
     jenkins_gh_app_id                = var.github_jenkins_app_id
     jenkins_gh_app_priv_key          = indent(20, "\n${var.github_jenkins_app_private_key_converted}")
   })
@@ -485,7 +484,7 @@ module "jenkins_github_webhook" {
   domain                    = var.domain
   hosted_zone_id            = var.domain_route53_hosted_zone_id
   vpc_id                    = var.vpc_id
-  github_repo               = var.github_repo
+  github_repos              = var.github_repos
   jenkins_server_subnet_id  = var.subnet_id
   jenkins_server_private_ip = aws_instance.jenkins.private_ip
   jenkins_server_sg_id      = aws_security_group.sgs["jenkins_master"].id
