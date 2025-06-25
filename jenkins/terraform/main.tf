@@ -33,7 +33,7 @@ locals {
       "/${local.namespace}/ami_id/basic_arm64_100GB",
       "/${local.namespace}/ami_id/gpu_amd64_100GB",
       "/${local.namespace}/main_keypair_name",
-      "/${local.namespace}/github_repo",
+      "/${local.namespace}/github_repos",
       "/${local.namespace}/local_workstation_pub_ip",
       "/${local.namespace}/secrets/domain_route53_hosted_zone_id",
       "/${local.namespace}/secrets/domain",
@@ -68,7 +68,7 @@ module "jenkins" {
     domain                                   = local.domain
     subdomain                                = "jenkins"
     keypair_name                             = local.ssm["/${local.namespace}/main_keypair_name"]
-    github_repo                              = local.ssm["/${local.namespace}/github_repo"]
+    github_repos                             = jsondecode(local.ssm["/${local.namespace}/github_repos"])
     local_workstation_pub_ip                 = local.ssm["/${local.namespace}/local_workstation_pub_ip"]
     keypair_privete_key                      = local.ssm["/${local.namespace}/secrets/main_keypair_privete_key"]
     github_jenkins_app_private_key_converted = local.ssm["/${local.namespace}/secrets/github_jenkins_app_private_key_converted"]

@@ -6,6 +6,7 @@ locals {
     global_conf       = yamldecode(file("${path.module}/../../pylib/ofirydevops/global_conf.yaml"))
     personal_info_and_secrets = yamldecode(file("${path.module}/../../personal_info_and_secrets.yaml"))
     secrets           = local.personal_info_and_secrets["secrets"]
+    github_repos      = concat([github_repository.main.name], try(local.personal_info_and_secrets["github_repos"], []))
     tf_backend_config = local.personal_info_and_secrets["tf_backend_config"]
     region            = local.global_conf["region"]
     profile           = local.global_conf["profile"]
@@ -19,9 +20,9 @@ locals {
             key = "/${local.namespace}/main_keypair_name"
             value = aws_key_pair.main.id
         }
-        "github_repo" : {
-            key = "/${local.namespace}/github_repo"
-            value = github_repository.main.name
+        "github_repos" : {
+            key = "/${local.namespace}/github_repos"
+            value = jsonencode(local.github_repos)
         }
         "local_workstation_pub_ip" : {
             key = "/${local.namespace}/local_workstation_pub_ip"

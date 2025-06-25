@@ -16,7 +16,7 @@ locals {
     ssm_params_to_read = [
       "/${local.namespace}/main_keypair_name",
       "/${local.namespace}/local_workstation_pub_ip",
-      "/${local.namespace}/github_repo",
+      "/${local.namespace}/github_repos",
       "/${local.namespace}/secrets/aws_github_runner_app_private_key",
       "/${local.namespace}/secrets/aws_github_runner_app_id",
       "/${local.namespace}/secrets/github_token"
@@ -34,7 +34,7 @@ module "github_actions" {
     local_workstation_pub_ip          = local.ssm["/${local.namespace}/local_workstation_pub_ip"]
     aws_github_runner_app_private_key = local.ssm["/${local.namespace}/secrets/aws_github_runner_app_private_key"]
     aws_github_runner_app_id          = local.ssm["/${local.namespace}/secrets/aws_github_runner_app_id"]
-    github_repo                       = local.ssm["/${local.namespace}/github_repo"]
+    github_repos                      = jsondecode(local.ssm["/${local.namespace}/github_repos"])
     github_token                      = local.ssm["/${local.namespace}/secrets/github_token"]
     runner_configs_dir_abs_path       = abspath("${path.module}/runner_configs")
 }
