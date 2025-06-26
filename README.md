@@ -324,8 +324,20 @@ docker compose -f deployment/docker/build-tf.yml up build_jenkins
 
 # How to use it ?
 
-
-
+After you deploy the `root`, then youll be able to see a new github repo in your github account.  
+The name of this repo will be the name of the namespace you set in the `pylib/ofirydevops/global_conf.yaml` file.  
+If you have not touched the `pylib/ofirydevops/global_conf.yaml` file then the repo name would be the  default (`bengvir`).  
+In this repo, there will be an open PR, and after you merge this PR,  
+you will see that you have github actions workflows available in this repo.  
+You will not be able to run these workflows untill youll build the `github_actions` and its dependencies.  
+These workflows run these automations with manual trigger (`workflow_dispatch`):
+- Terraform projects manager - enables you to build the rest of the Terraform projects using the github actions runners  
+  (instead of running it from the local machine) 
+- `batch_runner` test (Can run only after `batch_runner` and `codeartifact` projects are already built)
+- `python_env_runner` - regular run (Can run only after `python_env_runner` is already built)
+- `python_env_runner` - remote development (Can run only after `python_env_runner` is already built)
+- `ssl_cert_generator` - renowing the SSL certificate (you have a limit for amount of times you can do this per week, so dont run it too much)
+  
 
 # How to destroy it ?
 
