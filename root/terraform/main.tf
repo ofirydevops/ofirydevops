@@ -33,6 +33,19 @@ locals {
             key = "/${local.namespace}/tf_backend_config_json"
             value = jsonencode(local.tf_backend_config)
         }
+        "example_github_repo_url" : {
+            key = "/${local.namespace}/example_github_repo_url"
+            value = github_repository.main.http_clone_url
+        }
+        "example_github_repo_name" : {
+            key = "/${local.namespace}/example_github_repo_name"
+            value = github_repository.main.name
+        }
+        "example_github_jenkinsfile_path" : {
+            key = "/${local.namespace}/example_github_jenkinsfile_path"
+            value = local.jenkinsfiles_paths["example_pr.groovy"]["dst"]
+        }
+        
     }
 }
 

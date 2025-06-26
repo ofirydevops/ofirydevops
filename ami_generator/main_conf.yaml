@@ -1,7 +1,7 @@
+# TODO:
 # The creation of the AMI will also create an SSM param for the ami-id
-# The SSM param name format will be: "/ami_id/<ami-conf-name>_<volume-size-in-gb>GB"
+# The SSM param name format will be: "/<namespace>/ami_id/<ami-conf-name>_<volume-size-in-gb>GB"
 # For example: "/<namespace>/ami_id/basic_amd64_100GB"
-
 # basic_amd64:
 #   packer_hcl_path: ami_generator/main.pkr.hcl
 #   kind: amd64_al2023

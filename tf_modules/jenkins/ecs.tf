@@ -1,3 +1,8 @@
+data "http" "current_workstation_pub_ip" {
+  url = "https://checkip.amazonaws.com"
+}
+
+
 locals {
     jenkins_casc_config_dir = "/var/jenkins_home/jcasc"
     ecr_repos = {
@@ -10,6 +15,8 @@ locals {
     ecr_registry         = split("/", local.jenkins_ecr_repo_url)[0]
     ecr_repo_name        = split("/", local.jenkins_ecr_repo_url)[1]
     image_url            = "${local.ecr_registry}/${local.ecr_repo_name}:${local.image_tag}"
+    current_workstation_pub_ip = trimspace(data.http.current_workstation_pub_ip.response_body)
+
 
 
     arch            = "arm64"
@@ -238,15 +245,34 @@ resource "aws_security_group" "sgs" {
   }
 }
 
-resource "aws_security_group_rule" "laptop_ssh_inbound" {
-  for_each          = local.sgs
+resource "aws_security_group_rule" "current_workstation_to_master_ssh_inbound" {
+  count             = local.current_workstation_pub_ip != var.local_workstation_pub_ip ? 1 : 0
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${local.current_workstation_pub_ip}/32"]
+  security_group_id = aws_security_group.sgs["jenkins_master"].id
+}
+
+resource "aws_security_group_rule" "local_to_worker_ssh_inbound" {
   type              = "ingress"
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = ["${var.local_workstation_pub_ip}/32"]
-  security_group_id = aws_security_group.sgs[each.key].id
+  security_group_id = aws_security_group.sgs["jenkins_worker"].id
 }
+
+resource "aws_security_group_rule" "local_to_master_ssh_inbound" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["${var.local_workstation_pub_ip}/32"]
+  security_group_id = aws_security_group.sgs["jenkins_master"].id
+}
+
 
 resource "aws_security_group_rule" "master_to_worker_ssh_inbound" {
   type              = "ingress"
@@ -257,7 +283,7 @@ resource "aws_security_group_rule" "master_to_worker_ssh_inbound" {
   security_group_id = aws_security_group.sgs["jenkins_worker"].id
 }
 
-resource "aws_security_group_rule" "https_inbound" {
+resource "aws_security_group_rule" "local_to_master_https_inbound" {
   type              = "ingress"
   from_port         = 443
   to_port           = 443
@@ -266,7 +292,7 @@ resource "aws_security_group_rule" "https_inbound" {
   security_group_id = aws_security_group.sgs["jenkins_master"].id
 }
 
-resource "aws_security_group_rule" "remote_dev_access" {
+resource "aws_security_group_rule" "local_to_worker_remote_dev_access" {
   type              = "ingress"
   from_port         = 5000
   to_port           = 5000
@@ -410,6 +436,9 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     github_token                     = var.github_token
     jenkins_gh_app_id                = var.github_jenkins_app_id
     jenkins_gh_app_priv_key          = indent(20, "\n${var.github_jenkins_app_private_key_converted}")
+    example_github_repo_url          = var.example_github_repo_url
+    example_github_repo_name         = var.example_github_repo_name
+    example_github_jenkinsfile_path  = var.example_github_jenkinsfile_path
   })
 }
 
