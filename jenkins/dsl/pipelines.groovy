@@ -13,8 +13,6 @@ def nodes = [
   'gpu_amd64_100GB',
   ]
 
-
-
 def ofirydevopsGithubUrl = "https://github.com/ofirydevops/ofirydevops.git"
 
 def exampleGithubRepoUrl             = binding.variables['example_github_repo_url']
