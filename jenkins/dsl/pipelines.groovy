@@ -1,3 +1,6 @@
+// Jenkins DSL api docs link: https://<jenkins-server-address>/plugin/job-dsl/api-viewer/index.html
+
+
 def condaEnvsV2 = [
   'python_env_runner/conda_envs_v2/ofiry.yaml',
   'python_env_runner/conda_envs_v2/py310_gpu.yaml',
@@ -11,16 +14,20 @@ def nodes = [
   ]
 
 
-// Jenkins DSL api docs link: https://jenkins.<domain>/plugin/job-dsl/api-viewer/index.html
-def gitRepoAddress = "https://github.com/ofirydevops/ofirydevops.git"
+
+def ofirydevopsGithubUrl = "https://github.com/ofirydevops/ofirydevops.git"
+
+def exampleGithubRepoUrl             = binding.variables['example_github_repo_url']
+def exampleGithubRepoName            = binding.variables['example_github_repo_name']
+def exampleGithubRepoJenkinsfilePath = binding.variables['example_github_jenkinsfile_path']
 
 
 def prReRunPhrasePrefix = "rerun_"
 
 def folders = [
-  pull_request_tests : [
-    id : "pull_request_tests",
-    displayName : "Pull Request Tests"
+  examples: [
+    id : "examples",
+    displayName : "${exampleGithubRepoName} Examples"
   ],
   python_env_runner : [
     id : "python_env_runner",
@@ -37,10 +44,11 @@ def folders = [
 ]
 
 def prPipelineConfigs = [
-  tf_project_validation : [
-    name : "${folders["pull_request_tests"]["id"]}/terraform_projects_validation",
-    jenkinsfile : "jenkins/jenkinsfiles/tf_validation_pr.groovy",
-    prContext : "tf_validation"
+  pr_test_example : [
+    name : "${folders["examples"]["id"]}/${exampleGithubRepoName}_pr_test_example",
+    jenkinsfile : exampleGithubRepoJenkinsfilePath,
+    prContext : "${exampleGithubRepoName}_pr_test_example",
+    githubRepoUrl: exampleGithubRepoUrl
   ]
 ]
 
@@ -49,60 +57,6 @@ folders.each { _, config ->
   folder(config["id"]) {
       displayName(config["displayName"])
   }
-}
-
-
-pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
-    parameters {
-        stringParam('ref', 'update2', 'branch / tag / commit')
-    }
-
-    properties {
-        durabilityHint {
-            hint('PERFORMANCE_OPTIMIZED')
-        }
-        githubProjectUrl(gitRepoAddress)
-    }
-    definition {
-           cpsScm {
-             scm {
-               git {
-                 remote {
-                   url(gitRepoAddress)
-                 }
-                 branch('${ref}')
-               }
-             }
-            scriptPath('jenkins/jenkinsfiles/ssl_cert_generator.groovy')
-        }
-    }
-}
-
-
-pipelineJob("${folders["batch_runner"]["id"]}/test_batch_runner") {
-    parameters {
-        stringParam('ref', 'update2', 'branch / tag / commit')
-    }
-
-    properties {
-        durabilityHint {
-            hint('PERFORMANCE_OPTIMIZED')
-        }
-        githubProjectUrl(gitRepoAddress)
-    }
-    definition {
-           cpsScm {
-             scm {
-               git {
-                 remote {
-                   url(gitRepoAddress)
-                 }
-                 branch('${ref}')
-               }
-             }
-            scriptPath('jenkins/jenkinsfiles/test_batch_runner.groovy')
-        }
-    }
 }
 
 
@@ -118,17 +72,12 @@ prPipelineConfigs.each { _, config ->
           "prContext"   : config["prContext"]
         ])
       }
-
-      // parameters {
-      //   stringParam('rerunPhrase', rerunPhrase)
-      //   stringParam('prContext', config["prContext"])
-      // }
   
       properties {
           durabilityHint {
               hint('PERFORMANCE_OPTIMIZED')
           }
-          githubProjectUrl(gitRepoAddress)
+          githubProjectUrl(config["githubRepoUrl"])
       }
       triggers {
 
@@ -166,7 +115,8 @@ prPipelineConfigs.each { _, config ->
               scm {
                   git {
                       remote {
-                          url(gitRepoAddress)
+                          url(config["githubRepoUrl"])
+                          credentials("jenkins_gh_app")
                           refspec('+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
                       }
                       branch('origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
@@ -175,6 +125,60 @@ prPipelineConfigs.each { _, config ->
               scriptPath(config["jenkinsfile"])
         }
       }
+    }
+}
+
+
+pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
+    parameters {
+        stringParam('ref', 'update2', 'branch / tag / commit')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(ofirydevopsGithubUrl)
+    }
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(ofirydevopsGithubUrl)
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkins/jenkinsfiles/ssl_cert_generator.groovy')
+        }
+    }
+}
+
+
+pipelineJob("${folders["batch_runner"]["id"]}/test_batch_runner") {
+    parameters {
+        stringParam('ref', 'update2', 'branch / tag / commit')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(ofirydevopsGithubUrl)
+    }
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(ofirydevopsGithubUrl)
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath('jenkins/jenkinsfiles/test_batch_runner.groovy')
+        }
     }
 }
 
@@ -198,7 +202,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_runner") {
         durabilityHint {
             hint('PERFORMANCE_OPTIMIZED')
         }
-        githubProjectUrl(gitRepoAddress)
+        githubProjectUrl(ofirydevopsGithubUrl)
     }
 
     definition {
@@ -206,7 +210,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_runner") {
              scm {
                git {
                  remote {
-                   url(gitRepoAddress)
+                   url(ofirydevopsGithubUrl)
                  }
                  branch('${ref}')
                }
@@ -235,7 +239,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_remote_dev") {
         durabilityHint {
             hint('PERFORMANCE_OPTIMIZED')
         }
-        githubProjectUrl(gitRepoAddress)
+        githubProjectUrl(ofirydevopsGithubUrl)
     }
 
     definition {
@@ -243,7 +247,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_remote_dev") {
              scm {
                git {
                  remote {
-                   url(gitRepoAddress)
+                   url(ofirydevopsGithubUrl)
                  }
                  branch('${ref}')
                }
@@ -280,7 +284,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
         durabilityHint {
             hint('PERFORMANCE_OPTIMIZED')
         }
-        githubProjectUrl(gitRepoAddress)
+        githubProjectUrl(ofirydevopsGithubUrl)
     }
 
     definition {
@@ -288,7 +292,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
              scm {
                git {
                  remote {
-                   url(gitRepoAddress)
+                   url(ofirydevopsGithubUrl)
                  }
                  branch('${ref}')
                }
@@ -327,7 +331,7 @@ pipelineJob("${folders["infra"]["id"]}/manage_tf_infra") {
         durabilityHint {
             hint('PERFORMANCE_OPTIMIZED')
         }
-        githubProjectUrl(gitRepoAddress)
+        githubProjectUrl(ofirydevopsGithubUrl)
     }
 
     definition {
@@ -335,7 +339,7 @@ pipelineJob("${folders["infra"]["id"]}/manage_tf_infra") {
              scm {
                git {
                  remote {
-                   url(gitRepoAddress)
+                   url(ofirydevopsGithubUrl)
                  }
                  branch('${ref}')
                }

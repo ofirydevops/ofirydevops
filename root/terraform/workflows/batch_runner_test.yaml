@@ -30,3 +30,4 @@ jobs:
       - name: Test Batch Runner
         run: |
             pipenv run python3.10 -m batch_runner.test.test
+

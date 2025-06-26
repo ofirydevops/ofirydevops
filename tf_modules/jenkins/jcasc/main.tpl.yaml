@@ -128,7 +128,11 @@ jobs:
               'jenkins/dsl/pipelines.groovy'
               ], 
               'The pipelines file to provision')
+          stringParam('example_github_repo_url', '${example_github_repo_url}')
+          stringParam('example_github_repo_name', '${example_github_repo_name}')
+          stringParam('example_github_jenkinsfile_path', '${example_github_jenkinsfile_path}')
         }
+
         scm {
           git {
             remote {
@@ -137,6 +141,7 @@ jobs:
             branch('$ref')
           }
         }
+ 
         steps {
           dsl {
             external('$file_to_provision')
@@ -144,6 +149,7 @@ jobs:
           }
         }
       }
+
 
 unclassified:
   gitHubPluginConfig:

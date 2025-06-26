@@ -99,3 +99,15 @@ variable "ami_ids" {
     gpu_amd64_100GB   = string
   })
 }
+
+variable "example_github_repo_url" {
+  type = string
+}
+
+variable "example_github_repo_name" {
+  type = string
+}
+
+variable "example_github_jenkinsfile_path" {
+  type = string
+}
