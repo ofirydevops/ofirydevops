@@ -9,6 +9,4 @@ env_config:
 
 
 remote: 
-  authorized_keys: |
-    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJl79zNnIiZD3xCDkJC8rQiGNxi2GjMJ9mEBDl7twXRv
-  git_user_email: example@gmail.com
+  authorized_keys_file: python_env_runner/examples/authorized_keys

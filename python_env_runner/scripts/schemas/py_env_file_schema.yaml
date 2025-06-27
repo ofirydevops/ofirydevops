@@ -34,11 +34,6 @@ remote:
   type: dict
   required: false
   schema:
-    authorized_keys:
+    authorized_keys_file:
       type: string
       required: true
-    git_user_email:
-      type: string
-      required: false
-      default: "@"
-      regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'

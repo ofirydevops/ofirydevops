@@ -7,7 +7,7 @@ on:
         description: Run command
         type: string
         required: true
-        default: python python_env_runner/hello_world.py
+        default: ${default_enterypoint}
       timeout_in_minutes:
         description: Runner timeout
         type: choice
@@ -25,7 +25,7 @@ on:
         default: ${default_repository}
         required: true
       repository_ref:
-        description: branch / tag / commit
+        description: Repository ref
         type: string
         required: true
         default: main
@@ -79,7 +79,7 @@ jobs:
 
       - name: Run Python Job
         run: |
-          TIMEOUT_SECONDS=$$(( $${{ github.event.inputs.timeout_in_minutes }} * 60 ))
+          TIMEOUT_SECONDS=$(( $${{ github.event.inputs.timeout_in_minutes }} * 60 ))
           timeout $TIMEOUT_SECONDS \
           pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \
                                         --docker-image-tag $${{ env.DOCKER_IMAGE_TAG }} \
