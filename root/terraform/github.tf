@@ -16,30 +16,33 @@ locals {
         content = templatefile("${local.workflows_tpl_files_dir}/${file}", { 
           repositories        = jsonencode(local.all_repos)
           default_repository  = github_repository.main.full_name
-          default_py_env_file = "python_env_files/ofiry.yaml"
+          default_py_env_file = "python_env_runner/examples/envs/ofiry.yaml"
+          default_enterypoint = "python python_env_runner/examples/tests/hello_world.py"
         })
         dst     = ".github/workflows/${file}"
-      } 
+      }
     }
 
 
     jenkinsfiles_dir   = "${path.module}/jenkinsfiles"
     jenkinsfiles       = fileset(local.jenkinsfiles_dir, "*")
-    jenkinsfiles_paths = { 
+    jenkinsfiles_paths = {
       for file in local.jenkinsfiles: file => {
         content = file("${local.jenkinsfiles_dir}/${file}")
         dst     = "jenkinsfiles/${file}"
       }
     }
 
-    python_env_files_dir   = "${path.module}/../../python_env_runner/conda_envs_v2"
-    python_env_files       = fileset(local.python_env_files_dir, "*")
+    python_env_files_dir   = "${path.module}/../../python_env_runner/examples"
+    python_env_files       = fileset(local.python_env_files_dir, "**")
     python_env_files_paths = { 
       for file in local.python_env_files: file => {
         content = file("${local.python_env_files_dir}/${file}")
-        dst     = "python_env_files/${file}"
+        dst     = "python_env_runner/examples/${file}"
       }
     }
+
+
 
 
     all_files_paths = merge(local.workflows_files_paths, 
