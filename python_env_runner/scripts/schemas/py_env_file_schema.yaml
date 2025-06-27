@@ -1,27 +1,44 @@
-base_image:
-  type: string
-  required: true
-  regex: '^([a-z0-9.-]+(/[a-z0-9.-]+)*)(:[a-z0-9_.-]+)?$'
-
-conda_env_yaml:
+env_config:
   type: dict
   required: true
   schema:
-    channels:
-      type: list
+    base_image:
+      type: string
+      required: true
+      regex: '^([a-z0-9.-]+(/[a-z0-9._-]+)*)(:[a-zA-Z0-9._-]+)?(@sha256:[a-f0-9]{64})?$'
+
+    conda_env_yaml:
+      type: dict
       required: true
       schema:
-        type: string
-    dependencies:
-      type: list
-      required: true
-      schema:
-        anyof:
-          - type: string
-          - type: dict
-            schema:
-              pip:
-                type: list
-                required: true
+        channels:
+          type: list
+          required: true
+          schema:
+            type: string
+        dependencies:
+          type: list
+          required: true
+          schema:
+            anyof:
+              - type: string
+              - type: dict
                 schema:
-                  type: string
+                  pip:
+                    type: list
+                    required: true
+                    schema:
+                      type: string
+
+remote:
+  type: dict
+  required: false
+  schema:
+    authorized_keys:
+      type: string
+      required: true
+    git_user_email:
+      type: string
+      required: false
+      default: "@"
+      regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'

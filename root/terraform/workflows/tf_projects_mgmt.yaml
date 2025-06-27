@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ofirydevops/ofirydevops
-          ref: v0.0.0
+          ref: main
 
       - name: Pipenv Install
         run: pipenv install

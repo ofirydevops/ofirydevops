@@ -1,0 +1,102 @@
+name: python_env_remote_dev
+
+on:
+  workflow_dispatch:
+    inputs:
+      uptime_in_minutes:
+        description: The time the node will be up
+        type: choice
+        options: [10, 20 , 40, 80, 160, 320, 640]
+        required: true
+      repository_py_env_file_path:
+        description: Python environment file path
+        type: string
+        required: true
+        default: ${default_py_env_file}
+      repository:
+        description: Repository
+        type: choice
+        options: ${repositories}
+        default: ${default_repository}
+        required: true
+      repository_ref:
+        description: branch / tag / commit
+        type: string
+        required: true
+        default: main
+      node:
+        description: Runner node
+        type: choice
+        options:
+          - basic_arm64_100GB
+          - basic_amd64_100GB
+          - gpu_amd64_100GB
+        required: true
+
+env:
+  MAX_UPTIME: 80
+  DOCKER_IMAGE_TAG: $${{ github.run_id }}-$${{ github.run_number }}
+  WORKDIR: guest_repo
+
+jobs:
+  build_and_run:
+    runs-on:
+      - self-hosted
+      - $${{ github.event.inputs.node }}
+    steps:
+      - name: Checkout ofirydevops
+        uses: actions/checkout@v4
+        with:
+          repository: ofirydevops/ofirydevops
+          ref: update2
+
+      - name: Checkout workdir repo
+        uses: actions/checkout@v4
+        with:
+          repository: $${{ github.event.inputs.repository }}
+          token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+          ref: $${{ github.event.inputs.repository_ref }}
+          path: $${{ env.WORKDIR }}
+
+      - name: Check guest repo
+        run: |
+          ls -l
+          ls -l $${{ env.WORKDIR }}
+
+      - name: Validate Uptime
+        run: |
+          UPTIME_IN_MINUTES=$${{ github.event.inputs.uptime_in_minutes }}
+          if [ "$UPTIME_IN_MINUTES" -gt "$${{ env.MAX_UPTIME }}" ]; then
+            UPTIME_IN_MINUTES=$${{ env.MAX_UPTIME }}
+          fi
+          echo "UPTIME_IN_MINUTES=$UPTIME_IN_MINUTES" >> $GITHUB_ENV
+
+      - name: Pipenv Install
+        run: pipenv install
+            
+      - name: Get Public IP
+        id: get_public_ip
+        run: |
+          IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+          echo "Public IP: $IP"
+          echo "public_ip=$IP" >> $GITHUB_OUTPUT
+
+      - name: Build Python Env Docker
+        run: |
+            pipenv run python3.10 -m python_env_runner.scripts.build_py_env \
+                                            --py-env-conf-file $${{ env.WORKDIR }}/$${{ github.event.inputs.repository_py_env_file_path }} \
+                                            --docker-image-tag $${{ env.DOCKER_IMAGE_TAG }} \
+                                            --target remote_dev \
+                                            --workdir $${{ env.WORKDIR }} \
+                                            --git-ref $${{ github.event.inputs.repository_ref }}
+
+      - name: Run Python Env
+        run: |
+          TIMEOUT_SECONDS=$(( $${{ env.UPTIME_IN_MINUTES }} * 60 ))
+          echo "For remote development run ssh command: ssh root@$${{ steps.get_public_ip.outputs.public_ip }} -p 5000"
+          timeout $TIMEOUT_SECONDS \
+          pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \
+                                        --remote-dev \
+                                        --docker-image-tag $${{ env.DOCKER_IMAGE_TAG }} || true
+
+

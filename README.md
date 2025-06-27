@@ -331,13 +331,29 @@ In this repo, there will be an open PR, and after you merge this PR,
 you will see that you have github actions workflows available in this repo.  
 You will not be able to run these workflows untill youll build the `github_actions` and its dependencies.  
 These workflows run these automations with manual trigger (`workflow_dispatch`):
-- Terraform projects manager - enables you to build the rest of the Terraform projects using the github actions runners  
-  (instead of running it from the local machine) 
-- `batch_runner` test (Can run only after `batch_runner` and `codeartifact` projects are already built)
-- `python_env_runner` - regular run (Can run only after `python_env_runner` is already built)
-- `python_env_runner` - remote development (Can run only after `python_env_runner` is already built)
-- `ssl_cert_generator` - renowing the SSL certificate (you have a limit for amount of times you can do this per week, so dont run it too much)
-  
+- `tf_projects_mgmt` - enables you to build the Terraform projects using the github actions runners  
+  (instead of running it from the local machine, or from Jenkins) 
+- `batch_runner_test`
+  - A test for `batch_runner` tool 
+  - It can run only after `batch_runner` and `codeartifact` Terraform projects are built
+- `python_env_job_runner`
+  - Arguments:
+    - Command to run - this will be the docker enterypoint
+    - Python env file path, currently choice param of paths from witin ofirydevops repo (need to change)
+    - Runner node
+  - Can run only after `python_env_runner` Terraform project is built
+- `python_env_remote_dev`
+  - Pythob env remote development 
+  - Arguments:
+    - Uptime in minutes - the amount of minutes that the worker would be up
+    - Python env file path, currently choice param of paths from witin ofirydevops repo (need to change)
+    - Runner node
+  - Can run only after `python_env_runner` Terraform project is built
+- `ssl_cert_generator`
+  - It is generating/re-generating the SSL certificate of the domain
+  - You have a limit for amount of times you can do this per domain per week, so dont run it too many times
+  - Can run successfully only if a route53 domain was defined, and it is managed in the AWS account 
+
 
 # How to destroy it ?
 

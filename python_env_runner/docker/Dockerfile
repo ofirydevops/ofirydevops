@@ -1,5 +1,6 @@
 ARG RUNTIME_IMAGE
 
+
 FROM mambaorg/micromamba:2-cuda12.2.2-ubuntu20.04@sha256:065aeb8d54540e67facafc1722aae3f9e4c66ae2ff9c5c8c0f9866cf77783ea1 as builder
 
 WORKDIR /app
@@ -25,6 +26,7 @@ COPY --from=builder /opt/conda /opt/conda
     
 ARG AWS_CLI_DOWNLOAD_LINK
 ARG CONDA_ENV_INTERNAL_NAME
+ARG WORKDIR
 ARG DEBIAN_FRONTEND=noninteractive
 
 USER root
@@ -57,8 +59,9 @@ ENV PATH=/opt/conda/envs/${CONDA_ENV_INTERNAL_NAME}/bin:/opt/conda/bin:$PATH
 RUN echo "export PATH=/opt/conda/envs/${CONDA_ENV_INTERNAL_NAME}/bin:/opt/conda/bin:$PATH" >> ~/.bashrc
 
 
+
 WORKDIR /app
-COPY . /app
+COPY ${WORKDIR} /app
 
 CMD ["bash"]
 
@@ -71,12 +74,15 @@ EXPOSE 22
 
 ARG USER=root 
 ARG HOME=/${USER}
+ARG GIT_REF
+ARG GIT_USER_EMAIL
+ARG AUTHORIZED_KEYS_FILE
 
 RUN mkdir -p ${HOME}/.ssh \
     && chown ${USER}:${USER} ${HOME}/.ssh \
     && chmod 700 ${HOME}/.ssh
 
-COPY python_env_runner/docker/remote/authorized_keys ${HOME}/.ssh/authorized_keys
+COPY ${AUTHORIZED_KEYS_FILE} ${HOME}/.ssh/authorized_keys
 
 RUN chown ${USER}:${USER} ${HOME}/.ssh/authorized_keys && \
     chmod 600 ${HOME}/.ssh/authorized_keys
@@ -93,12 +99,8 @@ RUN cd ${HOME} && \
 
 RUN git-crypt lock || true
 
-ARG GIT_REF
-ARG GIT_USER_EMAIL
-RUN git remote set-url origin https://github.com/ofirydevops/ofirydevops.git
 RUN git config --global user.name "remote-user"
 RUN git config --global user.email $GIT_USER_EMAIL
 RUN git stash
 RUN git checkout $GIT_REF
-
 CMD ["/usr/sbin/sshd", "-D"]
