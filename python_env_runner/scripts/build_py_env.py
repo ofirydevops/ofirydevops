@@ -13,21 +13,6 @@ from pylib.ofirydevops.utils import main as utils
 import python_env_runner.scripts.cnfg as cnfg
 
 
-def validate_email(email):
-    email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-    if not re.match(email_pattern, email):
-        raise argparse.ArgumentTypeError(
-            f"'{email}' is not a valid email address. Must match pattern: {email_pattern}"
-        )
-    return email
-class email_action(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        if values is None:
-            setattr(namespace, self.dest, parser.get_default(self.dest))
-        else:
-            validated_email = validate_email(values)
-            setattr(namespace, self.dest, validated_email)
-
 def get_args():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--py-env-conf-file',
@@ -53,12 +38,11 @@ def get_args():
                              default  = "runtime",
                              choices  = ["remote_dev", "runtime"],
                              dest     = 'target')
-    args_parser.add_argument('--git-user-email',
-                             nargs    = "?",
-                             action   = email_action,
-                             default  = "@",
-                             required = False,
-                             help     = "Git user email address (e.g., user@example.com). Defaults to '@'.")
+    args_parser.add_argument('--workdir',
+                             required = True,
+                             type     = str,
+                             default  = ".",
+                             dest     = 'workdir')
 
 
     args = vars(args_parser.parse_args())
@@ -98,12 +82,12 @@ def get_system_arch():
 
 def get_and_validate_py_env_file(py_env_file_path):
     py_env_data = yaml_to_dict(py_env_file_path)
-    schema = yaml_to_dict(cnfg.INPUT_SCHAME_FILE)
-    validator = Validator(schema)
+    schema      = yaml_to_dict(cnfg.INPUT_SCHAME_FILE)
+    validator   = Validator(schema)
     if validator.validate(py_env_data):
         print("Py env validation successful!")
     else:
-        print("Validation failed:", validator.errors)
+        raise Exception(f"Validation failed: {validator.errors}")
     return validator.normalized(py_env_data)
 
 
@@ -117,7 +101,7 @@ def create_conda_env_yaml(conda_env_data):
 
 def get_cache_image_tag(py_env_conf_file, cache_image_tag_prefix):
     arch               = get_system_arch()
-    py_env_conf        = yaml_to_dict(py_env_conf_file)
+    py_env_conf        = yaml_to_dict(py_env_conf_file)["env_config"]
     py_env_conf_string = json.dumps(py_env_conf, sort_keys=True)
     arch_config_string = json.dumps(cnfg.CONFIG_BY_ARCH[arch], sort_keys=True)
 
@@ -155,7 +139,7 @@ def build_py_env(args):
 
     py_env_data = get_and_validate_py_env_file(args["py_env_conf_file"])
 
-    conda_env_yaml_file = create_conda_env_yaml(py_env_data["conda_env_yaml"])
+    conda_env_yaml_file = create_conda_env_yaml(py_env_data["env_config"]["conda_env_yaml"])
 
     profile, region  = utils.get_profile_and_region()
     session          = utils.get_boto3_session()
@@ -183,12 +167,25 @@ def build_py_env(args):
 
     os.environ["CONDA_ENV_FILE_PATH"]       = conda_env_yaml_file
     os.environ["COMPOSE_BUILD_TARGET"]      = args.get("target", "runtime")
-    os.environ["RUNTIME_IMAGE"]             = py_env_data["base_image"]
+    os.environ["RUNTIME_IMAGE"]             = py_env_data["env_config"]["base_image"]
     os.environ["CONDA_ENV_CACHE_IMAGE_TAG"] = cache_image_tag
     os.environ["AWS_REGITRY_REF_REPO"]      = ecr_repo_address
     os.environ["AWS_CLI_DOWNLOAD_LINK"]     = cnfg.CONFIG_BY_ARCH[arch]["AWS_CLI_DOWNLOAD_LINK"]
     os.environ["GIT_REF"]                   = args.get("git_ref", "main")
-    os.environ["GIT_USER_EMAIL"]            = args.get("git_user_email", "@")
+    os.environ["WORKDIR"]                   = args.get("workdir", ".")
+
+    authorized_keys_file = f"authorized_keys_{utils.generate_random_string()}"
+    open(authorized_keys_file, "w").close()
+    os.environ["AUTHORIZED_KEYS_FILE"] = authorized_keys_file
+
+    if "remote" in py_env_data.keys():
+        os.environ["GIT_USER_EMAIL"] = py_env_data["remote"]["git_user_email"]
+        with open(authorized_keys_file, "w") as f:
+          f.write(py_env_data["remote"]["authorized_keys"])
+    else:
+        os.environ["GIT_USER_EMAIL"]  = "@"
+
+
 
 
     if cache_exists:
@@ -220,6 +217,7 @@ def build_py_env(args):
         return image_url
     finally:
         os.remove(conda_env_yaml_file)
+        os.remove(authorized_keys_file)
 
 
 def main():

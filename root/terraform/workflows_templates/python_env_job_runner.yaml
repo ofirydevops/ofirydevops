@@ -1,0 +1,86 @@
+name: python_env_job_runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Run command
+        type: string
+        required: true
+        default: python python_env_runner/hello_world.py
+      timeout_in_minutes:
+        description: Runner timeout
+        type: choice
+        options: [10, 20 , 40, 80, 160, 320, 640]
+        required: true
+      repository_py_env_file_path:
+        description: Python environment file path
+        type: string
+        required: true
+        default: ${default_py_env_file}
+      repository:
+        description: Repository
+        type: choice
+        options: ${repositories}
+        default: ${default_repository}
+        required: true
+      repository_ref:
+        description: branch / tag / commit
+        type: string
+        required: true
+        default: main
+      node:
+        description: Runner node
+        type: choice
+        options:
+          - basic_arm64_100GB
+          - basic_amd64_100GB
+          - gpu_amd64_100GB
+        required: true
+
+
+env:
+  DOCKER_IMAGE_TAG: $${{ github.run_id }}-$${{ github.run_number }}
+  WORKDIR: guest_repo
+
+jobs:
+  build_and_run:
+    runs-on: 
+      - self-hosted
+      - $${{ github.event.inputs.node }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ofirydevops/ofirydevops
+          ref: update2
+
+      - name: Checkout Guest Repo
+        uses: actions/checkout@v4
+        with:
+          repository: $${{ github.event.inputs.repository }}
+          token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+          ref: $${{ github.event.inputs.repository_ref }}
+          path: $${{ env.WORKDIR }}
+
+      - name: Check guest repo
+        run: ls -l $${{ env.WORKDIR }}
+
+      - name: Pipenv Install
+        run: pipenv install
+
+      - name: Build Python Env Docker
+        run: |
+            pipenv run python3.10 -u -m python_env_runner.scripts.build_py_env \
+                                            --py-env-conf-file $${{ env.WORKDIR }}/$${{ github.event.inputs.repository_py_env_file_path }} \
+                                            --docker-image-tag $${{ env.DOCKER_IMAGE_TAG }} \
+                                            --target runtime \
+                                            --workdir $${{ env.WORKDIR }}
+
+      - name: Run Python Job
+        run: |
+          TIMEOUT_SECONDS=$$(( $${{ github.event.inputs.timeout_in_minutes }} * 60 ))
+          timeout $TIMEOUT_SECONDS \
+          pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \
+                                        --docker-image-tag $${{ env.DOCKER_IMAGE_TAG }} \
+                                        --entrypoint "$${{ github.event.inputs.command }}"

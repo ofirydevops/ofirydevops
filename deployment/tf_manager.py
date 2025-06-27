@@ -57,7 +57,6 @@ def validate_file_and_normalize(data_file, schema_file):
     return validator.normalized(data)
 
 
-
 def main():
     args = get_args()
 

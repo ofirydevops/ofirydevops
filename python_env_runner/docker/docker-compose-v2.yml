@@ -10,6 +10,9 @@ x-build_args: &build_args
   AWS_CLI_DOWNLOAD_LINK: ${AWS_CLI_DOWNLOAD_LINK}
   GIT_REF: ${GIT_REF}
   GIT_USER_EMAIL: ${GIT_USER_EMAIL}
+  AUTHORIZED_KEYS_FILE: ${AUTHORIZED_KEYS_FILE}
+  WORKDIR: ${WORKDIR}
+
 
 x-build: &build
   context: ../../
