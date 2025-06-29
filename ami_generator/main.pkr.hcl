@@ -33,7 +33,6 @@ variable "subnet_id" {
 
 variable "kind" {
   type = string
-  default = "amd64"
 }
 
 variable "images" {}

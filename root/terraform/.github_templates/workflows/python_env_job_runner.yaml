@@ -3,21 +3,6 @@ name: python_env_job_runner
 on:
   workflow_dispatch:
     inputs:
-      command:
-        description: Run command
-        type: string
-        required: true
-        default: ${default_enterypoint}
-      timeout_in_minutes:
-        description: Runner timeout
-        type: choice
-        options: [10, 20 , 40, 80, 160, 320, 640]
-        required: true
-      repository_py_env_file_path:
-        description: Python environment file path
-        type: string
-        required: true
-        default: ${default_py_env_file}
       repository:
         description: Repository
         type: choice
@@ -29,13 +14,25 @@ on:
         type: string
         required: true
         default: main
+      repository_py_env_file_path:
+        description: Python environment file path
+        type: string
+        required: true
+        default: ${default_py_env_file}
+      timeout_in_minutes:
+        description: Job timeout in minutes
+        type: choice
+        options: [10, 20 , 40, 80, 160, 320, 640]
+        required: true
+      command:
+        description: Job run command
+        type: string
+        required: true
+        default: ${default_enterypoint}
       node:
         description: Runner node
         type: choice
-        options:
-          - basic_arm64_100GB
-          - basic_amd64_100GB
-          - gpu_amd64_100GB
+        options: ${github_runner_labels}
         required: true
 
 
@@ -49,11 +46,18 @@ jobs:
       - self-hosted
       - $${{ github.event.inputs.node }}
     steps:
-      - name: Checkout
+      - name: Checkout ofirydevops
         uses: actions/checkout@v4
         with:
           repository: ofirydevops/ofirydevops
           ref: update2
+
+      - name: Setup Global Config
+        uses: ofirydevops/ofirydevops/.github/actions/setup_global_conf@update2
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
 
       - name: Checkout Guest Repo
         uses: actions/checkout@v4
@@ -63,8 +67,6 @@ jobs:
           ref: $${{ github.event.inputs.repository_ref }}
           path: $${{ env.WORKDIR }}
 
-      - name: Check guest repo
-        run: ls -l $${{ env.WORKDIR }}
 
       - name: Pipenv Install
         run: pipenv install

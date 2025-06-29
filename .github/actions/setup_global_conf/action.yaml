@@ -1,0 +1,30 @@
+name: setup_global_conf
+description: Reusable logic for setting the global conf
+inputs:
+  profile:
+    required: true
+    type: string
+  region:
+    required: true
+    type: string
+  namespace:
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Global Conf
+      shell: bash
+      env:
+        GLOBAL_CONF_FILE: pylib/ofirydevops/global_conf.yaml
+      run: |
+        cat > $GLOBAL_CONF_FILE <<EOF
+        region: ${{ inputs.region }}
+        profile: ${{ inputs.profile }}
+        namespace: ${{ inputs.namespace }}
+        EOF
+        cat $GLOBAL_CONF_FILE
+
+
+

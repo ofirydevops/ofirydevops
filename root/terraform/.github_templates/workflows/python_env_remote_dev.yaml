@@ -3,16 +3,6 @@ name: python_env_remote_dev
 on:
   workflow_dispatch:
     inputs:
-      uptime_in_minutes:
-        description: The time the node will be up
-        type: choice
-        options: [10, 20 , 40, 80, 160, 320, 640]
-        required: true
-      repository_py_env_file_path:
-        description: Python environment file path
-        type: string
-        required: true
-        default: ${default_py_env_file}
       repository:
         description: Repository
         type: choice
@@ -24,6 +14,16 @@ on:
         type: string
         required: true
         default: main
+      repository_py_env_file_path:
+        description: Python environment file path
+        type: string
+        required: true
+        default: ${default_py_env_file}
+      uptime_in_minutes:
+        description: Runner node uptime in minutes
+        type: choice
+        options: [10, 20 , 40, 80, 160, 320, 640]
+        required: true
       git_user_email:
         description: Git user email (Optional)
         type: string
@@ -31,10 +31,7 @@ on:
       node:
         description: Runner node
         type: choice
-        options:
-          - basic_arm64_100GB
-          - basic_amd64_100GB
-          - gpu_amd64_100GB
+        options: ${github_runner_labels}
         required: true
 
 env:
@@ -53,6 +50,13 @@ jobs:
         with:
           repository: ofirydevops/ofirydevops
           ref: update2
+
+      - name: Setup Global Config
+        uses: ofirydevops/ofirydevops/.github/actions/setup_global_conf@update2
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
 
       - name: Checkout workdir repo
         uses: actions/checkout@v4
