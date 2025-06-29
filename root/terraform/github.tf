@@ -1,5 +1,18 @@
 
 locals {
+
+    all_tf_projects              = keys(yamldecode(file("${path.module}/../../deployment/tf_projects.yaml")))
+    ami_confs                    = keys(yamldecode(file("${path.module}/../../ami_generator/main_conf.yaml")))    
+    gh_runners_conf_dir          = "${path.module}/../../github_actions/terraform/runner_configs"
+    github_runners_conf_files    = [ for file in fileset(local.gh_runners_conf_dir, "*"): "${local.gh_runners_conf_dir}/${file}" ]
+    github_runners_conf_combined = merge([for conf_file in local.github_runners_conf_files: yamldecode(file(conf_file))]...)
+    github_runner_labels         = keys(local.github_runners_conf_combined)
+    all_github_repos             = data.github_repositories.all_accessible.full_names
+
+    all_tf_projects_except_root = [
+      for tf_project in local.all_tf_projects : tf_project if tf_project != "root"
+    ]
+
     workflows_files_dir   = "${path.module}/workflows"
     workflows_files       = fileset(local.workflows_files_dir, "*")
     workflows_files_paths = { 
@@ -9,17 +22,20 @@ locals {
       } 
     }
 
-    workflows_tpl_files_dir   = "${path.module}/workflows_templates"
-    workflows_tpl_files       = fileset(local.workflows_tpl_files_dir, "*")
+    workflows_tpl_files_dir   = "${path.module}/.github_templates"
+    workflows_tpl_files       = fileset(local.workflows_tpl_files_dir, "**")
     workflows_tpl_files_paths = { 
       for file in local.workflows_tpl_files: file => {
         content = templatefile("${local.workflows_tpl_files_dir}/${file}", { 
-          repositories        = jsonencode(local.all_repos)
-          default_repository  = github_repository.main.full_name
-          default_py_env_file = "python_env_runner/examples/envs/ofiry.yaml"
-          default_enterypoint = "python python_env_runner/examples/tests/hello_world.py"
+          repositories         = jsonencode(local.all_github_repos)
+          default_repository   = github_repository.main.full_name
+          default_py_env_file  = "python_env_runner/examples/envs/ofiry.yaml"
+          default_enterypoint  = "python python_env_runner/examples/tests/hello_world.py"
+          ami_confs            = jsonencode(local.ami_confs)
+          tf_projects          = jsonencode(local.all_tf_projects_except_root)
+          github_runner_labels = jsonencode(local.github_runner_labels)
         })
-        dst     = ".github/workflows/${file}"
+        dst = ".github/${file}"
       }
     }
 
@@ -50,7 +66,6 @@ locals {
                             local.workflows_tpl_files_paths, 
                             local.python_env_files_paths)
 
-    all_repos = data.github_repositories.all_accessible.full_names
 
 
     gh_actions_variables = {
@@ -63,6 +78,7 @@ locals {
       OFIRYDEVOPS_GITHUB_TOKEN = local.secrets["github_token"]
     }
 }
+
 
 resource "github_repository" "main" {
   name        = local.namespace

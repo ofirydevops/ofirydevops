@@ -107,11 +107,8 @@ def store_ami_ids_in_ssm(input_dict):
     session   = utils.get_boto3_session()
     ec2       = session.client('ec2')
     ssm       = session.client('ssm')
-    namespace = utils.get_namespace()
 
     for ami_conf in input_dict["images"].values():
-        if "ami_id_ssm_key" not in ami_conf:
-            continue
 
         response = ec2.describe_images(
             Filters = [
@@ -124,22 +121,24 @@ def store_ami_ids_in_ssm(input_dict):
 
         ami_id = response["Images"][0]["ImageId"]
 
+        ssm_key = ami_conf["ami_id_ssm_key"]
+
         ssm.put_parameter(
-            Name      = ami_conf["ami_id_ssm_key"].format(namespace=namespace),
+            Name      = ssm_key,
             Value     = ami_id,
             Type      = 'String',
             DataType  = 'aws:ec2:image',
             Overwrite = True
         )
 
-        print(f'Successfully stored ami id {ami_id} in {ami_conf["ami_id_ssm_key"]}')
+        print(f'Successfully stored ami id {ami_id} in {ssm_key}')
 
 
 def get_ssh_private_key_file():
     tmp_dir_path = "tmp"
     os.makedirs(tmp_dir_path, exist_ok=True)
-    namespace = utils.get_namespace()
 
+    namespace            = utils.get_namespace()
     ssh_private_key_file = os.path.join(tmp_dir_path, f"{utils.generate_random_string()}_private_key.pem")
     ssh_private_key      = utils.get_ssm_param(f"/{namespace}/secrets/main_keypair_privete_key")
     with open(ssh_private_key_file, "w") as file:
@@ -148,17 +147,17 @@ def get_ssh_private_key_file():
 
 
 def get_ssh_keypair_name():
-    namespace = utils.get_namespace()
+    namespace        = utils.get_namespace()
     ssh_keypair_name = utils.get_ssm_param(f"/{namespace}/main_keypair_name")
     return ssh_keypair_name
 
 
 def main():
-    args       = get_args()
-    input_dict = utils.yaml_to_dict(PACKER_CONF_FILE)[args["conf"]]
-
+    args                 = get_args()
+    input_dict           = utils.yaml_to_dict(PACKER_CONF_FILE)[args["conf"]]
     vpc_id               = get_default_vpc_id()
     profile, region      = utils.get_profile_and_region()
+    namespace            = utils.get_namespace()
     ssh_private_key_file = get_ssh_private_key_file()
     subnet_id            = get_public_subnet_id(vpc_id)
     ssh_keypair_name     = get_ssh_keypair_name()
@@ -169,11 +168,17 @@ def main():
     input_dict["vpc_id"]               = vpc_id
     input_dict["profile"]              = profile
     input_dict["region"]               = region
+    input_dict["images"]               = {}
 
     timestamp = get_formatted_timestamp()
 
-    for ami in input_dict["images"]:
-        input_dict["images"][ami]["ami_name"] = f'PACKER_{ami}__{timestamp}'
+    for volume_size in input_dict["volume_sizes_in_gb"]:
+        image                       = f'{args["conf"]}_{volume_size}GB'
+        input_dict["images"][image] = {
+            "ami_name"       : f'PACKER_{namespace}_{image}__{timestamp}',
+            "volume_size"    : volume_size,
+            "ami_id_ssm_key" : f"/{namespace}/ami_id/{image}"
+        }
 
     print(json.dumps(input_dict, indent=4))
 

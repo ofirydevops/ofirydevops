@@ -7,12 +7,7 @@ on:
         description: Terraform project
         type: choice
         required: true
-        options:
-          - jenkins
-          - github_actions
-          - codeartifact
-          - batch_runner
-          - python_env_runner
+        options: ${tf_projects}
       tf_action:
         description: Terraform action to run
         type: choice
@@ -34,7 +29,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ofirydevops/ofirydevops
-          ref: main
+          ref: update2
+
+      - name: Setup Global Config
+        uses: ofirydevops/ofirydevops/.github/actions/setup_global_conf@update2
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
 
       - name: Pipenv Install
         run: pipenv install
@@ -42,6 +44,6 @@ jobs:
       - name: Run Terraform Action
         run: |
             pipenv run python3.10 -m deployment.tf_manager \
-                                      --tf-action ${{ github.event.inputs.tf_action }} \
-                                      --tf-project ${{ github.event.inputs.tf_project }}
+                                      --tf-action $${{ github.event.inputs.tf_action }} \
+                                      --tf-project $${{ github.event.inputs.tf_project }}
 

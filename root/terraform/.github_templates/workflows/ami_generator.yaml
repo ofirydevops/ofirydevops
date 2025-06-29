@@ -1,0 +1,37 @@
+name: ami_generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      ami_conf:
+        description: AMI conf name
+        type: choice
+        options: ${ami_confs}
+        required: true
+
+jobs:
+  ami_generator:
+    runs-on: 
+      - self-hosted
+      - basic_arm64_100GB
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ofirydevops/ofirydevops
+          ref: update2
+
+      - name: Setup Global Config
+        uses: ofirydevops/ofirydevops/.github/actions/setup_global_conf@update2
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
+
+      - name: Pipenv Install
+        run: pipenv install
+
+      - name: Generate AMI
+        run: |
+            pipenv run python3.10 -m ami_generator.ami_generator --conf $${{ github.event.inputs.ami_conf }}
+

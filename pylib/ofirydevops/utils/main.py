@@ -11,6 +11,25 @@ import string
 import random
 from importlib import resources
 from pathlib import Path
+from cerberus import Validator
+
+GLOBAL_CONF_SCEHMA = {
+    "region": {
+        "type": "string",
+        "required": True,
+        "empty": False
+    },
+    "profile": {
+        "type": "string",
+        "required": True,
+        "empty": False
+    },
+    "namespace": {
+        "type": "string",
+        "required": True,
+        "regex": "^[a-z][a-z0-9]{0,6}$"
+    }
+}
 
 def load_global_conf():
     
@@ -36,12 +55,23 @@ def load_global_conf():
     raise RuntimeError("Could not find global_conf.yaml")
 
 
-def get_profile_and_region():
+def load_and_validate_global_conf():
     global_conf = load_global_conf()
+    validator   = Validator(GLOBAL_CONF_SCEHMA)
+    if validator.validate(global_conf):
+        print(f"global_conf validation successful!")
+    else:
+        raise Exception(f"global_conf validation failed: {validator.errors}")
+    return global_conf
+
+
+
+def get_profile_and_region():
+    global_conf = load_and_validate_global_conf()
     return global_conf["profile"], global_conf["region"]
 
 def get_namespace():
-    global_conf = load_global_conf()
+    global_conf = load_and_validate_global_conf()
     return global_conf["namespace"]
 
 
