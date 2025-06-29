@@ -1,0 +1,25 @@
+name: ami_generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      ami_conf:
+        description: AMI conf name
+        type: choice
+        options: ${ami_confs}
+        required: true
+
+jobs:
+  ami_generator:
+    runs-on: 
+      - self-hosted
+      - basic_arm64_100GB
+    steps:
+      - name: Generate AMI
+        uses: ofirydevops/ofirydevops/.github/actions/ami_generator@${ofirydevops_ref}
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
+          ofirydevops_ref: ${ofirydevops_ref}
+          ami_conf: $${{ github.event.inputs.ami_conf }}

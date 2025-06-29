@@ -14,28 +14,20 @@ locals {
     ]
 
     workflows_files_dir   = "${path.module}/workflows"
-    workflows_files       = fileset(local.workflows_files_dir, "*")
+    workflows_files       = fileset(local.workflows_files_dir, "**")
     workflows_files_paths = { 
       for file in local.workflows_files: file => {
-        content = file("${local.workflows_files_dir}/${file}")
-        dst     = ".github/workflows/${file}"
-      } 
-    }
-
-    workflows_tpl_files_dir   = "${path.module}/.github_templates"
-    workflows_tpl_files       = fileset(local.workflows_tpl_files_dir, "**")
-    workflows_tpl_files_paths = { 
-      for file in local.workflows_tpl_files: file => {
-        content = templatefile("${local.workflows_tpl_files_dir}/${file}", { 
+        content = templatefile("${local.workflows_files_dir}/${file}", { 
           repositories         = jsonencode(local.all_github_repos)
           default_repository   = github_repository.main.full_name
-          default_py_env_file  = "python_env_runner/examples/envs/ofiry.yaml"
-          default_enterypoint  = "python python_env_runner/examples/tests/hello_world.py"
+          default_py_env_file  = "python_env_runner/examples/envs/py310_full.yaml"
+          default_enterypoint  = "python python_env_runner/examples/tests/test_all_imports.py"
           ami_confs            = jsonencode(local.ami_confs)
           tf_projects          = jsonencode(local.all_tf_projects_except_root)
           github_runner_labels = jsonencode(local.github_runner_labels)
+          ofirydevops_ref      = "update2"
         })
-        dst = ".github/${file}"
+        dst = ".github/workflows/${file}"
       }
     }
 
@@ -63,7 +55,6 @@ locals {
 
     all_files_paths = merge(local.workflows_files_paths, 
                             local.jenkinsfiles_paths, 
-                            local.workflows_tpl_files_paths, 
                             local.python_env_files_paths)
 
 
@@ -133,6 +124,6 @@ data "github_user" "self" {
   username = ""
 }
 data "github_repositories" "all_accessible" {
-  query           = "user:${data.github_user.self.login} archived:false"
+  query           = "user:${data.github_user.self.login} archived:false sort:updated-asc"
   include_repo_id = true
 }

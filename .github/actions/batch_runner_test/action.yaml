@@ -1,0 +1,56 @@
+name: batch_runner_test
+description: Batch Runner Test
+inputs:
+  profile:
+    required: true
+    type: string
+  region:
+    required: true
+    type: string
+  namespace:
+    required: true
+    type: string
+  ofirydevops_ref:
+    required: true
+    type: string
+  global_conf_file:
+    required: false
+    default: pylib/ofirydevops/global_conf.yaml
+
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout ofirydevops
+      uses: actions/checkout@v4
+      with:
+        repository: ofirydevops/ofirydevops
+        ref: ${{ inputs.ofirydevops_ref }}
+
+    - name: Setup Global Conf
+      shell: bash
+      run: |
+        cat > ${{ inputs.global_conf_file }} <<EOF
+        region: ${{ inputs.region }}
+        profile: ${{ inputs.profile }}
+        namespace: ${{ inputs.namespace }}
+        EOF
+        cat ${{ inputs.global_conf_file }}
+
+    - name: Pipenv Install
+      shell: bash
+      run: |
+        # Wait in order to avoid race condition with /var/lib/cloud/scripts/per-boot/start-runner.sh
+        sleep 10
+        cat ~/.aws/config
+        rm Pipfile*
+        cp batch_runner/test/Pipfile* .
+        ./codeartifact/pipenv_install_with_codeartifact.sh \
+                                          ${{ inputs.region }} \
+                                          ${{ inputs.profile }} \
+                                          /${{ inputs.namespace }}/codeartifact/ofirydevops_main
+
+    - name: Test Batch Runner
+      shell: bash
+      run: |
+          pipenv run python3.10 -m batch_runner.test.test

@@ -1,0 +1,61 @@
+name: python_env_job_runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: Repository
+        type: choice
+        options: ${repositories}
+        default: ${default_repository}
+        required: true
+      repository_ref:
+        description: Repository ref
+        type: string
+        required: true
+        default: main
+      repository_py_env_file_path:
+        description: Python environment file path
+        type: string
+        required: true
+        default: ${default_py_env_file}
+      timeout_in_minutes:
+        description: Job timeout in minutes
+        type: choice
+        options: [10, 20 , 40, 80, 160, 320, 640]
+        required: true
+      command:
+        description: Run command
+        type: string
+        required: true
+        default: ${default_enterypoint}
+      node:
+        description: Runner node
+        type: choice
+        options: ${github_runner_labels}
+        required: true
+
+env:
+  DOCKER_IMAGE_TAG: $${{ github.run_id }}-$${{ github.run_number }}
+
+jobs:
+  build_and_run:
+    runs-on:
+      - self-hosted
+      - $${{ github.event.inputs.node }}
+    steps:
+      - name: Python Env Job Runner
+        uses: ofirydevops/ofirydevops/.github/actions/python_env_job_runner@${ofirydevops_ref}
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
+          ofirydevops_ref: ${ofirydevops_ref}
+          repository: $${{ github.event.inputs.repository }}
+          repository_ref: $${{ github.event.inputs.repository_ref }}
+          github_token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+          repository_py_env_file_path: $${{ github.event.inputs.repository_py_env_file_path }} 
+          docker_image_tag: $${{ env.DOCKER_IMAGE_TAG }}
+          timeout_in_minutes: $${{ github.event.inputs.timeout_in_minutes }}
+          command: $${{ github.event.inputs.command }}
+

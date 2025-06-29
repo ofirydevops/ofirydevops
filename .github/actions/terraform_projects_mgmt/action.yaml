@@ -1,0 +1,56 @@
+name: terraform_projects_mgmt
+description: Terraform Projects Management
+inputs:
+  profile:
+    required: true
+    type: string
+  region:
+    required: true
+    type: string
+  namespace:
+    required: true
+    type: string
+  ofirydevops_ref:
+    required: true
+    type: string
+  tf_action:
+    required: true
+    type: string
+  tf_project:
+    required: true
+    type: string
+  global_conf_file:
+    required: false
+    default: pylib/ofirydevops/global_conf.yaml
+
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout ofirydevops
+      uses: actions/checkout@v4
+      with:
+        repository: ofirydevops/ofirydevops
+        ref: ${{ inputs.ofirydevops_ref }}
+
+    - name: Setup Global Conf
+      shell: bash
+      run: |
+        cat > ${{ inputs.global_conf_file }} <<EOF
+        region: ${{ inputs.region }}
+        profile: ${{ inputs.profile }}
+        namespace: ${{ inputs.namespace }}
+        EOF
+        cat ${{ inputs.global_conf_file }}
+
+    - name: Pipenv Install
+      shell: bash
+      run: pipenv install
+
+    - name: Run Terraform Action
+      shell: bash
+      run: |
+          pipenv run python3.10 -m deployment.tf_manager \
+                                    --tf-action ${{ inputs.tf_action }} \
+                                    --tf-project ${{ inputs.tf_project }}
+

@@ -7,7 +7,7 @@ x-main_conf: &main_conf
   volumes:
   - ../../:/workspace
   - /var/run/docker.sock:/var/run/docker.sock
-  - ~/.aws/credentials:/root/.aws/credentials
+  - ~/.aws:/root/.aws
 
 
 services:
@@ -19,6 +19,7 @@ services:
                                                 --tf-project root"
     profiles:
     - root
+    - all
 
   build_jenkins:
     <<: *main_conf

@@ -1,0 +1,91 @@
+name: python_env_job_runner
+description: Python Env Remote Development
+inputs:
+  profile:
+    required: true
+    type: string
+  region:
+    required: true
+    type: string
+  namespace:
+    required: true
+    type: string
+  ofirydevops_ref:
+    required: true
+    type: string
+  repository:
+    required: true
+    type: string
+  repository_ref:
+    required: true
+    type: string
+  github_token:
+    required: true
+    type: string
+  repository_py_env_file_path:
+    required: true
+    type: string
+  docker_image_tag:
+    required: true
+    type: string
+  timeout_in_minutes:
+    required: true
+    type: string
+  command:
+    required: true
+    type: string
+  global_conf_file:
+    required: false
+    default: pylib/ofirydevops/global_conf.yaml
+  workdir:
+    required: false
+    default: guest_repo
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout ofirydevops
+      uses: actions/checkout@v4
+      with:
+        repository: ofirydevops/ofirydevops
+        ref: ${{ inputs.ofirydevops_ref }}
+
+    - name: Setup Global Conf
+      shell: bash
+      run: |
+        cat > ${{ inputs.global_conf_file }} <<EOF
+        region: ${{ inputs.region }}
+        profile: ${{ inputs.profile }}
+        namespace: ${{ inputs.namespace }}
+        EOF
+        cat ${{ inputs.global_conf_file }}
+
+    - name: Checkout Guest Repo
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.repository }}
+        token: ${{ inputs.github_token }}
+        ref: ${{ inputs.repository_ref }}
+        path: ${{ inputs.workdir }}
+
+    - name: Pipenv Install
+      shell: bash
+      run: pipenv install
+
+    - name: Build Python Env Docker
+      shell: bash
+      run: |
+          pipenv run python3.10 -u -m python_env_runner.scripts.build_py_env \
+                                          --py-env-conf-file ${{ inputs.workdir }}/${{ inputs.repository_py_env_file_path }} \
+                                          --docker-image-tag ${{ inputs.docker_image_tag }} \
+                                          --target runtime \
+                                          --workdir ${{ inputs.workdir }}
+
+    - name: Run Python Job
+      shell: bash
+      run: |
+        TIMEOUT_SECONDS=$(( ${{ inputs.timeout_in_minutes }} * 60 ))
+        timeout $TIMEOUT_SECONDS \
+        pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \
+                                      --docker-image-tag ${{ inputs.docker_image_tag }} \
+                                      --entrypoint "${{ inputs.command }}"

@@ -1,0 +1,37 @@
+name: terraform_projects_mgmt
+
+on:
+  workflow_dispatch:
+    inputs:
+      tf_project:
+        description: Terraform project
+        type: choice
+        required: true
+        options: ${tf_projects}
+      tf_action:
+        description: Terraform action to run
+        type: choice
+        options:
+          - apply
+          - destroy
+          - plan
+          - validate
+        required: true
+
+jobs:
+  terraform_projects_mgmt:
+    runs-on: 
+      - self-hosted
+      - basic_amd64_100GB
+    steps:
+      - name: Terraform Projects Management
+        uses: ofirydevops/ofirydevops/.github/actions/terraform_projects_mgmt@${ofirydevops_ref}
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
+          ofirydevops_ref: ${ofirydevops_ref}
+          tf_action: $${{ github.event.inputs.tf_action }}
+          tf_project: $${{ github.event.inputs.tf_project }}
+
+
