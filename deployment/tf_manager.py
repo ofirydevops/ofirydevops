@@ -25,7 +25,9 @@ def get_args():
 
 def generate_tf_config_backend_file(namespace, project):
 
-    tf_backend_config_file = f"backend.config-{utils.generate_random_string()}.json"
+    tf_backend_config_file = f"tmp/backend.config-{utils.generate_random_string()}.json"
+    os.makedirs(os.path.dirname(tf_backend_config_file), exist_ok=True)
+
     if project == "root":
         if not os.path.exists(INFO_SECRETS_FILE):
             raise Exception(f"The root TF project must run from where the {INFO_SECRETS_FILE} file is available (usually local workstation).")
