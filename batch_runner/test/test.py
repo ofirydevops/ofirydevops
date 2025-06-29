@@ -4,7 +4,7 @@ import subprocess
 import json
 import platform
 from pathlib import Path
-from pylib.ofirydevops.batch_runner import main as batch_runner
+from ofirydevops.batch_runner import main as batch_runner
 
 
 SCRIPT_DIR          = Path(__file__).parent

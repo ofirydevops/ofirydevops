@@ -4,30 +4,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  test_batch_runner:
+  batch_runner_test:
     runs-on: 
       - self-hosted
       - basic_amd64_100GB
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: ofirydevops/ofirydevops
-          ref: main
-
-      - name: Pipenv Install
-        run: |
-          # Wait in order to avoid race condition with /var/lib/cloud/scripts/per-boot/start-runner.sh
-          sleep 10
-          cat ~/.aws/config
-          rm Pipfile*
-          cp batch_runner/test/Pipfile* .
-          ./codeartifact/pipenv_install_with_codeartifact.sh \
-                                            ${{ vars.MAIN_AWS_REGION }} \
-                                            ${{ vars.MAIN_AWS_PROFILE }} \
-                                            /${{ vars.NAMESPACE }}/codeartifact/ofirydevops_main
-
       - name: Test Batch Runner
-        run: |
-            pipenv run python3.10 -m batch_runner.test.test
+        uses: ofirydevops/ofirydevops/.github/actions/batch_runner_test@${ofirydevops_ref}
+        with:
+          profile: $${{ vars.MAIN_AWS_PROFILE }}
+          region: $${{ vars.MAIN_AWS_REGION }}
+          namespace: $${{ vars.NAMESPACE }}
+          ofirydevops_ref: ${ofirydevops_ref}
 

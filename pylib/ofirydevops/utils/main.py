@@ -58,9 +58,7 @@ def load_global_conf():
 def load_and_validate_global_conf():
     global_conf = load_global_conf()
     validator   = Validator(GLOBAL_CONF_SCEHMA)
-    if validator.validate(global_conf):
-        print(f"global_conf validation successful!")
-    else:
+    if not validator.validate(global_conf):
         raise Exception(f"global_conf validation failed: {validator.errors}")
     return global_conf
 

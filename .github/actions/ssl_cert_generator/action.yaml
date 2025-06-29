@@ -1,0 +1,48 @@
+name: ssl_cert_generator
+description: SSL Cert Generator
+inputs:
+  profile:
+    required: true
+    type: string
+  region:
+    required: true
+    type: string
+  namespace:
+    required: true
+    type: string
+  ofirydevops_ref:
+    required: true
+    type: string
+  global_conf_file:
+    required: false
+    default: pylib/ofirydevops/global_conf.yaml
+
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout ofirydevops
+      uses: actions/checkout@v4
+      with:
+        repository: ofirydevops/ofirydevops
+        ref: ${{ inputs.ofirydevops_ref }}
+
+    - name: Setup Global Conf
+      shell: bash
+      run: |
+        cat > ${{ inputs.global_conf_file }} <<EOF
+        region: ${{ inputs.region }}
+        profile: ${{ inputs.profile }}
+        namespace: ${{ inputs.namespace }}
+        EOF
+        cat ${{ inputs.global_conf_file }}
+
+    - name: Build Docker
+      shell: bash
+      run: docker compose -f deployment/docker/build-ssl.yml build
+
+    - name: Generate SSL Cert
+      shell: bash
+      run: |
+          docker compose -f deployment/docker/build-ssl.yml up
+

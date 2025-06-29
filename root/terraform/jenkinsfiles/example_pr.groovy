@@ -1,6 +1,6 @@
 def setGhPrStatus(status) {
     def messages = [
-        "SUCCESS" : "Passed",
+        "SUCCESS" : "Passed Hello World",
         "PENDING" : "In progress...",
         "FAILURE" : "Failed. For re-run comment: ${env.rerunPhrase}"
     ]
