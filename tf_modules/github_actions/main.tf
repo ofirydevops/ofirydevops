@@ -37,7 +37,7 @@ locals {
             enable_organization_runners             = false
             delay_webhook_event                     = 5
             runners_maximum_count                   = 2
-            scale_down_schedule_expression          = "cron(* * * * ? *)"
+            scale_down_schedule_expression          = "cron(0/5 * * * ? *)"
             enable_userdata                         = true
             block_device_mappings                   = []
             instance_target_capacity_type           = "spot"
