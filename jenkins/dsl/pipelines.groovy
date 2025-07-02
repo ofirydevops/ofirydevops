@@ -1,26 +1,37 @@
 // Jenkins DSL api docs link: https://<jenkins-server-address>/plugin/job-dsl/api-viewer/index.html
 
+import groovy.json.JsonSlurper
 
-def condaEnvsV2 = [
-  'python_env_runner/conda_envs_v2/ofiry.yaml',
-  'python_env_runner/conda_envs_v2/py310_gpu.yaml',
-  'python_env_runner/conda_envs_v2/py310_full.yaml'
+def dslConfigJsonFile                = binding.variables['dsl_config_json_file']
+def dslConfig                        = new JsonSlurper().parse(new File(dslConfigJsonFile))
+
+def nodes                            = dslConfig["nodes"]
+def tfProjects                       = dslConfig["tf_projects"]
+def amiConfs                         = dslConfig["ami_confs"]
+def tfActions                        = dslConfig["tf_actions"]
+def batchEnvs                        = dslConfig["batch_envs"]
+def ofirydevopsRef                   = dslConfig["ofirydevops_ref"]
+def exampleGithubRepoUrl             = dslConfig["generated_gh_repo_url"]
+def exampleGithubRepoName            = dslConfig["generated_gh_repo_name"]
+def exampleGithubRepoJenkinsfilePath = dslConfig["generated_gh_repo_pr_jenkinsfile"]
+def githubAppCredsId                 = dslConfig["github_jenkins_app_creds_id"]
+
+def timeoutInMinutesOptions          = ['10', '20', '40','80']
+def ofirydevopsGithubUrl             = "https://github.com/ofirydevops/ofirydevops.git"
+
+def pyEnvJobRunnerDefaultCommand     = 'python python_env_runner/hello_world.py'
+def jenkisnfiles                     = [
+  ssl_cert_generator :      'jenkins/jenkinsfiles/ssl_cert_generator.groovy',
+  batch_runner_test :       'jenkins/jenkinsfiles/batch_runner_test.groovy',
+  python_env_job_runner :   'jenkins/jenkinsfiles/python_env_job_runner.groovy',
+  python_env_remote_dev :   'jenkins/jenkinsfiles/python_env_remote_dev.groovy',
+  terraform_projects_mgmt : 'jenkins/jenkinsfiles/terraform_projects_mgmt.groovy',
+  python_env_batch_runner : 'jenkins/jenkinsfiles/python_env_batch_runner.groovy',
+  ami_generator :           'jenkins/jenkinsfiles/ami_generator.groovy'
 ]
 
-def nodes = [
-  'basic_amd64_100GB', 
-  'basic_arm64_100GB', 
-  'gpu_amd64_100GB',
-  ]
 
-def ofirydevopsGithubUrl = "https://github.com/ofirydevops/ofirydevops.git"
-
-def exampleGithubRepoUrl             = binding.variables['example_github_repo_url']
-def exampleGithubRepoName            = binding.variables['example_github_repo_name']
-def exampleGithubRepoJenkinsfilePath = binding.variables['example_github_jenkinsfile_path']
-
-
-def prReRunPhrasePrefix = "rerun_"
+def prReRunPhrasePrefix              = "rerun_"
 
 def folders = [
   examples: [
@@ -114,7 +125,7 @@ prPipelineConfigs.each { _, config ->
                   git {
                       remote {
                           url(config["githubRepoUrl"])
-                          credentials("jenkins_gh_app")
+                          credentials(githubAppCredsId)
                           refspec('+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
                       }
                       branch('origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
@@ -129,7 +140,7 @@ prPipelineConfigs.each { _, config ->
 
 pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
     parameters {
-        stringParam('ref', 'update2', 'branch / tag / commit')
+        stringParam('ref', ofirydevopsRef, 'Branch / Tag / Commit')
     }
 
     properties {
@@ -148,15 +159,15 @@ pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkins/jenkinsfiles/ssl_cert_generator.groovy')
+            scriptPath(jenkisnfiles["ssl_cert_generator"])
         }
     }
 }
 
 
-pipelineJob("${folders["batch_runner"]["id"]}/test_batch_runner") {
+pipelineJob("${folders["batch_runner"]["id"]}/batch_runner_test") {
     parameters {
-        stringParam('ref', 'update2', 'branch / tag / commit')
+        stringParam('ref', ofirydevopsRef, 'Branch / Tag / Commit')
     }
 
     properties {
@@ -175,25 +186,19 @@ pipelineJob("${folders["batch_runner"]["id"]}/test_batch_runner") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkins/jenkinsfiles/test_batch_runner.groovy')
+            scriptPath(jenkisnfiles["batch_runner_test"])
         }
     }
 }
 
 
-pipelineJob("${folders["python_env_runner"]["id"]}/python_env_runner") {
+pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
     parameters {
-        stringParam('ref', 'main', 'branch / tag / commit')
-        choiceParam('node', nodes, 'Node to run on')
-
-        stringParam('command', 'python python_env_runner/hello_world.py', 'Command to run')
-
-        choiceParam('timeout_in_minutes', 
-                     ['10', '20', '40','80'])
-
-        choiceParam('py_env_conf_file', 
-                    condaEnvsV2, 
-                    'Python env to run')
+        stringParam('ref',               ofirydevopsRef,                'Branch / Tag / Commit')
+        choiceParam('timeout_in_minutes', timeoutInMinutesOptions,     'Job timeout in minutes')
+        stringParam('py_env_conf_file',  '',                           'Python environment file path')
+        choiceParam('node',              nodes,                        'Runner node')
+        stringParam('command',           pyEnvJobRunnerDefaultCommand, 'Run command')
     }
 
     properties {
@@ -213,24 +218,18 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_runner") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkins/jenkinsfiles/python_env_runner.groovy')
+            scriptPath(jenkisnfiles["python_env_job_runner"])
         }
     }
 }
 
-pipelineJob("${folders["python_env_runner"]["id"]}/python_remote_dev") {
+pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
     parameters {
-        stringParam('ref', 'main', 'branch / tag / commit')
-        stringParam('git_user_email', '', 'Email of user with which you want to access git')
-        choiceParam('node', nodes, 'Node to run on')
-
-        choiceParam('uptime_in_minutes', 
-                     ['10', '20', '40','80'], 
-                     'Amount of time to keep the node up')
-
-        choiceParam('py_env_conf_file', 
-                    condaEnvsV2, 
-                    'Python env to run')
+        stringParam('ref',               ofirydevopsRef,           'Branch / Tag / Commit')
+        choiceParam('uptime_in_minutes', timeoutInMinutesOptions, 'Runner node uptime in minutes')
+        stringParam('py_env_conf_file',  '',                      'Python environment file path')
+        stringParam('git_user_email',    '',                      'Email of user with which you want to access git (Optional)')
+        choiceParam('node',              nodes,                   'Runner node')
     }
 
     properties {
@@ -250,7 +249,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_remote_dev") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkins/jenkinsfiles/python_env_remote_dev.groovy')
+            scriptPath(jenkisnfiles["python_env_remote_dev"])
         }
     }
 }
@@ -258,23 +257,18 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_remote_dev") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
     parameters {
-        stringParam('ref', 'update2', 'branch / tag / commit')
-
+        stringParam('ref',                  ofirydevopsRef,                                  'Branch / Tag / Commit')
         stringParam('child_job_entrypoint', 'python -m python_env_runner.batch_test.child', 'Command to run')
+        choiceParam('batch_env',            batchEnvs,                                      'Batch env to use')
 
-        stashedFile {
-            name('py_env_conf.yaml')
-            description('Python env conf file')
+        stashedFile { 
+          name('py_env_conf.yaml')      
+          description('Python env conf file') 
         }
-
-        stashedFile {
-            name('child_jobs_input.yaml')
-            description('File with inputs of all child jobs')
+        stashedFile { 
+          name('child_jobs_input.yaml') 
+          description('File with inputs of all child jobs') 
         }
-
-        choiceParam('batch_env', 
-                    ["main_arm64", "main_amd64", "gpu_amd64"], 
-                    'Batch env to use')
 
     }
 
@@ -295,34 +289,17 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkins/jenkinsfiles/python_env_batch_runner.groovy')
+            scriptPath(jenkisnfiles["python_env_batch_runner"])
         }
     }
 }
 
 
-pipelineJob("${folders["infra"]["id"]}/manage_tf_infra") {
+pipelineJob("${folders["infra"]["id"]}/terraform_projects_mgmt") {
     parameters {
-        stringParam('ref', 'main', 'branch / tag / commit')
-
-        choiceParam('tf_project', 
-                     [ 
-                      'jenkins', 
-                      'github_actions', 
-                      'codeartifact',
-                      'batch_runner',
-                      'python_env_runner'
-                      ], 
-                     'The Terraform project')
-
-        choiceParam('tf_action', 
-                    [
-                      'apply',
-                      'destroy',
-                      'plan',
-                      'validate'
-                    ], 
-                    'Terraform action to run')
+        stringParam('ref',        ofirydevopsRef, 'Branch / Tag / Commit')
+        choiceParam('tf_project', tfProjects,    'The Terraform project')
+        choiceParam('tf_action',  tfActions,     'Terraform action to run')
     }
 
     properties {
@@ -342,7 +319,38 @@ pipelineJob("${folders["infra"]["id"]}/manage_tf_infra") {
                  branch('${ref}')
                }
              }
-            scriptPath('jenkins/jenkinsfiles/manage_tf_project.groovy')
+            scriptPath(jenkisnfiles["terraform_projects_mgmt"])
         }
     }
 }
+
+
+pipelineJob("${folders["infra"]["id"]}/ami_generator") {
+    parameters {
+        stringParam('ref',      ofirydevopsRef, 'Branch / Tag / Commit')
+        choiceParam('ami_conf', amiConfs,     'The AMI conf to generate')
+    }
+
+    properties {
+        durabilityHint {
+            hint('PERFORMANCE_OPTIMIZED')
+        }
+        githubProjectUrl(ofirydevopsGithubUrl)
+    }
+
+    definition {
+           cpsScm {
+             scm {
+               git {
+                 remote {
+                   url(ofirydevopsGithubUrl)
+                 }
+                 branch('${ref}')
+               }
+             }
+            scriptPath(jenkisnfiles["ami_generator"])
+        }
+    }
+}
+
+

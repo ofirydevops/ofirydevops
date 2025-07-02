@@ -19,6 +19,7 @@ services:
                                                 --tf-project root"
     profiles:
     - root
+    - all
 
   destroy_jenkins:
     <<: *main_conf
@@ -36,8 +37,7 @@ services:
                                                 --tf-action destroy \
                                                 --tf-project codeartifact"
     profiles:
-    - githubactions
-    - jenkins
+    - codeartifact
     - all
 
   destroy_github_actions:
@@ -46,8 +46,7 @@ services:
                                                 --tf-action destroy \
                                                 --tf-project github_actions"
     profiles:
-    - githubactions
-    - jenkins
+    - github_actions
     - all
 
   destroy_batch_runner:
@@ -56,8 +55,7 @@ services:
                                                 --tf-action destroy \
                                                 --tf-project batch_runner"
     profiles:
-    - githubactions
-    - jenkins
+    - batch_runner
     - all
 
   destroy_python_env_runner:
@@ -66,6 +64,5 @@ services:
                                                 --tf-action destroy \
                                                 --tf-project python_env_runner"
     profiles:
-    - githubactions
-    - jenkins
+    - python_env_runner
     # - all

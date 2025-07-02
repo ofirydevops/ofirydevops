@@ -11,11 +11,8 @@ node('basic_arm64_100GB') {
             sh "pipenv install"
         }
 
-        stage("Generate SSL Cert") {
-
-            def domain = env.domain
-
-            sh "pipenv run python3.10 -m ssl_cert_generator.generate_ssl_cert"
+        stage("Generate AMI") {
+            sh "pipenv run python3.10 -m ami_generator.ami_generator --conf ${env.ami_conf}"
         }
     }
 }

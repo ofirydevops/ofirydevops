@@ -100,9 +100,9 @@ credentials:
               scope: GLOBAL
               secret: ${github_token}
           - gitHubApp:
-              appID: ${jenkins_gh_app_id}
+              appID: ${github_jenkins_app_id}
               description: GitHub app
-              id: jenkins_gh_app
+              id: ${github_jenkins_app_creds_id}
               privateKey: |${jenkins_gh_app_priv_key}
 
           - basicSSHUserPrivateKey:
@@ -128,9 +128,7 @@ jobs:
               'jenkins/dsl/pipelines.groovy'
               ], 
               'The pipelines file to provision')
-          stringParam('example_github_repo_url', '${example_github_repo_url}')
-          stringParam('example_github_repo_name', '${example_github_repo_name}')
-          stringParam('example_github_jenkinsfile_path', '${example_github_jenkinsfile_path}')
+          choiceParam('dsl_config_json_file', ['${dsl_config_json_file}'], 'The dsl config file to use' )
         }
 
         scm {
@@ -149,7 +147,6 @@ jobs:
           }
         }
       }
-
 
 unclassified:
   gitHubPluginConfig:

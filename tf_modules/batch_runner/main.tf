@@ -145,6 +145,12 @@ resource "aws_ssm_parameter" "batch_config_params" {
     })
 }
 
+resource "aws_ssm_parameter" "batch_envs" {
+    name     = "/${var.namespace}/batch_envs"
+    type     = "String"
+    value    = jsonencode(keys(local.batch_envs))
+}
+
 module "s3_buckets" {
     for_each       = local.s3_buckets
     source         = "terraform-aws-modules/s3-bucket/aws"

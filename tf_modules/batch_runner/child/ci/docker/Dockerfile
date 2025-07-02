@@ -32,4 +32,4 @@ WORKDIR /workspace
 COPY Pipfile* /workspace/
 COPY ./pylib /workspace/pylib
 COPY ./tf_modules/batch_runner/child /workspace/child
-RUN pipenv install && cat Pipfile.lock
+RUN pipenv install

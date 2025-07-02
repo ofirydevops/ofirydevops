@@ -108,7 +108,7 @@ locals {
             Version = "2012-10-17"
             Statement = [
                 {
-                    Action = [
+                    Action = [            
                         "ecr:*",
                         "ecs:*",
                         "ec2:*",
@@ -123,10 +123,12 @@ locals {
                         "logs:*",
                         "secretsmanager:*",
                         "events:*",
-                        "route53:*",
                         "batch:*",
                         "codeartifact:*",
-                        "sts:*"
+                        "sts:*",
+                        "route53:*",
+                        "wafv2:*",
+                        "acm:*"
                         ]
                     Effect   = "Allow"
                     Resource = "*"

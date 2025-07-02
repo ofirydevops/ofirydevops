@@ -4,7 +4,19 @@ data "http" "current_workstation_pub_ip" {
 
 
 locals {
+
+    github_jenkins_app_creds_id = "jenkins_gh_app"
+    
+    node_labels  = [ 
+      for template in local.jcasc_config["jenkins"]["clouds"][0]["amazonEC2"]["templates"]: template["labelString"]
+    ]
+    jcasc_config = yamldecode(data.local_file.rendered_jcasc_config.content)
+    dsl_config   = merge(var.dsl_config, { 
+      nodes                       = local.node_labels
+      github_jenkins_app_creds_id = local.github_jenkins_app_creds_id
+      })
     jenkins_casc_config_dir = "/var/jenkins_home/jcasc"
+    jenkins_dsl_config_file = "/var/jenkins_home/dsl_config.json"
     ecr_repos = {
         jenkins = "${var.namespace}_jenkins"
     }
@@ -161,6 +173,13 @@ locals {
             name = "${var.namespace}_jenkins_worker"
         }
     }
+
+}
+
+resource "local_sensitive_file" "dsl_config" {
+  filename        = "${path.module}/dsl_config.json"
+  file_permission = "0755"
+  content         = jsonencode(local.dsl_config)
 }
 
 resource "local_sensitive_file" "domain_cert_files" {
@@ -434,14 +453,17 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     namespace                        = var.namespace
     ecr_registry                     = local.ecr_registry
     github_token                     = var.github_token
-    jenkins_gh_app_id                = var.github_jenkins_app_id
+    github_jenkins_app_id            = var.github_jenkins_app_id
     jenkins_gh_app_priv_key          = indent(20, "\n${var.github_jenkins_app_private_key_converted}")
-    example_github_repo_url          = var.example_github_repo_url
-    example_github_repo_name         = var.example_github_repo_name
-    example_github_jenkinsfile_path  = var.example_github_jenkinsfile_path
+    github_jenkins_app_creds_id      = local.github_jenkins_app_creds_id
+    dsl_config_json_file             = local.jenkins_dsl_config_file
   })
 }
 
+data "local_file" "rendered_jcasc_config" {
+  filename   = local_sensitive_file.rendered_jcasc_config.filename
+  depends_on = [local_sensitive_file.rendered_jcasc_config]
+}
 
 resource "aws_volume_attachment" "jenkins_attachment" {
   device_name = local.device_to_mount
@@ -506,6 +528,39 @@ resource "null_resource" "jenkins_jcasc_update" {
     }
 }
 
+resource "null_resource" "jenkins_dsl_config_update" {
+
+    depends_on = [
+      null_resource.jenkins_volume_mount,
+      aws_ecs_service.jenkins_service
+      ]
+    triggers = {
+      dsl_config_file_hash = local_sensitive_file.dsl_config.content_sha256
+    }
+    provisioner "file" {
+        connection {
+            type        = "ssh"
+            host        = aws_instance.jenkins.public_ip
+            user        = "ec2-user"
+            private_key = var.keypair_privete_key
+        }
+        source      = local_sensitive_file.dsl_config.filename
+        destination = local.jenkins_dsl_config_file
+    }
+    provisioner "remote-exec" {
+        connection {
+            type        = "ssh"
+            host        = aws_instance.jenkins.public_ip
+            user        = "ec2-user"
+            private_key = var.keypair_privete_key
+        }
+        inline = [
+            "sudo chmod -R 600 ${local.jenkins_dsl_config_file}",
+            "sudo chown -R 1000:1000 ${local.jenkins_dsl_config_file}",
+        ]
+    }
+}
+
 
 module "jenkins_github_webhook" {
   source                    = "../../tf_modules/github_jenkins_webhook_gw"
@@ -523,12 +578,13 @@ module "jenkins_github_webhook" {
 resource "null_resource" "cleanup" {
   depends_on = [
     module.jenkins_github_webhook,
-    null_resource.jenkins_jcasc_update
+    null_resource.jenkins_jcasc_update,
+    null_resource.jenkins_dsl_config_update
     ]
   triggers = {
     always = timestamp()
   }
   provisioner "local-exec" {
-    command = "rm *.zip ${local_sensitive_file.rendered_jcasc_config.filename} || true"
+    command = "rm *.zip ${local_sensitive_file.rendered_jcasc_config.filename} ${local_sensitive_file.dsl_config.filename} || true"
   }
 }
