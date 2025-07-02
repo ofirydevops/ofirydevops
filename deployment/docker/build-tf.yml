@@ -36,7 +36,7 @@ services:
                                                 --tf-action apply \
                                                 --tf-project github_actions"
     profiles:
-    - githubactions
+    - github_actions
     - all
 
   build_codeartifact:
@@ -45,8 +45,7 @@ services:
                                                 --tf-action apply \
                                                 --tf-project codeartifact"
     profiles:
-    - githubactions
-    - jenkins
+    - codeartifact
     - all
 
   build_python_env_runner:
@@ -55,8 +54,7 @@ services:
                                                 --tf-action apply \
                                                 --tf-project python_env_runner"
     profiles:
-    - githubactions
-    - jenkins
+    - python_env_runner
     - all
 
   build_batch_runner:
@@ -65,6 +63,5 @@ services:
                                                 --tf-action apply \
                                                 --tf-project batch_runner"
     profiles:
-    - githubactions
-    - jenkins
+    - batch_runner
     - all

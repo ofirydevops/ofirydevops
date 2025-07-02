@@ -15,6 +15,8 @@ node(env.node) {
 
         stage('Checkout') {
             checkout scm
+            def utils = load 'jenkins/local_lib/utils.groovy'
+            utils.setupGlobalConf(this)
         }
 
         stage('Install python libs') {

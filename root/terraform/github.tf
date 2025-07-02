@@ -8,10 +8,27 @@ locals {
     github_runners_conf_combined = merge([for conf_file in local.github_runners_conf_files: yamldecode(file(conf_file))]...)
     github_runner_labels         = keys(local.github_runners_conf_combined)
     all_github_repos             = data.github_repositories.all_accessible.full_names
+    generated_repo_full_name     = github_repository.main.full_name
+    ofirydevops_ref              = "update2"
+    tf_actions                   = ["plan", "apply", "destroy", "validate"]
+
+
+
+
 
     all_tf_projects_except_root = [
       for tf_project in local.all_tf_projects : tf_project if tf_project != "root"
     ]
+
+    jenkins_dsl_config_json = jsonencode({
+      ami_confs                        = local.ami_confs
+      tf_projects                      = local.all_tf_projects_except_root
+      tf_actions                       = local.tf_actions
+      ofirydevops_ref                  = local.ofirydevops_ref
+      generated_gh_repo_url            = github_repository.main.http_clone_url
+      generated_gh_repo_name           = github_repository.main.name
+      generated_gh_repo_pr_jenkinsfile = local.jenkinsfiles_paths["example_pr.groovy"]["dst"]
+    })
 
     workflows_files_dir   = "${path.module}/workflows"
     workflows_files       = fileset(local.workflows_files_dir, "**")
@@ -19,13 +36,13 @@ locals {
       for file in local.workflows_files: file => {
         content = templatefile("${local.workflows_files_dir}/${file}", { 
           repositories         = jsonencode(local.all_github_repos)
-          default_repository   = github_repository.main.full_name
+          default_repository   = local.generated_repo_full_name
           default_py_env_file  = "python_env_runner/examples/envs/py310_full.yaml"
           default_enterypoint  = "python python_env_runner/examples/tests/test_all_imports.py"
           ami_confs            = jsonencode(local.ami_confs)
           tf_projects          = jsonencode(local.all_tf_projects_except_root)
           github_runner_labels = jsonencode(local.github_runner_labels)
-          ofirydevops_ref      = "update2"
+          ofirydevops_ref      = local.ofirydevops_ref
         })
         dst = ".github/workflows/${file}"
       }

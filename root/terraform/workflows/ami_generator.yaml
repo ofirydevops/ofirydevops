@@ -23,3 +23,4 @@ jobs:
           namespace: $${{ vars.NAMESPACE }}
           ofirydevops_ref: ${ofirydevops_ref}
           ami_conf: $${{ github.event.inputs.ami_conf }}
+

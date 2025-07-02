@@ -100,14 +100,9 @@ variable "ami_ids" {
   })
 }
 
-variable "example_github_repo_url" {
-  type = string
+variable "dsl_config" {
+  type = any
 }
 
-variable "example_github_repo_name" {
-  type = string
-}
 
-variable "example_github_jenkinsfile_path" {
-  type = string
-}
+

@@ -7,7 +7,9 @@ dnf update -y
 dnf upgrade -y
 dnf install -y nano jq unzip telnet amazon-cloudwatch-agent \
                openssl-devel bzip2-devel libffi-devel wget tar xz-devel \
-               gcc perl gcc-c++ git zlib-devel
+               gcc perl gcc-c++ git zlib-devel \
+               python3-certbot-dns-route53 certbot less
+
 
 # Add ec2-user to the Docker group
 usermod -a -G docker ec2-user
