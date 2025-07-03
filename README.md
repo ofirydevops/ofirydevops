@@ -75,18 +75,18 @@ I prepared an exmple file [personal_info_and_secrets.example.yaml](personal_info
 I'll go through each of the properties and explain exactly what they should contain.
 
 #### 1.Set the `profile` property
-`profile` must be the AWS profile that you defined in [step 2](#2-create-aws-admin-credentials). 
-(I named it `OFIRYDEVOPS` in the example).
+`profile` must be the AWS profile that you defined in [step 2](#2-create-aws-admin-credentials).  
+(I named it `OFIRYDEVOPS` in the example).  
 example: `OFIRYDEVOPS`
 
 #### 2.Set the `region` property
-`region` is the AWS region in which your infra will be built.
+`region` is the AWS region in which your infra will be built.  
 example: `eu-central-1`
 
 #### 3.Set the `namespace` property
 `namespace` - A name that will be used to name all the infra you will create,  
-in order to allow the creation of multiple environments on the same AWS/Github accounts.
-This string can be at most 7 characters, and must match this regex `^[a-z][a-z0-9]{0,6}$`.
+in order to allow the creation of multiple environments on the same AWS/Github accounts.  
+This string can be at most 7 characters, and must match this regex `^[a-z][a-z0-9]{0,6}$`.  
 example: `bengvir`
 
 #### 4. Set the `tf_backend_config` property
