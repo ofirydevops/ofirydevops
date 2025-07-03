@@ -297,7 +297,7 @@ docker compose -f deployment/docker/build-tf.yml build
 
 #### 3. Build the `root` project:
 ```
-docker compose -f deployment/docker/build-tf.yml --profile root up
+docker compose -f deployment/docker/build-tf.yml up build_root
 ```
 
 #### 4. Build all the AMIs using `ami_generator`:
@@ -351,7 +351,7 @@ In this repo, there will be an open PR, and after you merge this PR,
 you will see that you have github actions workflows available in this repo.  
 These workflows run automations with manual trigger (`workflow_dispatch`).
 
-### Github workflows that will be created: 
+### Github workflows that will be automatically created: 
 - `terraform_projects_mgmt`
   - enables you to build the Terraform projects using the github actions runners  
   (instead of running it from the local machine, or from Jenkins)
