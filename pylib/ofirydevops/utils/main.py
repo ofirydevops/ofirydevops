@@ -31,28 +31,54 @@ GLOBAL_CONF_SCEHMA = {
     }
 }
 
+GLOBAL_CONF_FILE_BASENAME      = "global_conf.yaml"
+PERSONAL_INFO_AND_SECRETS_FILE = "personal_info_and_secrets.yaml"
+
+
+def fall_back_to_info_and_secrets_file(global_conf_file):
+    
+    repo_root_dir                  = Path(__file__).parent.parent.parent.parent
+
+    personal_info_and_secrets_yaml = repo_root_dir / PERSONAL_INFO_AND_SECRETS_FILE
+
+    if not personal_info_and_secrets_yaml.exists():
+        print("personal_info_and_secrets_yaml not exist")
+        raise Exception(f"Both {personal_info_and_secrets_yaml.resolve()} and {global_conf_file.resolve()} does not exist.\n"
+                        f"One of them must exist.\n"
+                        f"If you are working from the local workstation, please define {personal_info_and_secrets_yaml.resolve()}")
+
+    personal_info_and_secrets = yaml_to_dict(personal_info_and_secrets_yaml)
+
+    global_conf = {
+        "profile" : personal_info_and_secrets["profile"],
+        "region" : personal_info_and_secrets["region"],
+        "namespace" : personal_info_and_secrets["namespace"]
+    }
+
+    with open(global_conf_file, 'w') as f:
+        yaml.dump(global_conf, f, default_flow_style=False)
+    return global_conf
+
+
 def load_global_conf():
     
     # Method 1: Try importlib.resources (works when packaged)
     try:
-        with resources.open_text('ofirydevops', 'global_conf.yaml') as f:
+        with resources.open_text('ofirydevops', GLOBAL_CONF_FILE_BASENAME) as f:
             return yaml.safe_load(f)
     except (ImportError, FileNotFoundError, ModuleNotFoundError):
         pass
     
-    # Method 2: Fallback to file path (works during local development)
-    try:
-        # Find the yaml file relative to this Python file
-        current_dir = Path(__file__).parent
-        yaml_file = current_dir.parent / 'global_conf.yaml'
-        
-        if yaml_file.exists():
-            with open(yaml_file, 'r') as f:
-                return yaml.safe_load(f)
-    except Exception:
-        pass
+    # # Method 2: Fallback to file path (works during local development)
+    current_dir      = Path(__file__).parent
+    global_conf_file = current_dir.parent / GLOBAL_CONF_FILE_BASENAME
     
-    raise RuntimeError("Could not find global_conf.yaml")
+    if global_conf_file.exists():
+        with open(global_conf_file, 'r') as f:
+            return yaml.safe_load(f)
+    else:
+        return fall_back_to_info_and_secrets_file(global_conf_file)
+
 
 
 def load_and_validate_global_conf():
@@ -63,10 +89,10 @@ def load_and_validate_global_conf():
     return global_conf
 
 
-
 def get_profile_and_region():
     global_conf = load_and_validate_global_conf()
     return global_conf["profile"], global_conf["region"]
+
 
 def get_namespace():
     global_conf = load_and_validate_global_conf()

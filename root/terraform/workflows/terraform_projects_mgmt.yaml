@@ -11,11 +11,7 @@ on:
       tf_action:
         description: Terraform action to run
         type: choice
-        options:
-          - apply
-          - destroy
-          - plan
-          - validate
+        options: ${tf_actions}
         required: true
 
 jobs:

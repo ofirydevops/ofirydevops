@@ -44,17 +44,10 @@ aws_access_key_id=<your_aws_access_key_id>
 aws_secret_access_key=<your_aws_secret_access_key>
 ```
 
-### 3. Adjust main conf file: `pylib/ofirydevops/global_conf.yaml`
-Edit the yaml `pylib/ofirydevops/global_conf.yaml`:
-This yaml have 3 properties:
-- `profile` - must be identical to the profile that you defined in step 2. (default value: `OFIRYDEVOPS`)
-- `region` - the AWS region in which your infra. (default value: `eu-central-1`)
-- `namespace` - A name that will be used to name all the infra you will create. (default value: `bengvir`)
-  - This string can be at most 7 characters, of lower case english letters only.
 
 
 
-### 4. Create the `personal_info_and_secrets.yaml` file
+### 3. Create the `personal_info_and_secrets.yaml` file
 
 The `personal_info_and_secrets.yaml` file is meant to be used only from your local workstation,  
 and is used only by the `root` project,  
@@ -68,7 +61,10 @@ Run this:
 touch personal_info_and_secrets.yaml
 ```
 
-The `personal_info_and_secrets.yaml` file have 3 root level properties:
+The `personal_info_and_secrets.yaml` file have 6 root level properties:
+- `profile` (required)
+- `region` (required)
+- `namespace` (required)
 - `tf_backend_config` (required)
 - `secrets` (required)
 - `github_repos` (optional)
@@ -78,7 +74,22 @@ I prepared an exmple file [personal_info_and_secrets.example.yaml](personal_info
 
 I'll go through each of the properties and explain exactly what they should contain.
 
-#### 1. Set the `tf_backend_config` property
+#### 1.Set the `profile` property
+`profile` must be the AWS profile that you defined in [step 2](#2-create-aws-admin-credentials). 
+(I named it `OFIRYDEVOPS` in the example).
+example: `OFIRYDEVOPS`
+
+#### 2.Set the `region` property
+`region` is the AWS region in which your infra will be built.
+example: `eu-central-1`
+
+#### 3.Set the `namespace` property
+`namespace` - A name that will be used to name all the infra you will create,  
+in order to allow the creation of multiple environments on the same AWS/Github accounts.
+This string can be at most 7 characters, and must match this regex `^[a-z][a-z0-9]{0,6}$`.
+example: `bengvir`
+
+#### 4. Set the `tf_backend_config` property
 1. Create an AWS S3 bucket (with versioning enabled) in your AWS account, on a region of your choosing.  
 this bucket will be used as the Terraform S3 backend for all the Terraform projects.
 
@@ -89,7 +100,7 @@ tf_backend_config:
   bucket: <your-tf-state-s3-bucket-name>
   region: <your-tf-state-s3-bucket-region>
   encrypt: <true|false>
-  profile: <aws-profile-with-access-to-the-s2-bucket>
+  profile: <aws-profile-with-access-to-bucket>
 ```
 example:
 ```
@@ -101,10 +112,10 @@ tf_backend_config:
 ```
 - The region must be the region of the s3 bucket,  
 - The profile can be any existing profile with access to this S3 bucket,  
-I just use the admin profile we deifined on step 2.
+I just use the admin profile we deifned on [step 2](#2-create-aws-admin-credentials).
 
 
-#### 2. Set the `secrets` property
+#### 5. Set the `secrets` property
 In `personal_info_and_secrets.yaml` root level, add a `secrets` property,  
 and under it define the folowing variables and their values:
 
@@ -268,126 +279,159 @@ then it is required for all the subprojects that depend on it.
 | `aws_github_runner_app_id`            | `github_actions`    |
 | `aws_github_runner_app_private_key`   | `github_actions`    |
 
-#### 3. Set the `github_repos` property (optional)
+#### 6. Set the `github_repos` property (optional)
 
 You have an option to define a list of github repos in your github account,  
-so that the `jenkins` and `github_actions` projects will support it by defining webhooks in them.
+so that the `jenkins` and `github_actions` projects will support it by defining webhooks in them.  
+These repos would be able to trigger Jenkins pipelines on `jenkins` server,  
+and Github workflows on the `github_actions` AWS infra.
 
 ### 6. Build the resources
 
-1. Make sure docker is up and running on your local machine.
+#### 1. Make sure docker is up and running on your local machine.
 
-2. Build the local deployment dockerfile:
+#### 2. Build the local deployment dockerfile:
 ```
 docker compose -f deployment/docker/build-tf.yml build
 ```
 
-3. Build the `root` project:
+#### 3. Build the `root` project:
 ```
 docker compose -f deployment/docker/build-tf.yml --profile root up
 ```
 
-4. Build all the AMIs using `ami_generator`:
+#### 4. Build all the AMIs using `ami_generator`:
 ```
 docker compose -f deployment/docker/build-ami.yml --profile all up 
 ```
 
-5. Generate SSL cert using `ssl_cert_generator`:
+#### 5. Generate SSL cert using `ssl_cert_generator`:
 ```
 docker compose -f deployment/docker/build-ssl.yml up generate_ssl_cert
 ```
 
-6. Build the `codeartifact` project:
+#### 6. Build the `codeartifact` project:
 ```
 docker compose -f deployment/docker/build-tf.yml up build_codeartifact
 ```
 
-7. Build the `batch_runner` project:
+#### 7. Build the `batch_runner` project:
 ```
 docker compose -f deployment/docker/build-tf.yml up build_batch_runner
 ```
 
-8. Build the `python_env_runner` project:
+#### 8. Build the `python_env_runner` project:
 ```
 docker compose -f deployment/docker/build-tf.yml up build_python_env_runner
 ```
 
-9. Build the `github_actions` project:
+#### 9. Build the `github_actions` project:
 ```
 docker compose -f deployment/docker/build-tf.yml up build_github_actions
 ```
 
-10. Build the `jenkins` project:
+#### 10. Build the `jenkins` project:
 ```
 docker compose -f deployment/docker/build-tf.yml up build_jenkins
 ```
 
 # How to use it ?
 
-After you deploy the `root`, then youll be able to see a new github repo in your github account.  
-The name of this repo will be the name of the namespace you set in the `pylib/ofirydevops/global_conf.yaml` file.  
-If you have not touched the `pylib/ofirydevops/global_conf.yaml` file then the repo name would be the  default (`bengvir`).  
+## `github_actions`
+
+After you build on your local workstation these projects:
+- [`root`](#3-build-the-root-project) 
+- [`ami_generator`](#4-build-all-the-amis-using-ami_generator)
+- [`github_actions`](#9-build-the-github_actions-project)
+
+then youll be able to see a new github repo in your github account.  
+The name of this repo will be the name of the [namespace](#3set-the-namespace-property).  
+
 In this repo, there will be an open PR, and after you merge this PR,  
 you will see that you have github actions workflows available in this repo.  
-You will not be able to run these workflows untill youll build the `github_actions` and its dependencies.  
-These workflows run these automations with manual trigger (`workflow_dispatch`):
-- `tf_projects_mgmt` - enables you to build the Terraform projects using the github actions runners  
-  (instead of running it from the local machine, or from Jenkins) 
+These workflows run automations with manual trigger (`workflow_dispatch`).
+
+### Github workflows that will be created: 
+- `terraform_projects_mgmt`
+  - enables you to build the Terraform projects using the github actions runners  
+  (instead of running it from the local machine, or from Jenkins)
+  - arguments:
+    - `Terraform project`
+    - `Terraform action to run`
+
+- `python_env_job_runner`
+  - A tool for building and running python environments on github_actions runners that you choose.
+  - Can run only after `python_env_runner` Terraform project is built
+  - Arguments:
+    - `Repository` - The repo with the code to run
+    - `Repository ref` - The git ref of that repo
+    - `Python environment file path` - A path to a file in the repo, that defines the python environment.  
+      Example: [py310_full.yaml](python_env_runner/examples/envs/py310_full.yaml).
+    - `Job timeout in minutes`
+    - `Run command`
+    - `Runner node`
+  
+- `python_env_remote_dev`
+  - Similer to `python_env_job_runner`, but just keeping the runner node up for a chosen amount of time  
+    to enable SSH connection of the developer to the runner node
+  - Can run only after `python_env_runner` Terraform project is built
+  - Arguments:
+    - `Repository` - The repo with the code to run
+    - `Repository ref` - The git ref of that repo
+    - `Python environment file path` - A path to a file in the repo, that defines the python environment.  
+      Example: [py310_full.yaml](python_env_runner/examples/envs/py310_full.yaml).
+    - `Runner node uptime in minutes`
+    - `Git user email (Optional)` - Will set the git user you will work with on the runner node.
+    - `Runner node`
+
 - `batch_runner_test`
   - A test for `batch_runner` tool 
   - It can run only after `batch_runner` and `codeartifact` Terraform projects are built
-- `python_env_job_runner`
-  - Arguments:
-    - Command to run - this will be the docker enterypoint
-    - Python env file path, currently choice param of paths from witin ofirydevops repo (need to change)
-    - Runner node
-  - Can run only after `python_env_runner` Terraform project is built
-- `python_env_remote_dev`
-  - Pythob env remote development 
-  - Arguments:
-    - Uptime in minutes - the amount of minutes that the worker would be up
-    - Python env file path, currently choice param of paths from witin ofirydevops repo (need to change)
-    - Runner node
-  - Can run only after `python_env_runner` Terraform project is built
+
+- `ami_generator`
+  - Generate AMIs (EC2 images)
+  - arguments:
+    - `AMI conf name`
+
 - `ssl_cert_generator`
-  - It is generating/re-generating the SSL certificate of the domain
+  - It is generating/re-generating the SSL certificate of the domain (if exist)
   - You have a limit for amount of times you can do this per domain per week, so dont run it too many times
   - Can run successfully only if a route53 domain was defined, and it is managed in the AWS account 
 
 
 # How to destroy it ?
 
-1. Destroy the `github_actions` project:
+#### 1. Destroy the `github_actions` project:
 ```
 docker compose -f deployment/docker/destroy-tf.yml up destroy_github_actions
 ```
 
-2. Destroy the `jenkins` project:
+#### 2. Destroy the `jenkins` project:
 ```
 docker compose -f deployment/docker/destroy-tf.yml up destroy_jenkins
 ```
 
-3. Destroy the `batch_runner` project:
+#### 3. Destroy the `batch_runner` project:
 ```
 docker compose -f deployment/docker/destroy-tf.yml up destroy_batch_runner
 ```
 
-4. Destroy the `python_env_runner` project:
+#### 4. Destroy the `python_env_runner` project:
 ```
 docker compose -f deployment/docker/destroy-tf.yml up destroy_python_env_runner
 ```
 
-5. Destroy the `codeartifact` project:
+#### 5. Destroy the `codeartifact` project:
 ```
 docker compose -f deployment/docker/destroy-tf.yml up destroy_codeartifact
 ```
 
-6. Destroy the `root` project:
+#### 6. Destroy the `root` project:
 ```
 docker compose -f deployment/docker/destroy-tf.yml up destroy_root
 ```
 
-7. Destroy all Terraform projects except `root`:
+#### 7. Destroy all Terraform projects except `root`:
 ```
 docker compose -f deployment/docker/destroy-tf.yml --profile all up
 ```

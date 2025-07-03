@@ -33,12 +33,7 @@ runs:
     - name: Setup Global Conf
       shell: bash
       run: |
-        cat > ${{ inputs.global_conf_file }} <<EOF
-        region: ${{ inputs.region }}
-        profile: ${{ inputs.profile }}
-        namespace: ${{ inputs.namespace }}
-        EOF
-        cat ${{ inputs.global_conf_file }}
+        ./.github/scripts/setup_global_conf.sh ${{ inputs.profile }} ${{ inputs.region }} ${{ inputs.namespace }}
 
     - name: Pipenv Install
       shell: bash

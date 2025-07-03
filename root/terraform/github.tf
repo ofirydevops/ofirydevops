@@ -12,10 +12,6 @@ locals {
     ofirydevops_ref              = "update2"
     tf_actions                   = ["plan", "apply", "destroy", "validate"]
 
-
-
-
-
     all_tf_projects_except_root = [
       for tf_project in local.all_tf_projects : tf_project if tf_project != "root"
     ]
@@ -43,6 +39,7 @@ locals {
           tf_projects          = jsonencode(local.all_tf_projects_except_root)
           github_runner_labels = jsonencode(local.github_runner_labels)
           ofirydevops_ref      = local.ofirydevops_ref
+          tf_actions           = jsonencode(local.tf_actions)
         })
         dst = ".github/workflows/${file}"
       }
@@ -143,4 +140,5 @@ data "github_user" "self" {
 data "github_repositories" "all_accessible" {
   query           = "user:${data.github_user.self.login} archived:false sort:updated-asc"
   include_repo_id = true
+  depends_on      = [ github_repository.main ]
 }

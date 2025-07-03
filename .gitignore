@@ -175,3 +175,4 @@ cython_debug/
 **/tmp/*
 personal_info_and_secrets.yaml
 **/personal_info_and_secrets.yaml
+pylib/ofirydevops/global_conf.yaml
