@@ -2,25 +2,25 @@
 
 import groovy.json.JsonSlurper
 
-def dslConfigJsonFile                = binding.variables['dsl_config_json_file']
-def dslConfig                        = new JsonSlurper().parse(new File(dslConfigJsonFile))
+def dslConfigJsonFile                  = binding.variables['dsl_config_json_file']
+def dslConfig                          = new JsonSlurper().parse(new File(dslConfigJsonFile))
+def nodes                              = dslConfig["nodes"]
+def tfProjects                         = dslConfig["tf_projects"]
+def tfActions                          = dslConfig["tf_actions"]
+def amiConfs                           = dslConfig["ami_confs"]
+def batchEnvs                          = dslConfig["batch_envs"]
+def ofirydevopsRef                     = dslConfig["ofirydevops_ref"]
+def generatedGithubRepoUrl             = dslConfig["generated_gh_repo_url"]
+def generatedGithubRepoName            = dslConfig["generated_gh_repo_name"]
+def generatedGithubRepoJenkinsfilePath = dslConfig["generated_gh_repo_pr_jenkinsfile"]
+def githubAppCredsId                   = dslConfig["github_jenkins_app_creds_id"]
 
-def nodes                            = dslConfig["nodes"]
-def tfProjects                       = dslConfig["tf_projects"]
-def amiConfs                         = dslConfig["ami_confs"]
-def tfActions                        = dslConfig["tf_actions"]
-def batchEnvs                        = dslConfig["batch_envs"]
-def ofirydevopsRef                   = dslConfig["ofirydevops_ref"]
-def exampleGithubRepoUrl             = dslConfig["generated_gh_repo_url"]
-def exampleGithubRepoName            = dslConfig["generated_gh_repo_name"]
-def exampleGithubRepoJenkinsfilePath = dslConfig["generated_gh_repo_pr_jenkinsfile"]
-def githubAppCredsId                 = dslConfig["github_jenkins_app_creds_id"]
 
-def timeoutInMinutesOptions          = ['10', '20', '40','80']
-def ofirydevopsGithubUrl             = "https://github.com/ofirydevops/ofirydevops.git"
-
-def pyEnvJobRunnerDefaultCommand     = 'python python_env_runner/hello_world.py'
-def jenkisnfiles                     = [
+def prReRunPhrasePrefix                = "rerun_"
+def timeoutInMinutesOptions            = ['10', '20', '40','80']
+def ofirydevopsGithubUrl               = "https://github.com/ofirydevops/ofirydevops.git"
+def pyEnvJobRunnerDefaultCommand       = 'python python_env_runner/hello_world.py'
+def jenkisnfiles                       = [
   ssl_cert_generator :      'jenkins/jenkinsfiles/ssl_cert_generator.groovy',
   batch_runner_test :       'jenkins/jenkinsfiles/batch_runner_test.groovy',
   python_env_job_runner :   'jenkins/jenkinsfiles/python_env_job_runner.groovy',
@@ -31,12 +31,11 @@ def jenkisnfiles                     = [
 ]
 
 
-def prReRunPhrasePrefix              = "rerun_"
 
 def folders = [
   examples: [
     id : "examples",
-    displayName : "${exampleGithubRepoName} Examples"
+    displayName : "${generatedGithubRepoName}"
   ],
   python_env_runner : [
     id : "python_env_runner",
@@ -54,10 +53,10 @@ def folders = [
 
 def prPipelineConfigs = [
   pr_test_example : [
-    name : "${folders["examples"]["id"]}/${exampleGithubRepoName}_pr_test_example",
-    jenkinsfile : exampleGithubRepoJenkinsfilePath,
-    prContext : "${exampleGithubRepoName}_pr_test_example",
-    githubRepoUrl: exampleGithubRepoUrl
+    name : "${folders["examples"]["id"]}/${generatedGithubRepoName}_pr_test_example",
+    jenkinsfile : generatedGithubRepoJenkinsfilePath,
+    prContext : "${generatedGithubRepoName}_pr_test_example",
+    githubRepoUrl: generatedGithubRepoUrl
   ]
 ]
 
@@ -194,7 +193,7 @@ pipelineJob("${folders["batch_runner"]["id"]}/batch_runner_test") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
     parameters {
-        stringParam('ref',               ofirydevopsRef,                'Branch / Tag / Commit')
+        stringParam('ref',               ofirydevopsRef,               'Branch / Tag / Commit')
         choiceParam('timeout_in_minutes', timeoutInMinutesOptions,     'Job timeout in minutes')
         stringParam('py_env_conf_file',  '',                           'Python environment file path')
         choiceParam('node',              nodes,                        'Runner node')
@@ -225,7 +224,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
     parameters {
-        stringParam('ref',               ofirydevopsRef,           'Branch / Tag / Commit')
+        stringParam('ref',               ofirydevopsRef,          'Branch / Tag / Commit')
         choiceParam('uptime_in_minutes', timeoutInMinutesOptions, 'Runner node uptime in minutes')
         stringParam('py_env_conf_file',  '',                      'Python environment file path')
         stringParam('git_user_email',    '',                      'Email of user with which you want to access git (Optional)')
@@ -257,7 +256,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
     parameters {
-        stringParam('ref',                  ofirydevopsRef,                                  'Branch / Tag / Commit')
+        stringParam('ref',                  ofirydevopsRef,                                 'Branch / Tag / Commit')
         stringParam('child_job_entrypoint', 'python -m python_env_runner.batch_test.child', 'Command to run')
         choiceParam('batch_env',            batchEnvs,                                      'Batch env to use')
 
@@ -298,8 +297,8 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
 pipelineJob("${folders["infra"]["id"]}/terraform_projects_mgmt") {
     parameters {
         stringParam('ref',        ofirydevopsRef, 'Branch / Tag / Commit')
-        choiceParam('tf_project', tfProjects,    'The Terraform project')
-        choiceParam('tf_action',  tfActions,     'Terraform action to run')
+        choiceParam('tf_project', tfProjects,     'The Terraform project')
+        choiceParam('tf_action',  tfActions,      'Terraform action to run')
     }
 
     properties {
