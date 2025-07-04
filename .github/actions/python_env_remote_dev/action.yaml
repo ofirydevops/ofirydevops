@@ -39,12 +39,12 @@ inputs:
     required: false
     type: string
     default: "@"
-  global_conf_file:
-    required: false
-    default: pylib/ofirydevops/global_conf.yaml
   workdir:
     required: false
     default: guest_repo
+  authorized_keys_file:
+    required: true
+    type: string
 
 
 
@@ -100,13 +100,14 @@ runs:
                                           --target remote_dev \
                                           --workdir ${{ inputs.workdir }} \
                                           --git-ref ${{ inputs.repository_ref }} \
-                                          --git-user-email ${{ inputs.git_user_email }}
+                                          --git-user-email ${{ inputs.git_user_email }} \
+                                          --authorized-keys-file ${{ inputs.workdir }}/${{ inputs.authorized_keys_file }}
 
     - name: Run Python Env
       shell: bash
       run: |
         TIMEOUT_SECONDS=$(( $UPTIME_IN_MINUTES * 60 ))
-        echo "For remote development run ssh command: ssh root@${{ steps.get_public_ip.outputs.public_ip }} -p 5000 -o StrictHostKeyChecking=no"
+        echo "For ssh connection run: ssh root@${{ steps.get_public_ip.outputs.public_ip }} -p 5000 -o StrictHostKeyChecking=no -i ~/.ssh/my-ec2-key"
         timeout $TIMEOUT_SECONDS \
         pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \
                                       --remote-dev \

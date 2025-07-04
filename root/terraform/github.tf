@@ -14,6 +14,7 @@ locals {
     tf_actions                     = ["plan", "apply", "destroy", "validate"]
     default_py_env_file            = "python_env_runner/examples/envs/py310_full.yaml"
     default_enterypoint            = "python python_env_runner/examples/tests/test_all_imports.py"
+    default_authorized_keys_file   = local.additional_files["authorized_keys"]["dst"]
     all_github_repos_name          = data.github_repositories.all_accessible.names
     all_github_repos_name_subtract = tolist(setsubtract(local.all_github_repos_name, [local.generated_repo_name]))
     all_github_repos_name_append   = concat([local.generated_repo_name], local.all_github_repos_name_subtract)
@@ -35,6 +36,7 @@ locals {
       py_env_conf_file_default         = local.default_py_env_file
       py_env_job_runner_default_cmd    = local.default_enterypoint
       github_account                   = split("/", local.generated_repo_full_name)[0]
+      default_authorized_keys_file     = local.default_authorized_keys_file
     })
 
     workflows_files_dir   = "${path.module}/workflows"
@@ -51,6 +53,7 @@ locals {
           github_runner_labels = jsonencode(local.github_runner_labels)
           ofirydevops_ref      = local.ofirydevops_ref
           tf_actions           = jsonencode(local.tf_actions)
+          default_authorized_keys_file = local.default_authorized_keys_file
         })
         dst = ".github/workflows/${file}"
       }
@@ -75,12 +78,17 @@ locals {
       }
     }
 
-
-
+    additional_files = {
+      authorized_keys = {
+        content = local.secrets["main_keypair_pub_key"]
+        dst     = "authorized_keys"
+      }
+    }
 
     all_files_paths = merge(local.workflows_files_paths, 
                             local.jenkinsfiles_paths, 
-                            local.python_env_files_paths)
+                            local.python_env_files_paths,
+                            local.additional_files)
 
 
 

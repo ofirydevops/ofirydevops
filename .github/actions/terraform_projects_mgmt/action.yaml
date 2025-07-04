@@ -19,9 +19,6 @@ inputs:
   tf_project:
     required: true
     type: string
-  global_conf_file:
-    required: false
-    default: pylib/ofirydevops/global_conf.yaml
 
 
 runs:
