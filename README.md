@@ -380,6 +380,7 @@ These workflows run automations with manual trigger (`workflow_dispatch`).
     - `Repository ref` - The git ref of that repo
     - `Python environment file path` - A path to a file in the repo, that defines the python environment.  
       Example: [py310_full.yaml](python_env_runner/examples/envs/py310_full.yaml).
+    - `Authorized keys file` - A file that contain public ssh keys, whose private keys will have access to the remote machine
     - `Runner node uptime in minutes`
     - `Git user email (Optional)` - Will set the git user you will work with on the runner node.
     - `Runner node`

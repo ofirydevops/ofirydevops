@@ -66,6 +66,14 @@ def get_args():
                              default  = "@",
                              required = False,
                              help     = "Git user email address (e.g., user@example.com). Defaults to '@'.")
+    args_parser.add_argument('--authorized-keys-file',
+                             nargs    = "?",
+                             dest     = "authorized_keys_file",
+                             default  = None,
+                             required = False,
+                             help     = "File containing public ssh keys that will have access to the remote machine.")
+
+    
 
 
     args = vars(args_parser.parse_args())
@@ -124,7 +132,7 @@ def create_conda_env_yaml(conda_env_data):
 
 def get_cache_image_tag(py_env_conf_file, cache_image_tag_prefix):
     arch               = get_system_arch()
-    py_env_conf        = yaml_to_dict(py_env_conf_file)["env_config"]
+    py_env_conf        = yaml_to_dict(py_env_conf_file)
     py_env_conf_string = json.dumps(py_env_conf, sort_keys=True)
     arch_config_string = json.dumps(cnfg.CONFIG_BY_ARCH[arch], sort_keys=True)
 
@@ -162,7 +170,7 @@ def build_py_env(args):
 
     py_env_data = get_and_validate_py_env_file(args["py_env_conf_file"])
 
-    conda_env_yaml_file = create_conda_env_yaml(py_env_data["env_config"]["conda_env_yaml"])
+    conda_env_yaml_file = create_conda_env_yaml(py_env_data["conda_env_yaml"])
 
     profile, region  = utils.get_profile_and_region()
     session          = utils.get_boto3_session()
@@ -193,7 +201,7 @@ def build_py_env(args):
 
     os.environ["CONDA_ENV_FILE_PATH"]       = conda_env_yaml_file
     os.environ["COMPOSE_BUILD_TARGET"]      = compose_build_target
-    os.environ["RUNTIME_IMAGE"]             = py_env_data["env_config"]["base_image"]
+    os.environ["RUNTIME_IMAGE"]             = py_env_data["base_image"]
     os.environ["CONDA_ENV_CACHE_IMAGE_TAG"] = cache_image_tag
     os.environ["AWS_REGITRY_REF_REPO"]      = ecr_repo_address
     os.environ["AWS_CLI_DOWNLOAD_LINK"]     = cnfg.CONFIG_BY_ARCH[arch]["AWS_CLI_DOWNLOAD_LINK"]
@@ -202,10 +210,13 @@ def build_py_env(args):
     os.environ["GIT_USER_EMAIL"]            = args.get("git_user_email", "@")
 
     if compose_build_target == "remote_dev":
-        if "remote" not in py_env_data.keys():
-            raise Exception(f'remote config does not exist in {args["py_env_conf_file"]}')
+        authorized_keys_file = args["authorized_keys_file"]
+        if authorized_keys_file == None:
+            raise Exception(f'Authorized keys file was not defined for this remote development session.')
         else:
-            os.environ["AUTHORIZED_KEYS_FILE"] = os.path.join(workdir, py_env_data["remote"]["authorized_keys_file"])
+            if not os.path.exists(authorized_keys_file):
+                raise Exception(f'{authorized_keys_file} file does not exist (abspath is: {os.path.abspath(authorized_keys_file)}).')
+            os.environ["AUTHORIZED_KEYS_FILE"] = authorized_keys_file
 
     if cache_exists:
         service = "build_and_read_cache"

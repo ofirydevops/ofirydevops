@@ -2,11 +2,12 @@
 node(env.node) {
     ansiColor('xterm') {
 
-        def maxUptime      = 80
-        def uptimeInMinuts = env.uptime_in_minutes.toInteger()
-        def dockerImageTag = env.BUILD_TAG
-        def pyEnvConfFile  = env.py_env_conf_file
-        def gitUserEmail   = env.git_user_email
+        def maxUptime          = 80
+        def uptimeInMinuts     = env.uptime_in_minutes.toInteger()
+        def dockerImageTag     = env.BUILD_TAG
+        def pyEnvConfFile      = env.py_env_conf_file
+        def authorizedKeysFile = env.authorized_keys_file
+        def gitUserEmail       = env.git_user_email
     
         def workdir        = "guest_repo"
         def repository     = env.repository
@@ -48,17 +49,18 @@ node(env.node) {
 
         stage("Build Python Env Docker") {
             sh "pipenv run python3.10 -u -m python_env_runner.scripts.build_py_env \
-                                            --py-env-conf-file ${pyEnvConfFile} \
+                                            --py-env-conf-file ${workdir}/${pyEnvConfFile} \
                                             --docker-image-tag ${dockerImageTag} \
                                             --target remote_dev \
                                             --git-ref ${repositoryRef} \
                                             --git-user-email ${gitUserEmail} \
-                                            --workdir ${workdir}"
+                                            --workdir ${workdir} \
+                                            --authorized-keys-file ${workdir}/${authorizedKeysFile}"
         }
 
         stage("Run Python Env") {
 
-            echo "For remote development run ssh command: ssh to root@${IP} on port 5000 -o StrictHostKeyChecking=no"
+            echo "For ssh connection run: ssh root@${IP} -p 5000 -o StrictHostKeyChecking=no -i ~/.ssh/my-ec2-key"
 
             timeout(time: uptimeInMinuts, unit: 'MINUTES') {
                 sh "pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \

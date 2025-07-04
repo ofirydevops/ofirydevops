@@ -1,39 +1,27 @@
-env_config:
+base_image:
+  type: string
+  required: true
+  regex: '^([a-z0-9.-]+(/[a-z0-9._-]+)*)(:[a-zA-Z0-9._-]+)?(@sha256:[a-f0-9]{64})?$'
+
+conda_env_yaml:
   type: dict
   required: true
   schema:
-    base_image:
-      type: string
-      required: true
-      regex: '^([a-z0-9.-]+(/[a-z0-9._-]+)*)(:[a-zA-Z0-9._-]+)?(@sha256:[a-f0-9]{64})?$'
-
-    conda_env_yaml:
-      type: dict
+    channels:
+      type: list
       required: true
       schema:
-        channels:
-          type: list
-          required: true
-          schema:
-            type: string
-        dependencies:
-          type: list
-          required: true
-          schema:
-            anyof:
-              - type: string
-              - type: dict
-                schema:
-                  pip:
-                    type: list
-                    required: true
-                    schema:
-                      type: string
-
-remote:
-  type: dict
-  required: false
-  schema:
-    authorized_keys_file:
-      type: string
+        type: string
+    dependencies:
+      type: list
       required: true
+      schema:
+        anyof:
+          - type: string
+          - type: dict
+            schema:
+              pip:
+                type: list
+                required: true
+                schema:
+                  type: string

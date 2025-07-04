@@ -16,6 +16,7 @@ def generatedGithubRepoJenkinsfile = dslConfig["generated_gh_repo_pr_jenkinsfile
 def githubAppCredsId               = dslConfig["github_jenkins_app_creds_id"]
 def pyEnvConfFileDefault           = dslConfig["py_env_conf_file_default"]
 def pyEnvJobRunnerDefaultCmd       = dslConfig["py_env_job_runner_default_cmd"]
+def defaultAuthorizedKeysFile      = dslConfig["default_authorized_keys_file"]
 def repositories                   = dslConfig["repositories"]
 
 def prReRunPhrasePrefix            = "rerun_"
@@ -200,8 +201,8 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
         choiceParam('credentials_id',     [githubAppCredsId])
         stringParam('py_env_conf_file',   pyEnvConfFileDefault,     'Python environment file path')
         stringParam('command',            pyEnvJobRunnerDefaultCmd, 'Run command')
-        choiceParam('timeout_in_minutes', timeoutInMinutesOptions, 'Job timeout in minutes')
-        choiceParam('node',               nodes,                   'Runner node')
+        choiceParam('timeout_in_minutes', timeoutInMinutesOptions,  'Job timeout in minutes')
+        choiceParam('node',               nodes,                    'Runner node')
     }
 
     properties {
@@ -228,14 +229,15 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
     parameters {
-        stringParam('ofirydevops_ref',    ofirydevopsRef,         'Branch / Tag / Commit')
-        choiceParam('repository',         repositories,           'Repository to work with')
-        stringParam('repository_ref',     'main',                 'Branch / Tag / Commit')
-        choiceParam('credentials_id',     [githubAppCredsId])
-        stringParam('py_env_conf_file',   pyEnvConfFileDefault,   'Python environment file path')
-        stringParam('git_user_email',    '',                      'Email of user with which you want to access git (Optional)')
-        choiceParam('uptime_in_minutes', timeoutInMinutesOptions, 'Runner node uptime in minutes')
-        choiceParam('node',              nodes,                   'Runner node')
+        stringParam('ofirydevops_ref',      ofirydevopsRef,            'Branch / Tag / Commit')
+        choiceParam('repository',           repositories,              'Repository to work with')
+        stringParam('repository_ref',       'main',                    'Branch / Tag / Commit')
+        choiceParam('credentials_id',       [githubAppCredsId])
+        stringParam('py_env_conf_file',     pyEnvConfFileDefault,      'Python environment file path')
+        stringParam('authorized_keys_file', defaultAuthorizedKeysFile, 'File containing the public ssh that will have access to the remote machine')
+        stringParam('git_user_email',       '',                        'Email of user with which you want to access git (Optional)')
+        choiceParam('uptime_in_minutes',    timeoutInMinutesOptions,   'Runner node uptime in minutes')
+        choiceParam('node',                 nodes,                     'Runner node')
     }
 
     properties {

@@ -19,6 +19,11 @@ on:
         type: string
         required: true
         default: ${default_py_env_file}
+      authorized_keys_file:
+        description: Authorized keys file
+        type: string
+        required: true
+        default: ${default_authorized_keys_file}
       uptime_in_minutes:
         description: Runner node uptime in minutes
         type: choice
@@ -58,5 +63,6 @@ jobs:
         docker_image_tag: $${{ env.DOCKER_IMAGE_TAG }}
         uptime_in_minutes: $${{ github.event.inputs.uptime_in_minutes }}
         git_user_email: $${{ github.event.inputs.git_user_email }}
+        authorized_keys_file: $${{ github.event.inputs.authorized_keys_file }}
         max_uptime: $${{ env.MAX_UPTIME }}
 
