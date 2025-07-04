@@ -6,15 +6,21 @@ data "http" "current_workstation_pub_ip" {
 locals {
 
     github_jenkins_app_creds_id = "jenkins_gh_app"
-    
+
+    jcasc_config = yamldecode(data.local_file.rendered_jcasc_config.content)
+
     node_labels  = [ 
       for template in local.jcasc_config["jenkins"]["clouds"][0]["amazonEC2"]["templates"]: template["labelString"]
     ]
-    jcasc_config = yamldecode(data.local_file.rendered_jcasc_config.content)
-    dsl_config   = merge(var.dsl_config, { 
-      nodes                       = local.node_labels
-      github_jenkins_app_creds_id = local.github_jenkins_app_creds_id
-      })
+    
+    dsl_config   = merge(
+      var.dsl_config, 
+      { 
+        nodes                       = local.node_labels
+        github_jenkins_app_creds_id = local.github_jenkins_app_creds_id
+      }
+    )
+
     jenkins_casc_config_dir = "/var/jenkins_home/jcasc"
     jenkins_dsl_config_file = "/var/jenkins_home/dsl_config.json"
     ecr_repos = {
@@ -28,8 +34,6 @@ locals {
     ecr_repo_name        = split("/", local.jenkins_ecr_repo_url)[1]
     image_url            = "${local.ecr_registry}/${local.ecr_repo_name}:${local.image_tag}"
     current_workstation_pub_ip = trimspace(data.http.current_workstation_pub_ip.response_body)
-
-
 
     arch            = "arm64"
     device_to_mount = "/dev/xvdh"

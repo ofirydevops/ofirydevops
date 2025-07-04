@@ -37,6 +37,10 @@ locals {
             key = "/${local.namespace}/jenkins_dsl_config_json"
             value = local.jenkins_dsl_config_json
         }
+        "all_github_repositories" : {
+            key = "/${local.namespace}/all_github_repositories"
+            value = jsonencode(local.all_github_repos_name_append)
+        }
         
     }
 }

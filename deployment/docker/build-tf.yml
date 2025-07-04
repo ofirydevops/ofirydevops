@@ -18,7 +18,6 @@ services:
                                                 --tf-action apply \
                                                 --tf-project root"
     profiles:
-    - root
     - all
 
   build_jenkins:
@@ -45,7 +44,8 @@ services:
                                                 --tf-action apply \
                                                 --tf-project codeartifact"
     profiles:
-    - codeartifact
+    - jenkins
+    - github_actions
     - all
 
   build_python_env_runner:
@@ -54,7 +54,8 @@ services:
                                                 --tf-action apply \
                                                 --tf-project python_env_runner"
     profiles:
-    - python_env_runner
+    - jenkins
+    - github_actions
     - all
 
   build_batch_runner:
@@ -63,5 +64,6 @@ services:
                                                 --tf-action apply \
                                                 --tf-project batch_runner"
     profiles:
-    - batch_runner
+    - jenkins
+    - github_actions
     - all

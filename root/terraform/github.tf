@@ -1,20 +1,28 @@
 
 locals {
 
-    all_tf_projects              = keys(yamldecode(file("${path.module}/../../deployment/tf_projects.yaml")))
-    ami_confs                    = keys(yamldecode(file("${path.module}/../../ami_generator/main_conf.yaml")))    
-    gh_runners_conf_dir          = "${path.module}/../../github_actions/terraform/runner_configs"
-    github_runners_conf_files    = [ for file in fileset(local.gh_runners_conf_dir, "*"): "${local.gh_runners_conf_dir}/${file}" ]
-    github_runners_conf_combined = merge([for conf_file in local.github_runners_conf_files: yamldecode(file(conf_file))]...)
-    github_runner_labels         = keys(local.github_runners_conf_combined)
-    all_github_repos             = data.github_repositories.all_accessible.full_names
-    generated_repo_full_name     = github_repository.main.full_name
-    ofirydevops_ref              = "update2"
-    tf_actions                   = ["plan", "apply", "destroy", "validate"]
+    all_tf_projects                = keys(yamldecode(file("${path.module}/../../deployment/tf_projects.yaml")))
+    ami_confs                      = keys(yamldecode(file("${path.module}/../../ami_generator/main_conf.yaml")))    
+    gh_runners_conf_dir            = "${path.module}/../../github_actions/terraform/runner_configs"
+    github_runners_conf_files      = [ for file in fileset(local.gh_runners_conf_dir, "*"): "${local.gh_runners_conf_dir}/${file}" ]
+    github_runners_conf_combined   = merge([for conf_file in local.github_runners_conf_files: yamldecode(file(conf_file))]...)
+    github_runner_labels           = keys(local.github_runners_conf_combined)
+    all_github_repos_full_name     = data.github_repositories.all_accessible.full_names
+    generated_repo_full_name       = github_repository.main.full_name
+    generated_repo_name            = github_repository.main.name
+    ofirydevops_ref                = "update2"
+    tf_actions                     = ["plan", "apply", "destroy", "validate"]
+    default_py_env_file            = "python_env_runner/examples/envs/py310_full.yaml"
+    default_enterypoint            = "python python_env_runner/examples/tests/test_all_imports.py"
+    all_github_repos_name          = data.github_repositories.all_accessible.names
+    all_github_repos_name_subtract = tolist(setsubtract(local.all_github_repos_name, [local.generated_repo_name]))
+    all_github_repos_name_append   = concat([local.generated_repo_name], local.all_github_repos_name_subtract)
+
 
     all_tf_projects_except_root = [
       for tf_project in local.all_tf_projects : tf_project if tf_project != "root"
     ]
+
 
     jenkins_dsl_config_json = jsonencode({
       ami_confs                        = local.ami_confs
@@ -24,6 +32,9 @@ locals {
       generated_gh_repo_url            = github_repository.main.http_clone_url
       generated_gh_repo_name           = github_repository.main.name
       generated_gh_repo_pr_jenkinsfile = local.jenkinsfiles_paths["example_pr.groovy"]["dst"]
+      py_env_conf_file_default         = local.default_py_env_file
+      py_env_job_runner_default_cmd    = local.default_enterypoint
+      github_account                   = split("/", local.generated_repo_full_name)[0]
     })
 
     workflows_files_dir   = "${path.module}/workflows"
@@ -31,10 +42,10 @@ locals {
     workflows_files_paths = { 
       for file in local.workflows_files: file => {
         content = templatefile("${local.workflows_files_dir}/${file}", { 
-          repositories         = jsonencode(local.all_github_repos)
+          repositories         = jsonencode(local.all_github_repos_full_name)
           default_repository   = local.generated_repo_full_name
-          default_py_env_file  = "python_env_runner/examples/envs/py310_full.yaml"
-          default_enterypoint  = "python python_env_runner/examples/tests/test_all_imports.py"
+          default_py_env_file  = local.default_py_env_file
+          default_enterypoint  = local.default_enterypoint
           ami_confs            = jsonencode(local.ami_confs)
           tf_projects          = jsonencode(local.all_tf_projects_except_root)
           github_runner_labels = jsonencode(local.github_runner_labels)
@@ -137,8 +148,9 @@ resource "github_actions_secret" "secrets" {
 data "github_user" "self" {
   username = ""
 }
+
 data "github_repositories" "all_accessible" {
-  query           = "user:${data.github_user.self.login} archived:false sort:updated-asc"
+  query           = "user:${data.github_user.self.login} archived:false sort:updated-desc"
   include_repo_id = true
   depends_on      = [ github_repository.main ]
 }
