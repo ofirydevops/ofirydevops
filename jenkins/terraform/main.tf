@@ -23,20 +23,25 @@ locals {
       local.param_values
     )
 
-    global_conf = yamldecode(file("${path.module}/../../pylib/ofirydevops/global_conf.yaml"))
-    region      = local.global_conf["region"]
-    profile     = local.global_conf["profile"]
-    namespace   = local.global_conf["namespace"]
-    vpc_id      = data.aws_vpc.default.id
-    subnet_id   = data.aws_subnet.jenkins_subnet.id
-    domain      = local.ssm["/${local.namespace}/secrets/domain"]
-    jenkins_subnet_id = data.aws_subnet.jenkins_subnet.id
-    batch_envs        = jsondecode(try(local.ssm["/${local.namespace}/batch_envs"], "[null]"))
-
+    global_conf             = yamldecode(file("${path.module}/../../pylib/ofirydevops/global_conf.yaml"))
+    region                  = local.global_conf["region"]
+    profile                 = local.global_conf["profile"]
+    namespace               = local.global_conf["namespace"]
+    vpc_id                  = data.aws_vpc.default.id
+    subnet_id               = data.aws_subnet.jenkins_subnet.id
+    domain                  = local.ssm["/${local.namespace}/secrets/domain"]
+    jenkins_subnet_id       = data.aws_subnet.jenkins_subnet.id
+    batch_envs              = jsondecode(try(local.ssm["/${local.namespace}/batch_envs"], "[null]"))
+    all_github_repositories = jsondecode(local.ssm["/${local.namespace}/all_github_repositories"])
+    initial_dsl_config      = jsondecode(local.ssm["/${local.namespace}/jenkins_dsl_config_json"])
+    github_account          = local.initial_dsl_config["github_account"]
 
     dsl_config = merge(
-      jsondecode(local.ssm["/${local.namespace}/jenkins_dsl_config_json"]),
-      { "batch_envs" = local.batch_envs }
+          local.initial_dsl_config,
+          { 
+            batch_envs   = local.batch_envs
+            repositories = [ for repo in local.all_github_repositories: "${local.github_account}/${repo}" ]
+          }
       )
 }
 

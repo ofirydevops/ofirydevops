@@ -2,25 +2,26 @@
 
 import groovy.json.JsonSlurper
 
-def dslConfigJsonFile                  = binding.variables['dsl_config_json_file']
-def dslConfig                          = new JsonSlurper().parse(new File(dslConfigJsonFile))
-def nodes                              = dslConfig["nodes"]
-def tfProjects                         = dslConfig["tf_projects"]
-def tfActions                          = dslConfig["tf_actions"]
-def amiConfs                           = dslConfig["ami_confs"]
-def batchEnvs                          = dslConfig["batch_envs"]
-def ofirydevopsRef                     = dslConfig["ofirydevops_ref"]
-def generatedGithubRepoUrl             = dslConfig["generated_gh_repo_url"]
-def generatedGithubRepoName            = dslConfig["generated_gh_repo_name"]
-def generatedGithubRepoJenkinsfilePath = dslConfig["generated_gh_repo_pr_jenkinsfile"]
-def githubAppCredsId                   = dslConfig["github_jenkins_app_creds_id"]
+def dslConfigJsonFile              = binding.variables['dsl_config_json_file']
+def dslConfig                      = new JsonSlurper().parse(new File(dslConfigJsonFile))
+def nodes                          = dslConfig["nodes"]
+def tfProjects                     = dslConfig["tf_projects"]
+def tfActions                      = dslConfig["tf_actions"]
+def amiConfs                       = dslConfig["ami_confs"]
+def batchEnvs                      = dslConfig["batch_envs"]
+def ofirydevopsRef                 = dslConfig["ofirydevops_ref"]
+def generatedGithubRepoUrl         = dslConfig["generated_gh_repo_url"]
+def generatedGithubRepoName        = dslConfig["generated_gh_repo_name"]
+def generatedGithubRepoJenkinsfile = dslConfig["generated_gh_repo_pr_jenkinsfile"]
+def githubAppCredsId               = dslConfig["github_jenkins_app_creds_id"]
+def pyEnvConfFileDefault           = dslConfig["py_env_conf_file_default"]
+def pyEnvJobRunnerDefaultCmd       = dslConfig["py_env_job_runner_default_cmd"]
+def repositories                   = dslConfig["repositories"]
 
-
-def prReRunPhrasePrefix                = "rerun_"
-def timeoutInMinutesOptions            = ['10', '20', '40','80']
-def ofirydevopsGithubUrl               = "https://github.com/ofirydevops/ofirydevops.git"
-def pyEnvJobRunnerDefaultCommand       = 'python python_env_runner/hello_world.py'
-def jenkisnfiles                       = [
+def prReRunPhrasePrefix            = "rerun_"
+def timeoutInMinutesOptions        = ['10', '20', '40','80']
+def ofirydevopsGithubUrl           = "https://github.com/ofirydevops/ofirydevops.git"
+def jenkisnfiles                   = [
   ssl_cert_generator :      'jenkins/jenkinsfiles/ssl_cert_generator.groovy',
   batch_runner_test :       'jenkins/jenkinsfiles/batch_runner_test.groovy',
   python_env_job_runner :   'jenkins/jenkinsfiles/python_env_job_runner.groovy',
@@ -54,7 +55,7 @@ def folders = [
 def prPipelineConfigs = [
   pr_test_example : [
     name : "${folders["examples"]["id"]}/${generatedGithubRepoName}_pr_test_example",
-    jenkinsfile : generatedGithubRepoJenkinsfilePath,
+    jenkinsfile : generatedGithubRepoJenkinsfile,
     prContext : "${generatedGithubRepoName}_pr_test_example",
     githubRepoUrl: generatedGithubRepoUrl
   ]
@@ -193,11 +194,14 @@ pipelineJob("${folders["batch_runner"]["id"]}/batch_runner_test") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
     parameters {
-        stringParam('ref',               ofirydevopsRef,               'Branch / Tag / Commit')
-        choiceParam('timeout_in_minutes', timeoutInMinutesOptions,     'Job timeout in minutes')
-        stringParam('py_env_conf_file',  '',                           'Python environment file path')
-        choiceParam('node',              nodes,                        'Runner node')
-        stringParam('command',           pyEnvJobRunnerDefaultCommand, 'Run command')
+        stringParam('ofirydevops_ref',    ofirydevopsRef,           'Branch / Tag / Commit')
+        choiceParam('repository',         repositories,             'Repository to work with')
+        stringParam('repository_ref',     'main',                   'Branch / Tag / Commit')
+        choiceParam('credentials_id',     [githubAppCredsId])
+        stringParam('py_env_conf_file',   pyEnvConfFileDefault,     'Python environment file path')
+        stringParam('command',            pyEnvJobRunnerDefaultCmd, 'Run command')
+        choiceParam('timeout_in_minutes', timeoutInMinutesOptions, 'Job timeout in minutes')
+        choiceParam('node',               nodes,                   'Runner node')
     }
 
     properties {
@@ -214,7 +218,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
                  remote {
                    url(ofirydevopsGithubUrl)
                  }
-                 branch('${ref}')
+                 branch('${ofirydevops_ref}')
                }
              }
             scriptPath(jenkisnfiles["python_env_job_runner"])
@@ -224,10 +228,13 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
     parameters {
-        stringParam('ref',               ofirydevopsRef,          'Branch / Tag / Commit')
-        choiceParam('uptime_in_minutes', timeoutInMinutesOptions, 'Runner node uptime in minutes')
-        stringParam('py_env_conf_file',  '',                      'Python environment file path')
+        stringParam('ofirydevops_ref',    ofirydevopsRef,         'Branch / Tag / Commit')
+        choiceParam('repository',         repositories,           'Repository to work with')
+        stringParam('repository_ref',     'main',                 'Branch / Tag / Commit')
+        choiceParam('credentials_id',     [githubAppCredsId])
+        stringParam('py_env_conf_file',   pyEnvConfFileDefault,   'Python environment file path')
         stringParam('git_user_email',    '',                      'Email of user with which you want to access git (Optional)')
+        choiceParam('uptime_in_minutes', timeoutInMinutesOptions, 'Runner node uptime in minutes')
         choiceParam('node',              nodes,                   'Runner node')
     }
 
@@ -245,7 +252,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
                  remote {
                    url(ofirydevopsGithubUrl)
                  }
-                 branch('${ref}')
+                 branch('${ofirydevops_ref}')
                }
              }
             scriptPath(jenkisnfiles["python_env_remote_dev"])

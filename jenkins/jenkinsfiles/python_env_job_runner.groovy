@@ -5,19 +5,37 @@ node(env.node) {
         def maxTimeoutInMinutes = 80
         def timeoutInMinutes    = env.timeout_in_minutes.toInteger()
         def dockerImageTag      = env.BUILD_TAG
-        def condaEnv            = env.conda_env
         def command             = env.command
         def pyEnvConfFile       = env.py_env_conf_file
+
+        def workdir             = "guest_repo"
+        def repository          = env.repository
+        def repositoryRef       = env.repository_ref
+        def credentialsId       = env.credentials_id
 
         if (timeoutInMinutes > maxTimeoutInMinutes) {
             timeoutInMinutes = maxTimeoutInMinutes
         }
 
-        stage('Checkout') {
+        stage('Checkout ofirydevops') {
             checkout scm
             def utils = load 'jenkins/local_lib/utils.groovy'
             utils.setupGlobalConf(this)
         }
+
+        stage('Checkout repo') {
+            dir(workdir) {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: repositoryRef]],
+                    userRemoteConfigs: [[
+                        url: "https://github.com/${repository}.git",
+                        credentialsId: credentialsId
+                    ]]
+                ])
+            }        
+        }
+
 
         stage('Install python libs') {
             sh "pipenv install"
@@ -25,9 +43,10 @@ node(env.node) {
 
         stage("Build Conda Env Docker") {
             sh "pipenv run python3.10 -u -m python_env_runner.scripts.build_py_env \
-                                            --py-env-conf-file ${pyEnvConfFile} \
+                                            --py-env-conf-file ${workdir}/${pyEnvConfFile} \
                                             --docker-image-tag ${dockerImageTag} \
-                                            --target runtime"
+                                            --target runtime \
+                                            --workdir ${workdir}"
         }
 
         stage("Run Conda Env") {
