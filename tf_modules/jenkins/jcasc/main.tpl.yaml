@@ -45,7 +45,7 @@ jenkins:
       - key: NAMESPACE
         value: ${namespace}
   numExecutors: 0
-  systemMessage: "Configured with JCasC!"
+  systemMessage: "This is The Jenkins Server of ${namespace} Namespace"
   securityRealm:
     local:
       allowsSignup: false

@@ -7,17 +7,19 @@ locals {
     github_runners_conf_files      = [ for file in fileset(local.gh_runners_conf_dir, "*"): "${local.gh_runners_conf_dir}/${file}" ]
     github_runners_conf_combined   = merge([for conf_file in local.github_runners_conf_files: yamldecode(file(conf_file))]...)
     github_runner_labels           = keys(local.github_runners_conf_combined)
-    all_github_repos_full_name     = data.github_repositories.all_accessible.full_names
-    generated_repo_full_name       = github_repository.main.full_name
-    generated_repo_name            = github_repository.main.name
+    
     ofirydevops_ref                = "update2"
     tf_actions                     = ["plan", "apply", "destroy", "validate"]
     default_py_env_file            = "python_env_runner/examples/envs/py310_full.yaml"
     default_enterypoint            = "python python_env_runner/examples/tests/test_all_imports.py"
     default_authorized_keys_file   = local.additional_files["authorized_keys"]["dst"]
-    all_github_repos_name          = data.github_repositories.all_accessible.names
-    all_github_repos_name_subtract = tolist(setsubtract(local.all_github_repos_name, [local.generated_repo_name]))
-    all_github_repos_name_append   = concat([local.generated_repo_name], local.all_github_repos_name_subtract)
+
+
+    generated_repo_full_name       = github_repository.main.full_name
+    github_org                     = can(local.secrets.github_org) ? local.secrets.github_org : null
+    all_github_repos_full_name     = local.github_org != null ? data.github_repositories.org_repos[0].full_names : data.github_repositories.user_repos[0].full_names
+    all_github_repos_subtract      = tolist(setsubtract(local.all_github_repos_full_name, [local.generated_repo_full_name]))
+    all_github_repos_final         = concat([local.generated_repo_full_name], local.all_github_repos_subtract)
 
 
     all_tf_projects_except_root = [
@@ -44,7 +46,7 @@ locals {
     workflows_files_paths = { 
       for file in local.workflows_files: file => {
         content = templatefile("${local.workflows_files_dir}/${file}", { 
-          repositories         = jsonencode(local.all_github_repos_full_name)
+          repositories         = jsonencode(local.all_github_repos_final)
           default_repository   = local.generated_repo_full_name
           default_py_env_file  = local.default_py_env_file
           default_enterypoint  = local.default_enterypoint
@@ -157,8 +159,13 @@ data "github_user" "self" {
   username = ""
 }
 
-data "github_repositories" "all_accessible" {
-  query           = "user:${data.github_user.self.login} archived:false sort:updated-desc"
-  include_repo_id = true
-  depends_on      = [ github_repository.main ]
+
+data "github_repositories" "org_repos" {
+  count = local.github_org != null ? 1 : 0
+  query = local.github_org != null ? "org:${local.github_org} archived:false sort:updated-desc" : ""
+}
+
+data "github_repositories" "user_repos" {
+  count = local.github_org == null ? 1 : 0
+  query = "user:${data.github_user.self.login} archived:false sort:updated-desc"
 }
