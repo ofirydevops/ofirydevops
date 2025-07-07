@@ -18,8 +18,7 @@ BATCH_ENV_ARCH_MAPPING = {
     "x86_64"  : "main_amd64"
 }
 
-async def main():
-
+def build_docker_and_get_image_url():
     test_dc_service = "main"
 
     subprocess.run(
@@ -38,6 +37,12 @@ async def main():
     docker_compose_config = json.loads(result.stdout)
 
     image_url = docker_compose_config["services"][test_dc_service]["image"]
+    return image_url
+
+
+async def main():
+
+    image_url = build_docker_and_get_image_url()
 
     child_jobs_input = {
         "job_1" : str(SCRIPT_DIR / "job_input_example.json"),
