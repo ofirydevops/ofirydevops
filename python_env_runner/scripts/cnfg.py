@@ -1,7 +1,7 @@
 DEFAULT_DOCKER_REGISTRY          = "local"
 DEFAULT_DOCKER_IMAGE_REPO        = "python-env"
 DEFAULT_DOCKER_IMAGE_TAG         = "local"
-DOCKER_COMPOSE_FILE              = "python_env_runner/docker/docker-compose-v2.yml"
+DOCKER_COMPOSE_FILE              = "python_env_runner/docker/docker-compose.yml"
 ECR_CACHE_REPO_SSM_PARAM         = "/{}/ecr_repo/python_env_docker_cache"
 CACHE_IMAGE_TAG_PREFIX_SSM_PARAM = "/{}/python_env_runner/cache_image_prefix"
 DOCKERFILE_PATH                  = "python_env_runner/docker/Dockerfile"

@@ -40,7 +40,7 @@ locals {
           local.initial_dsl_config,
           { 
             batch_envs   = local.batch_envs
-            repositories = [ for repo in local.all_github_repositories: "${local.github_account}/${repo}" ]
+            repositories = local.all_github_repositories
           }
       )
 }
@@ -55,7 +55,7 @@ module "jenkins" {
     subnet_id                                = local.subnet_id
     ebs_volume_id                            = local.jenkins_volume_id
     domain                                   = local.domain
-    subdomain                                = "jenkins"
+    subdomain                                = "${local.namespace}jenkins"
     keypair_name                             = local.ssm["/${local.namespace}/main_keypair_name"]
     github_repos                             = jsondecode(local.ssm["/${local.namespace}/github_repos"])
     dsl_config                               = local.dsl_config

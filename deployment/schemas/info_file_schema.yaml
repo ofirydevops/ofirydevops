@@ -56,6 +56,9 @@ secrets:
       type: string
       required: true
       regex: '^ghp_[a-zA-Z0-9]{36}$'
+    github_org:
+      type: string
+      required: false
     jenkins_admin_username:
       type: string
       required: false
