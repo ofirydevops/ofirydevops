@@ -5,12 +5,12 @@ data "aws_vpc" "default" {
 # Get all route tables with internet gateway routes (public route tables)
 data "aws_route_tables" "public" {
   vpc_id = data.aws_vpc.default.id
-  
+
   filter {
     name   = "route.destination-cidr-block"
     values = ["0.0.0.0/0"]
   }
-  
+
   filter {
     name   = "route.gateway-id"
     values = ["igw-*"]
@@ -26,7 +26,7 @@ data "aws_route_table" "public_details" {
 # Extract subnet IDs from route table associations
 locals {
   vpc_id = data.aws_vpc.default.id
-  
+
   # Get subnet IDs from public route table associations
   public_subnet_ids = toset(flatten([
     for rt in data.aws_route_table.public_details : [
