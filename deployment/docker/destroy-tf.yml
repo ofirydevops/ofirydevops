@@ -19,7 +19,6 @@ services:
                                                 --tf-project root"
     profiles:
     - root
-    - all
 
   destroy_jenkins:
     <<: *main_conf

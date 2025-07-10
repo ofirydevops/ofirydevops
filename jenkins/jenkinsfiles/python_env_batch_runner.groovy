@@ -10,6 +10,8 @@ node('basic_arm64_100GB') {
 
         stage('Checkout') {
             checkout scm
+            def utils = load 'jenkins/local_lib/utils.groovy'
+            utils.setupGlobalConf(this)
             unstash 'py_env_conf.yaml'
             unstash 'child_jobs_input.yaml'
             sh "ls -l" 
