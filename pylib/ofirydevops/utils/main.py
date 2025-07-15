@@ -35,28 +35,32 @@ GLOBAL_CONF_FILE_BASENAME      = "global_conf.yaml"
 PERSONAL_INFO_AND_SECRETS_FILE = "personal_info_and_secrets.yaml"
 
 
-def fall_back_to_info_and_secrets_file(global_conf_file):
-    
-    repo_root_dir                  = Path(__file__).parent.parent.parent.parent
+def extract_global_conf_on_local_machine():
 
+    current_dir                    = Path(__file__).parent
+    repo_root_dir                  = Path(__file__).parent.parent.parent.parent
+    global_conf_file               = current_dir.parent / GLOBAL_CONF_FILE_BASENAME 
     personal_info_and_secrets_yaml = repo_root_dir / PERSONAL_INFO_AND_SECRETS_FILE
 
-    if not personal_info_and_secrets_yaml.exists():
+    if not personal_info_and_secrets_yaml.exists() and not global_conf_file.exists():
         print("personal_info_and_secrets_yaml not exist")
         raise Exception(f"Both {personal_info_and_secrets_yaml.resolve()} and {global_conf_file.resolve()} does not exist.\n"
                         f"One of them must exist.\n"
                         f"If you are working from the local workstation, please define {personal_info_and_secrets_yaml.resolve()}")
+    
+    if personal_info_and_secrets_yaml.exists():
+        personal_info_and_secrets = yaml_to_dict(personal_info_and_secrets_yaml)
+        global_conf = {
+            "profile" : personal_info_and_secrets["profile"],
+            "region" : personal_info_and_secrets["region"],
+            "namespace" : personal_info_and_secrets["namespace"]
+        }
 
-    personal_info_and_secrets = yaml_to_dict(personal_info_and_secrets_yaml)
+        with open(global_conf_file, 'w') as f:
+            yaml.dump(global_conf, f, default_flow_style=False)
+    else:
+        global_conf = yaml_to_dict(global_conf_file)
 
-    global_conf = {
-        "profile" : personal_info_and_secrets["profile"],
-        "region" : personal_info_and_secrets["region"],
-        "namespace" : personal_info_and_secrets["namespace"]
-    }
-
-    with open(global_conf_file, 'w') as f:
-        yaml.dump(global_conf, f, default_flow_style=False)
     return global_conf
 
 
@@ -69,15 +73,10 @@ def load_global_conf():
     except (ImportError, FileNotFoundError, ModuleNotFoundError):
         pass
     
-    # # Method 2: Fallback to file path (works during local development)
-    current_dir      = Path(__file__).parent
-    global_conf_file = current_dir.parent / GLOBAL_CONF_FILE_BASENAME
-    
-    if global_conf_file.exists():
-        with open(global_conf_file, 'r') as f:
-            return yaml.safe_load(f)
-    else:
-        return fall_back_to_info_and_secrets_file(global_conf_file)
+    # Method 2: Fallback to file path (works during local development)
+
+    global_conf = extract_global_conf_on_local_machine()
+    return global_conf
 
 
 

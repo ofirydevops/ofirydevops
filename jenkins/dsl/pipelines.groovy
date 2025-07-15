@@ -89,36 +89,46 @@ prPipelineConfigs.each { _, config ->
           }
           githubProjectUrl(config["githubRepoUrl"])
       }
-      triggers {
 
-          githubPullRequests {
-              spec('')
-              triggerMode('HEAVY_HOOKS')
-              events {
-                  Open()
-                  commentPattern {
-                      comment(rerunPhrase)
+      properties {
+          githubProjectUrl(config["githubRepoUrl"])
+          durabilityHint {
+              hint('PERFORMANCE_OPTIMIZED')
+          }
+          pipelineTriggers {
+              triggers {
+                  githubPullRequests {
+                      spec('')
+                      triggerMode('HEAVY_HOOKS')
+                      events {
+                          Open()
+                          commentPattern {
+                              comment(rerunPhrase)
+                          }
+                          commitChanged()
+                          description {
+                              skipMsg('[skip ci]')
+                          }
+                          cancelQueued(true)
+                          preStatus(false)
+                          abortRunning(true)
+                      }
+                      repoProviders {
+                          githubPlugin {
+                              cacheConnection(false)
+                              manageHooks(false)
+                              repoPermission('ADMIN')
+                          }
+                      }
+                      branchRestriction {
+                          targetBranch('main')
+                      }
+                      skipFirstRun(false)
+
+                      }
                   }
-                  commitChanged()
-                  description {
-                      skipMsg('[skip ci]')
-                  }
-                  cancelQueued(true)
-                  preStatus(true) 
-                  abortRunning(true)
-              }
-              repoProviders {
-                  githubPlugin {
-                      cacheConnection(false)
-                      manageHooks(false)
-                      repoPermission('ADMIN')
-                  }
-              }
-              branchRestriction {
-                  targetBranch('main')
               }
           }
-      }
     
       definition {
           cpsScm {
@@ -129,14 +139,21 @@ prPipelineConfigs.each { _, config ->
                           credentials(githubAppCredsId)
                           refspec('+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
                       }
+
+                      extensions {
+                          gitSCMStatusChecksExtension {
+                              skip(true)
+                          }
+                      }
                       branch('origin-pull/pull/${GITHUB_PR_NUMBER}/merge')
                   }
               }
               scriptPath(config["jenkinsfile"])
         }
       }
-    }
+  }
 }
+
 
 
 pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {

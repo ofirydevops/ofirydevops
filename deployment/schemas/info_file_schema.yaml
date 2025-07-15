@@ -45,9 +45,6 @@ secrets:
     domain:
       type: string
       required: false
-    domain_route53_hosted_zone_id:
-      type: string
-      required: false
     email:
       type: string
       required: false
