@@ -124,10 +124,6 @@ and under it define the folowing variables and their values:
   - It must be a route53 domain that is managed on the AWS account we are working on
   - The jenkins server address will be: `https://jenkins.<your-domain>`
 
-- `domain_route53_hosted_zone_id`
-  - Required for `jenkins`
-  - The ID of the route53 Hosted Zone in which the `domain` above is managed
-
 - `email`
   - Required for `root`
   - It is used for:
@@ -267,7 +263,6 @@ then it is required for all the subprojects that depend on it.
 | Variable                              | Required For            |
 |---------------------------------------|-------------------------|
 | `domain`                              | `ssl_cert_generator`     |
-| `domain_route53_hosted_zone_id`       | `ssl_cert_generator`     |
 | `email`                               | `ssl_cert_generator`     |
 | `main_keypair_privete_key`            | `root`                  |
 | `main_keypair_pub_key`                | `root`                  |

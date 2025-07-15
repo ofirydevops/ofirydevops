@@ -88,10 +88,6 @@ variable "subdomain" {
   type = string
 }
 
-variable "domain_route53_hosted_zone_id" {
-  type = string
-}
-
 variable "ami_ids" {
   type = object({
     basic_amd64_100GB = string

@@ -10,10 +10,9 @@ def setGhPrStatus(status) {
 
 setGhPrStatus("PENDING")
 
-node('basic_arm64_100GB') {
+node('basic_arm64_100GB') {    
     ansiColor('xterm') {
         try {
-           
             main()
             setGhPrStatus("SUCCESS")
         } catch (Exception e) {

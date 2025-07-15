@@ -1,31 +1,31 @@
 variable "name" {
-    type = string
+  type = string
 }
 
 variable "domain" {
-    type = string
+  type = string
 }
 
 variable "hosted_zone_id" {
-    type = string
+  type = string
 }
 
 variable "vpc_id" {
-    type = string
+  type = string
 }
 
 variable "github_repos" {
-    type = list(string)
+  type = list(string)
 }
 
 variable "jenkins_server_subnet_id" {
-    type = string
+  type = string
 }
 
 variable "jenkins_server_private_ip" {
-    type = string
+  type = string
 }
 
 variable "jenkins_server_sg_id" {
-    type = string
+  type = string
 }
