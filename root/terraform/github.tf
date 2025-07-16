@@ -8,7 +8,7 @@ locals {
   github_runners_conf_combined = merge([for conf_file in local.github_runners_conf_files : yamldecode(file(conf_file))]...)
   github_runner_labels         = keys(local.github_runners_conf_combined)
 
-  ofirydevops_ref              = "update2"
+  ofirydevops_ref              = "v0.0.1"
   tf_actions                   = ["plan", "apply", "destroy", "validate"]
   default_py_env_file          = "python_env_runner/examples/envs/py310_full.yaml"
   default_enterypoint          = "python python_env_runner/examples/tests/test_all_imports.py"

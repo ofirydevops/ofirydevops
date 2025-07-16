@@ -38,6 +38,7 @@ locals {
   image_url                     = "${local.ecr_registry}/${local.ecr_repo_name}:${local.image_tag}"
   current_workstation_pub_ip    = trimspace(data.http.current_workstation_pub_ip.response_body)
   domain_route53_hosted_zone_id = data.aws_route53_zone.domain.zone_id
+  ofirydevops_ref               = var.dsl_config["ofirydevops_ref"]
 
   arch            = "arm64"
   device_to_mount = "/dev/xvdh"
@@ -465,6 +466,7 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     jenkins_gh_app_priv_key          = indent(20, "\n${var.github_jenkins_app_private_key_converted}")
     github_jenkins_app_creds_id      = local.github_jenkins_app_creds_id
     dsl_config_json_file             = local.jenkins_dsl_config_file
+    ofirydevops_ref                  = local.ofirydevops_ref
   })
 }
 
