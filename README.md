@@ -165,6 +165,11 @@ and under it define the folowing variables and their values:
       - `admin:repo_hook`
       - `delete_repo` (Be carefull with this. If you do not have intention to destroy the `root` project, you can manage without `delete_repo`)
 
+- `github_org`
+  - Optional
+  - If specified, the repos of the org will be specified in the dropdowns of jenkins pipelines and github workflows in the generated repo.
+  - If not specified, the repos in the dropdowns will be the authenticated user personal repos (the user who created the `github_token`). 
+
 - `jenkins_admin_username`
   - Required for `jenkins`
   - This will be used to be the admin username of the Jenkins server
@@ -267,6 +272,7 @@ then it is required for all the subprojects that depend on it.
 | `main_keypair_privete_key`            | `root`                  |
 | `main_keypair_pub_key`                | `root`                  |
 | `github_token`                        | `root`                  |
+| `github_org`                          | Not required            |
 | `jenkins_admin_username`              | `jenkins`               |
 | `jenkins_admin_password`              | `jenkins`               |
 | `github_jenkins_app_id`               | `jenkins`               |
