@@ -227,8 +227,8 @@ module "runners" {
     Name = local.prefix
   }
   github_app = {
-    key_base64     = base64encode(var.aws_github_runner_app_private_key)
-    id             = var.aws_github_runner_app_id
+    key_base64     = base64encode(var.gh_actions_runner_github_app_private_key)
+    id             = var.gh_actions_runner_github_app_id
     webhook_secret = local.aws_github_runner_webhook_secret
   }
   eventbridge = {

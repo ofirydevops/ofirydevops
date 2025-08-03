@@ -36,7 +36,7 @@ cd ofirydevops
 1. On your AWS account,
 Create a IAM user named `admin` and attach it IAM policy named `AdministratorAccess`
 2. Create Access Keys for this user.
-3. On your local macine, create aws credentials file `~/.aws/credential`, 
+3. On your local macine, create aws credentials file `~/.aws/credentials`,  
 and define an AWS profile with a name of your choosing, with the credentials you created in step 2 (Ill use `OFIRYDEVOPS` for the example):
 ```
 [OFIRYDEVOPS]
@@ -179,7 +179,7 @@ and under it define the folowing variables and their values:
   - Required for `jenkins`
   - This will be used to be the admin password of the Jenkins server
 
-- `github_jenkins_app_id`
+- `jenkins_github_app_id`
   - Required for `jenkins`
   - This github app will be used to give the Jenkins server access to your github repos.
   - Create it by following these steps:
@@ -199,12 +199,12 @@ and under it define the folowing variables and their values:
       - `Pull requests`: `Read-only`
     - Leave all the rest of the default configuration
     - Click on `Create GitHub App`
-    - Define `github_jenkins_app_id` value to be the `App ID` number.
+    - Define `jenkins_github_app_id` value to be the `App ID` number.
 
-- `github_jenkins_app_private_key_converted`
+- `jenkins_github_app_private_key_converted`
   - Required for `jenkins`
   - This key will be used to give the Jenkins server access to your github repos.
-  - Create a private key for the github app you created above (as was instructed under `github_jenkins_app_id`):
+  - Create a private key for the github app you created above (as was instructed under `jenkins_github_app_id`):
     - Go to your github account
     - Click on your user picture in the upper right corner of the github site
     - Click on `Settings`
@@ -220,9 +220,9 @@ and under it define the folowing variables and their values:
     - Install this github app:
       - Click on `Install App`
       - Click on `Install`
-    - Define the value of `github_jenkins_app_private_key_converted` to be the content of `converted-private-key.pem`
+    - Define the value of `jenkins_github_app_private_key_converted` to be the content of `converted-private-key.pem`
 
-- `aws_github_runner_app_id`
+- `gh_actions_runner_github_app_id`
   - Required for `github_actions`
   - This github app will be used to give the `github_actions` runners access to your github repos.
   - Create it by following these steps:
@@ -241,24 +241,24 @@ and under it define the folowing variables and their values:
       - `Administration`: `Read and write`
     - Leave all the rest of the default configuration
     - Click on `Create GitHub App`
-    - Define `aws_github_runner_app_id` value to be the `App ID` number.
+    - Define `gh_actions_runner_github_app_id` value to be the `App ID` number.
 
 
-- `aws_github_runner_app_private_key`
+- `gh_actions_runner_github_app_private_key`
   - Required for `github_actions`
   - This github app will be used to give the `github_actions` runners access to your github repos.
-  - Create a private key for the github app you created above (as was instructed under `aws_github_runner_app_id`):
+  - Create a private key for the github app you created above (as was instructed under `gh_actions_runner_github_app_id`):
     - Go to your github account
     - Click on your user picture in the upper right corner of the github site
     - Click on `Settings`
     - Click on `Developer Settings`
     - Click on `GitHub Apps`
-    - Click on the github app you created in the instructions of `aws_github_runner_app_id`
+    - Click on the github app you created in the instructions of `gh_actions_runner_github_app_id`
     - Scroll down and click on `Generate a private key` - and then the key file will be download to your machine
     - Install this github app:
       - Click on `Install App`
       - Click on `Install`
-    - Define the value of `aws_github_runner_app_private_key` to be the content of private key file that was downloaded to your machine.
+    - Define the value of `gh_actions_runner_github_app_private_key` to be the content of private key file that was downloaded to your machine.
 
 
 For summary, here is a table that tells you what secrets are required for the subprojects.  
@@ -272,13 +272,13 @@ then it is required for all the subprojects that depend on it.
 | `main_keypair_privete_key`            | `root`                  |
 | `main_keypair_pub_key`                | `root`                  |
 | `github_token`                        | `root`                  |
-| `github_org`                          | Not required            |
+| `github_org`                          | Optional            |
 | `jenkins_admin_username`              | `jenkins`               |
 | `jenkins_admin_password`              | `jenkins`               |
-| `github_jenkins_app_id`               | `jenkins`               |
-| `github_jenkins_app_private_key_converted` | `jenkins`        |
-| `aws_github_runner_app_id`            | `github_actions`    |
-| `aws_github_runner_app_private_key`   | `github_actions`    |
+| `jenkins_github_app_id`               | `jenkins`               |
+| `jenkins_github_app_private_key_converted` | `jenkins`        |
+| `gh_actions_runner_github_app_id`            | `github_actions`    |
+| `gh_actions_runner_github_app_private_key`   | `github_actions`    |
 
 #### 6. Set the `github_repos` property (optional)
 

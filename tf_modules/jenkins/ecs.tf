@@ -462,8 +462,8 @@ resource "local_sensitive_file" "rendered_jcasc_config" {
     namespace                        = var.namespace
     ecr_registry                     = local.ecr_registry
     github_token                     = var.github_token
-    github_jenkins_app_id            = var.github_jenkins_app_id
-    jenkins_gh_app_priv_key          = indent(20, "\n${var.github_jenkins_app_private_key_converted}")
+    jenkins_github_app_id            = var.jenkins_github_app_id
+    jenkins_gh_app_priv_key          = indent(20, "\n${var.jenkins_github_app_private_key_converted}")
     github_jenkins_app_creds_id      = local.github_jenkins_app_creds_id
     dsl_config_json_file             = local.jenkins_dsl_config_file
     ofirydevops_ref                  = local.ofirydevops_ref

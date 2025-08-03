@@ -22,12 +22,12 @@ variable "keypair_name" {
   type = string
 }
 
-variable "aws_github_runner_app_private_key" {
+variable "gh_actions_runner_github_app_private_key" {
   type      = string
   sensitive = true
 }
 
-variable "aws_github_runner_app_id" {
+variable "gh_actions_runner_github_app_id" {
   type      = string
   sensitive = true
 }

@@ -100,7 +100,7 @@ credentials:
               scope: GLOBAL
               secret: ${github_token}
           - gitHubApp:
-              appID: ${github_jenkins_app_id}
+              appID: ${jenkins_github_app_id}
               description: GitHub app
               id: ${github_jenkins_app_creds_id}
               privateKey: |${jenkins_gh_app_priv_key}
