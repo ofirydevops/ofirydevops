@@ -61,8 +61,8 @@ module "jenkins" {
   dsl_config                               = local.dsl_config
   local_workstation_pub_ip                 = local.ssm["/${local.namespace}/local_workstation_pub_ip"]
   keypair_privete_key                      = local.ssm["/${local.namespace}/secrets/main_keypair_privete_key"]
-  github_jenkins_app_private_key_converted = local.ssm["/${local.namespace}/secrets/github_jenkins_app_private_key_converted"]
-  github_jenkins_app_id                    = local.ssm["/${local.namespace}/secrets/github_jenkins_app_id"]
+  jenkins_github_app_private_key_converted = local.ssm["/${local.namespace}/secrets/jenkins_github_app_private_key_converted"]
+  jenkins_github_app_id                    = local.ssm["/${local.namespace}/secrets/jenkins_github_app_id"]
   github_token                             = local.ssm["/${local.namespace}/secrets/github_token"]
   jenkins_admin_username                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_username"]
   jenkins_admin_password                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_password"]

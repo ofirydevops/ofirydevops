@@ -35,12 +35,12 @@ variable "keypair_privete_key" {
   sensitive = true
 }
 
-variable "github_jenkins_app_private_key_converted" {
+variable "jenkins_github_app_private_key_converted" {
   type      = string
   sensitive = true
 }
 
-variable "github_jenkins_app_id" {
+variable "jenkins_github_app_id" {
   type      = string
   sensitive = true
 }

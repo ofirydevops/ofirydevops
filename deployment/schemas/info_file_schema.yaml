@@ -70,19 +70,19 @@ secrets:
       type: string
       required: true
       regex: '^ssh-(rsa|ed25519|ecdsa) [A-Za-z0-9+/]+=* .*$'
-    github_jenkins_app_id:
+    jenkins_github_app_id:
       type: integer
       required: false
       min: 1
-    github_jenkins_app_private_key_converted:
+    jenkins_github_app_private_key_converted:
       type: string
       required: false
       regex: '^-----BEGIN PRIVATE KEY-----[\s\S]*-----END PRIVATE KEY-----$'
-    aws_github_runner_app_id:
+    gh_actions_runner_github_app_id:
       type: integer
       required: false
       min: 1
-    aws_github_runner_app_private_key:
+    gh_actions_runner_github_app_private_key:
       type: string
       required: false
       regex: '^-----BEGIN RSA PRIVATE KEY-----[\s\S]*-----END RSA PRIVATE KEY-----$'
