@@ -10,6 +10,7 @@ def tfActions                      = dslConfig["tf_actions"]
 def amiConfs                       = dslConfig["ami_confs"]
 def batchEnvs                      = dslConfig["batch_envs"]
 def ofirydevopsRef                 = dslConfig["ofirydevops_ref"]
+def ofirydevopsRepo                = dslConfig["ofirydevops_repo"]
 def generatedGithubRepoUrl         = dslConfig["generated_gh_repo_url"]
 def generatedGithubRepoName        = dslConfig["generated_gh_repo_name"]
 def generatedGithubRepoJenkinsfile = dslConfig["generated_gh_repo_pr_jenkinsfile"]
@@ -21,7 +22,7 @@ def repositories                   = dslConfig["repositories"]
 
 def prReRunPhrasePrefix            = "rerun_"
 def timeoutInMinutesOptions        = ['10', '20', '40','80']
-def ofirydevopsGithubUrl           = "https://github.com/ofirydevops/ofirydevops.git"
+def ofirydevopsGithubUrl           = "https://github.com/${ofirydevopsRepo}.git"
 def jenkisnfiles                   = [
   ssl_cert_generator :      'jenkins/jenkinsfiles/ssl_cert_generator.groovy',
   batch_runner_test :       'jenkins/jenkinsfiles/batch_runner_test.groovy',
@@ -158,7 +159,7 @@ prPipelineConfigs.each { _, config ->
 
 pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
     parameters {
-        stringParam('ref', ofirydevopsRef, 'Branch / Tag / Commit')
+        stringParam('ofirydevops_ref', ofirydevopsRef, 'Branch / Tag / Commit')
     }
 
     properties {
@@ -173,8 +174,9 @@ pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
                git {
                  remote {
                    url(ofirydevopsGithubUrl)
+                   credentials(githubAppCredsId)
                  }
-                 branch('${ref}')
+                 branch('${ofirydevops_ref}')
                }
              }
             scriptPath(jenkisnfiles["ssl_cert_generator"])
@@ -185,7 +187,7 @@ pipelineJob("${folders["infra"]["id"]}/ssl_cert_generator") {
 
 pipelineJob("${folders["batch_runner"]["id"]}/batch_runner_test") {
     parameters {
-        stringParam('ref', ofirydevopsRef, 'Branch / Tag / Commit')
+        stringParam('ofirydevops_ref', ofirydevopsRef, 'Branch / Tag / Commit')
     }
 
     properties {
@@ -200,8 +202,9 @@ pipelineJob("${folders["batch_runner"]["id"]}/batch_runner_test") {
                git {
                  remote {
                    url(ofirydevopsGithubUrl)
+                   credentials(githubAppCredsId)
                  }
-                 branch('${ref}')
+                 branch('${ofirydevops_ref}')
                }
              }
             scriptPath(jenkisnfiles["batch_runner_test"])
@@ -235,6 +238,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_job_runner") {
                git {
                  remote {
                    url(ofirydevopsGithubUrl)
+                   credentials(githubAppCredsId)
                  }
                  branch('${ofirydevops_ref}')
                }
@@ -270,6 +274,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
                git {
                  remote {
                    url(ofirydevopsGithubUrl)
+                   credentials(githubAppCredsId)
                  }
                  branch('${ofirydevops_ref}')
                }
@@ -282,7 +287,7 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_remote_dev") {
 
 pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
     parameters {
-        stringParam('ref',                  ofirydevopsRef,                                 'Branch / Tag / Commit')
+        stringParam('ofirydevops_ref',      ofirydevopsRef,                                 'Branch / Tag / Commit')
         stringParam('child_job_entrypoint', 'python -m python_env_runner.batch_test.child', 'Command to run')
         choiceParam('batch_env',            batchEnvs,                                      'Batch env to use')
 
@@ -310,8 +315,9 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
                git {
                  remote {
                    url(ofirydevopsGithubUrl)
+                   credentials(githubAppCredsId)
                  }
-                 branch('${ref}')
+                 branch('${ofirydevops_ref}')
                }
              }
             scriptPath(jenkisnfiles["python_env_batch_runner"])
@@ -322,9 +328,9 @@ pipelineJob("${folders["python_env_runner"]["id"]}/python_env_batch_runner") {
 
 pipelineJob("${folders["infra"]["id"]}/terraform_projects_mgmt") {
     parameters {
-        stringParam('ref',        ofirydevopsRef, 'Branch / Tag / Commit')
-        choiceParam('tf_project', tfProjects,     'The Terraform project')
-        choiceParam('tf_action',  tfActions,      'Terraform action to run')
+        stringParam('ofirydevops_ref', ofirydevopsRef, 'Branch / Tag / Commit')
+        choiceParam('tf_project',      tfProjects,     'The Terraform project')
+        choiceParam('tf_action',       tfActions,      'Terraform action to run')
     }
 
     properties {
@@ -340,8 +346,9 @@ pipelineJob("${folders["infra"]["id"]}/terraform_projects_mgmt") {
                git {
                  remote {
                    url(ofirydevopsGithubUrl)
+                   credentials(githubAppCredsId)
                  }
-                 branch('${ref}')
+                 branch('${ofirydevops_ref}')
                }
              }
             scriptPath(jenkisnfiles["terraform_projects_mgmt"])
@@ -352,8 +359,8 @@ pipelineJob("${folders["infra"]["id"]}/terraform_projects_mgmt") {
 
 pipelineJob("${folders["infra"]["id"]}/ami_generator") {
     parameters {
-        stringParam('ref',      ofirydevopsRef, 'Branch / Tag / Commit')
-        choiceParam('ami_conf', amiConfs,     'The AMI conf to generate')
+        stringParam('ofirydevops_ref', ofirydevopsRef, 'Branch / Tag / Commit')
+        choiceParam('ami_conf',        amiConfs,       'The AMI conf to generate')
     }
 
     properties {
@@ -369,8 +376,9 @@ pipelineJob("${folders["infra"]["id"]}/ami_generator") {
                git {
                  remote {
                    url(ofirydevopsGithubUrl)
+                   credentials(githubAppCredsId)
                  }
-                 branch('${ref}')
+                 branch('${ofirydevops_ref}')
                }
              }
             scriptPath(jenkisnfiles["ami_generator"])

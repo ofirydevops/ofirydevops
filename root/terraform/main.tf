@@ -12,6 +12,9 @@ locals {
   profile                   = local.global_conf["profile"]
   namespace                 = local.global_conf["namespace"]
   local_workstation_pub_ip  = trimspace(data.http.my_public_ip.response_body)
+  ofirydevops_repo          = try(local.personal_info_and_secrets["ofirydevops"]["repo_full_name"], "ofirydevops/ofirydevops")
+  ofirydevops_ref           = try(local.personal_info_and_secrets["ofirydevops"]["ref"], "main")
+
 
   ssm_params = {
 
@@ -39,7 +42,6 @@ locals {
       key   = "/${local.namespace}/all_github_repositories"
       value = jsonencode(local.all_github_repos_final)
     }
-
   }
 }
 

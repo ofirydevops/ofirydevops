@@ -68,6 +68,7 @@ The `personal_info_and_secrets.yaml` file have 6 root level properties:
 - `tf_backend_config` (required)
 - `secrets` (required)
 - `github_repos` (optional)
+- `ofirydevops` (optional)
 
 I prepared an exmple file [personal_info_and_secrets.example.yaml](personal_info_and_secrets.example.yaml) 
 (with fake values) to demostrate to you how this file should typically look eventually. 
@@ -286,6 +287,32 @@ You have an option to define a list of github repos in your github account,
 so that the `jenkins` and `github_actions` projects will support it by defining webhooks in them.  
 These repos would be able to trigger Jenkins pipelines on `jenkins` server,  
 and Github workflows on the `github_actions` AWS infra.
+
+#### 7. Set the `ofirydevops` property (optional)
+
+The Jenkins pipelines and Github workflows that will be created by the `github_actions` and `jenkins` projects,  
+will by default run code from `ofirydevops/ofirydevops` on git ref `main`.  
+You have an option to configure it to be another repo and ref,  
+for example - lets say you want to make changes in `ofirydevops/ofirydevops`,  
+in order to do that,  
+you can fork it to your own Github account, and make it private (or leave it public),  
+and then,  
+you can add your changes to this repo,  
+and make the created Jenkins pipelines and Github workflows  
+point to your own `ofirydevops` by defining the `ofirydevops` property, in this format:
+```
+ofirydevops:
+  repo_full_name: <your-github-account-name>/<the-ofirydevops-fork-repo-name>
+  ref: <default-git-ref-to-use>
+```
+
+For example:  
+```
+ofirydevops:
+  repo_full_name: ofiryy/ofirydevops
+  ref: main
+```
+
 
 ### 6. Build the resources
 

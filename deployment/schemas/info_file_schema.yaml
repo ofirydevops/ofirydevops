@@ -13,6 +13,18 @@ namespace:
   required: true
   regex: '^[a-z][a-z0-9]{0,6}$'
 
+ofirydevops:
+  type: dict
+  required: false
+  schema:
+    repo_full_name:
+      type: string
+      required: false
+      regex: '^[a-zA-Z0-9-]+\/[a-zA-Z0-9._-]+$'
+    ref:
+      type: string
+      required: false
+      regex: '^[a-zA-Z0-9._/-]+$'
 
 tf_backend_config:
   type: dict

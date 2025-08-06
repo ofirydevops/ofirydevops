@@ -8,7 +8,6 @@ locals {
   github_runners_conf_combined = merge([for conf_file in local.github_runners_conf_files : yamldecode(file(conf_file))]...)
   github_runner_labels         = keys(local.github_runners_conf_combined)
 
-  ofirydevops_ref              = "v0.0.1"
   tf_actions                   = ["plan", "apply", "destroy", "validate"]
   default_py_env_file          = "python_env_runner/examples/envs/py310_full.yaml"
   default_enterypoint          = "python python_env_runner/examples/tests/test_all_imports.py"
@@ -32,6 +31,7 @@ locals {
     tf_projects                      = local.all_tf_projects_except_root
     tf_actions                       = local.tf_actions
     ofirydevops_ref                  = local.ofirydevops_ref
+    ofirydevops_repo                 = local.ofirydevops_repo
     generated_gh_repo_url            = github_repository.main.http_clone_url
     generated_gh_repo_name           = github_repository.main.name
     generated_gh_repo_pr_jenkinsfile = local.jenkinsfiles_paths["example_pr.groovy"]["dst"]
@@ -54,6 +54,8 @@ locals {
         tf_projects                  = jsonencode(local.all_tf_projects_except_root)
         github_runner_labels         = jsonencode(local.github_runner_labels)
         ofirydevops_ref              = local.ofirydevops_ref
+        ofirydevops_repo             = local.ofirydevops_repo
+        ofirydevops_dir              = "./ofirydevops"
         tf_actions                   = jsonencode(local.tf_actions)
         default_authorized_keys_file = local.default_authorized_keys_file
       })

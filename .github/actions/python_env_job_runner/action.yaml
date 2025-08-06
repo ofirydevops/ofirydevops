@@ -10,9 +10,6 @@ inputs:
   namespace:
     required: true
     type: string
-  ofirydevops_ref:
-    required: true
-    type: string
   repository:
     required: true
     type: string
@@ -37,18 +34,18 @@ inputs:
   workdir:
     required: false
     default: guest_repo
+  ofirydevops_dir:
+    required: true
+    type: string
+
 
 runs:
   using: composite
   steps:
-    - name: Checkout ofirydevops
-      uses: actions/checkout@v4
-      with:
-        repository: ofirydevops/ofirydevops
-        ref: ${{ inputs.ofirydevops_ref }}
 
     - name: Setup Global Conf
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: |
         ./.github/scripts/setup_global_conf.sh ${{ inputs.profile }} ${{ inputs.region }} ${{ inputs.namespace }}
 
@@ -58,14 +55,16 @@ runs:
         repository: ${{ inputs.repository }}
         token: ${{ inputs.github_token }}
         ref: ${{ inputs.repository_ref }}
-        path: ${{ inputs.workdir }}
+        path: ${{ inputs.ofirydevops_dir }}/${{ inputs.workdir }}
 
     - name: Pipenv Install
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: pipenv install
 
     - name: Build Python Env Docker
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: |
           pipenv run python3.10 -u -m python_env_runner.scripts.build_py_env \
                                           --py-env-conf-file ${{ inputs.workdir }}/${{ inputs.repository_py_env_file_path }} \
@@ -75,9 +74,12 @@ runs:
 
     - name: Run Python Job
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: |
         TIMEOUT_SECONDS=$(( ${{ inputs.timeout_in_minutes }} * 60 ))
         timeout $TIMEOUT_SECONDS \
         pipenv run python3.10 -u -m python_env_runner.scripts.run_py_env \
                                       --docker-image-tag ${{ inputs.docker_image_tag }} \
                                       --entrypoint "${{ inputs.command }}"
+
+
