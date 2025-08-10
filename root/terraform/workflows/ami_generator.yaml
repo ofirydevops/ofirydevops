@@ -8,6 +8,14 @@ on:
         type: choice
         options: ${ami_confs}
         required: true
+      ofirydevops_ref:
+        type: string
+        required: true
+        empty: false
+        default: ${ofirydevops_ref}
+
+
+
 
 jobs:
   ami_generator:
@@ -15,12 +23,20 @@ jobs:
       - self-hosted
       - basic_arm64_100GB
     steps:
+      - name: Checkout ofirydevops
+        uses: actions/checkout@v4
+        with:
+          repository: ${ofirydevops_repo}
+          ref: $${{ inputs.ofirydevops_ref }}
+          path: ${ofirydevops_dir}
+          token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+
       - name: Generate AMI
-        uses: ofirydevops/ofirydevops/.github/actions/ami_generator@${ofirydevops_ref}
+        uses: ${ofirydevops_dir}/.github/actions/ami_generator
         with:
           profile: $${{ vars.MAIN_AWS_PROFILE }}
           region: $${{ vars.MAIN_AWS_REGION }}
           namespace: $${{ vars.NAMESPACE }}
-          ofirydevops_ref: ${ofirydevops_ref}
+          ofirydevops_dir: ${ofirydevops_dir}
           ami_conf: $${{ github.event.inputs.ami_conf }}
 

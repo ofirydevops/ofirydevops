@@ -10,31 +10,30 @@ inputs:
   namespace:
     required: true
     type: string
-  ofirydevops_ref:
+  ofirydevops_dir:
     required: true
     type: string
+
 
 
 runs:
   using: composite
   steps:
-    - name: Checkout ofirydevops
-      uses: actions/checkout@v4
-      with:
-        repository: ofirydevops/ofirydevops
-        ref: ${{ inputs.ofirydevops_ref }}
 
     - name: Setup Global Conf
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: |
         ./.github/scripts/setup_global_conf.sh ${{ inputs.profile }} ${{ inputs.region }} ${{ inputs.namespace }}
 
     - name: Build Docker
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: docker compose -f deployment/docker/build-ssl.yml build
 
     - name: Generate SSL Cert
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: |
           docker compose -f deployment/docker/build-ssl.yml up
 

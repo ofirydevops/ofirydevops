@@ -122,7 +122,7 @@ jobs:
       job('seed_job') {
         label('basic_arm64_100GB')
         parameters {
-          stringParam('ref', '${ofirydevops_ref}', 'branch / tag / commit')
+          stringParam('ofirydevops_ref', '${ofirydevops_ref}', 'branch / tag / commit')
           choiceParam('file_to_provision', 
               [
               'jenkins/dsl/pipelines.groovy'
@@ -134,9 +134,10 @@ jobs:
         scm {
           git {
             remote {
-              url('https://github.com/ofirydevops/ofirydevops.git')
+              url('https://github.com/${ofirydevops_repo}.git')
+              credentials('${github_jenkins_app_creds_id}')
             }
-            branch('$ref')
+            branch('$ofirydevops_ref')
           }
         }
  

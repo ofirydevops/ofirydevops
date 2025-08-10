@@ -10,13 +10,13 @@ inputs:
   namespace:
     required: true
     type: string
-  ofirydevops_ref:
-    required: true
-    type: string
   tf_action:
     required: true
     type: string
   tf_project:
+    required: true
+    type: string
+  ofirydevops_dir:
     required: true
     type: string
 
@@ -24,23 +24,21 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout ofirydevops
-      uses: actions/checkout@v4
-      with:
-        repository: ofirydevops/ofirydevops
-        ref: ${{ inputs.ofirydevops_ref }}
 
     - name: Setup Global Conf
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: |
         ./.github/scripts/setup_global_conf.sh ${{ inputs.profile }} ${{ inputs.region }} ${{ inputs.namespace }}
 
     - name: Pipenv Install
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: pipenv install
 
     - name: Run Terraform Action
       shell: bash
+      working-directory: ${{ inputs.ofirydevops_dir }}
       run: |
           pipenv run python3.10 -m deployment.tf_manager \
                                     --tf-action ${{ inputs.tf_action }} \
