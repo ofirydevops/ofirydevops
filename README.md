@@ -62,34 +62,61 @@ touch personal_info_and_secrets.yaml
 ```
 
 The `personal_info_and_secrets.yaml` file have 6 root level properties:
-- `profile` (required)
 - `region` (required)
+- `profile` (required)
 - `namespace` (required)
+- `ofirydevops` (optional)
 - `tf_backend_config` (required)
-- `secrets` (required)
 - `github_repos` (optional)
+- `secrets` (required)
 
 I prepared an exmple file [personal_info_and_secrets.example.yaml](personal_info_and_secrets.example.yaml) 
 (with fake values) to demostrate to you how this file should typically look eventually. 
 
 I'll go through each of the properties and explain exactly what they should contain.
 
-#### 1.Set the `profile` property
+#### 1.Set the `region` property
+`region` is the AWS region in which your infra will be built.  
+Example: `eu-central-1`
+
+
+#### 2.Set the `profile` property
 `profile` must be the AWS profile that you defined in [step 2](#2-create-aws-admin-credentials).  
 (I named it `OFIRYDEVOPS` in the example).  
-example: `OFIRYDEVOPS`
+Example: `OFIRYDEVOPS`
 
-#### 2.Set the `region` property
-`region` is the AWS region in which your infra will be built.  
-example: `eu-central-1`
 
 #### 3.Set the `namespace` property
 `namespace` - A name that will be used to name all the infra you will create,  
 in order to allow the creation of multiple environments on the same AWS/Github accounts.  
 This string can be at most 7 characters, and must match this regex `^[a-z][a-z0-9]{0,6}$`.  
-example: `bengvir`
+Example: `bengvir`
 
-#### 4. Set the `tf_backend_config` property
+#### 4. Set the `ofirydevops` property (optional)
+The Jenkins pipelines and Github workflows that will be created by the `github_actions` and `jenkins` projects,  
+will by default run code from `ofirydevops/ofirydevops` on git ref `main`.  
+You have an option to configure it to be another repo and ref,  
+for example - lets say you want to make changes in `ofirydevops/ofirydevops`,  
+in order to do that,  
+you can fork it to your own Github account, and make it private (or leave it public),  
+and then,  
+you can add your changes to this repo,  
+and make the created Jenkins pipelines and Github workflows  
+point to your own `ofirydevops` by defining the `ofirydevops` property, in this format:
+```
+ofirydevops:
+  repo_full_name: <your-github-account-name>/<your-ofirydevops-fork-repo-name>
+  ref: <default-git-ref-to-use>
+```
+
+For example:  
+```
+ofirydevops:
+  repo_full_name: ofiryy/ofirydevops
+  ref: main
+```
+
+#### 5. Set the `tf_backend_config` property
 1. Create an AWS S3 bucket (with versioning enabled) in your AWS account, on a region of your choosing.  
 this bucket will be used as the Terraform S3 backend for all the Terraform projects.
 
@@ -115,38 +142,16 @@ tf_backend_config:
 I just use the admin profile we deifned on [step 2](#2-create-aws-admin-credentials).
 
 
-#### 5. Set the `secrets` property
+#### 6. Set the `github_repos` property (optional)
+You have an option to define a list of github repos in your github account,  
+so that the `jenkins` and `github_actions` projects will support it by defining webhooks in them.  
+These repos would be able to trigger Jenkins pipelines on `jenkins` server,  
+and Github workflows on the `github_actions` AWS infra.
+
+
+#### 7. Set the `secrets` property
 In `personal_info_and_secrets.yaml` root level, add a `secrets` property,  
 and under it define the folowing variables and their values:
-
-- `domain`
-  - Required for `jenkins`
-  - It must be a route53 domain that is managed on the AWS account we are working on
-  - The jenkins server address will be: `https://jenkins.<your-domain>`
-
-- `email`
-  - Required for `root`
-  - It is used for:
-    - Creating the github repo from `root` repo
-    - Generating the SSL cert, as the creation process need to recieve an email address.
-
-- `main_keypair_privete_key`
-  - Required for `root`
-  - This, along with `main_keypair_pub_key`  
-    is the SSH key pair that will be used to access the EC2s that will be defined in the Terraform projects
-  - The key pair should be created with this command:  
-    ```
-    ssh-keygen -t rsa -b 4096 -m PEM -f ~/.ssh/my-ec2-key
-    ```
-    It will generate 2 files:
-      - The private key file: `~/.ssh/my-ec2-key`
-      - The public key file: `~/.ssh/my-ec2-key.pub`
-  - Define the value of `main_keypair_privete_key` to be the content of `~/.ssh/my-ec2-key`
-  - Define the value of `main_keypair_pub_key` to be the content of `~/.ssh/my-ec2-key.pub`
-     
-- `main_keypair_pub_key`
-  - Required for `root`
-  - Please see `main_keypair_privete_key` above
 
 - `github_token`
   - Required for `root`
@@ -169,6 +174,35 @@ and under it define the folowing variables and their values:
   - Optional
   - If specified, the repos of the org will be specified in the dropdowns of jenkins pipelines and github workflows in the generated repo.
   - If not specified, the repos in the dropdowns will be the authenticated user personal repos (the user who created the `github_token`). 
+
+- `main_keypair_privete_key`
+  - Required for `root`
+  - This, along with `main_keypair_pub_key`  
+    is the SSH key pair that will be used to access the EC2s that will be defined in the Terraform projects
+  - The key pair should be created with this command:  
+    ```
+    ssh-keygen -t rsa -b 4096 -m PEM -f ~/.ssh/my-ec2-key
+    ```
+    It will generate 2 files:
+      - The private key file: `~/.ssh/my-ec2-key`
+      - The public key file: `~/.ssh/my-ec2-key.pub`
+  - Define the value of `main_keypair_privete_key` to be the content of `~/.ssh/my-ec2-key`
+  - Define the value of `main_keypair_pub_key` to be the content of `~/.ssh/my-ec2-key.pub`
+     
+- `main_keypair_pub_key`
+  - Required for `root`
+  - Please see `main_keypair_privete_key` above
+
+- `domain`
+  - Required for `jenkins`
+  - It must be a route53 domain that is managed on the AWS account we are working on
+  - The jenkins server address will be: `https://jenkins.<your-domain>`
+
+- `email`
+  - Required for `root`
+  - It is used for:
+    - Creating the github repo from `root` repo
+    - Generating the SSL cert, as the creation process need to recieve an email address.
 
 - `jenkins_admin_username`
   - Required for `jenkins`
@@ -243,7 +277,6 @@ and under it define the folowing variables and their values:
     - Click on `Create GitHub App`
     - Define `gh_actions_runner_github_app_id` value to be the `App ID` number.
 
-
 - `gh_actions_runner_github_app_private_key`
   - Required for `github_actions`
   - This github app will be used to give the `github_actions` runners access to your github repos.
@@ -265,27 +298,21 @@ For summary, here is a table that tells you what secrets are required for the su
 Note: Please consider that if a variable is required for a certain subproject,  
 then it is required for all the subprojects that depend on it.
 
-| Variable                              | Required For            |
-|---------------------------------------|-------------------------|
-| `domain`                              | `ssl_cert_generator`     |
-| `email`                               | `ssl_cert_generator`     |
-| `main_keypair_privete_key`            | `root`                  |
-| `main_keypair_pub_key`                | `root`                  |
-| `github_token`                        | `root`                  |
-| `github_org`                          | Optional            |
-| `jenkins_admin_username`              | `jenkins`               |
-| `jenkins_admin_password`              | `jenkins`               |
-| `jenkins_github_app_id`               | `jenkins`               |
-| `jenkins_github_app_private_key_converted` | `jenkins`        |
-| `gh_actions_runner_github_app_id`            | `github_actions`    |
-| `gh_actions_runner_github_app_private_key`   | `github_actions`    |
+| Variable                                   | Required For                  |
+|--------------------------------------------|-------------------------------|
+| `github_token`                             | Required                      |
+| `github_org`                               | Optional                      | 
+| `main_keypair_privete_key`                 | Required                      |
+| `main_keypair_pub_key`                     | Required                      |
+| `domain`                                   | Required for `jenkins`        |
+| `email`                                    | Required for `jenkins`        |
+| `jenkins_admin_username`                   | Required for `jenkins`        |
+| `jenkins_admin_password`                   | Required for `jenkins`        |
+| `jenkins_github_app_id`                    | Required for `jenkins`        |
+| `jenkins_github_app_private_key_converted` | Required for `jenkins`        |
+| `gh_actions_runner_github_app_id`          | Required for `github_actions` |
+| `gh_actions_runner_github_app_private_key` | Required for `github_actions` |
 
-#### 6. Set the `github_repos` property (optional)
-
-You have an option to define a list of github repos in your github account,  
-so that the `jenkins` and `github_actions` projects will support it by defining webhooks in them.  
-These repos would be able to trigger Jenkins pipelines on `jenkins` server,  
-and Github workflows on the `github_actions` AWS infra.
 
 ### 6. Build the resources
 

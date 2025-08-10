@@ -2,6 +2,12 @@ name: batch_runner_test
 
 on:
   workflow_dispatch:
+    inputs:
+      ofirydevops_ref:
+        type: string
+        required: true
+        empty: false
+        default: ${ofirydevops_ref}
 
 jobs:
   batch_runner_test:
@@ -9,11 +15,21 @@ jobs:
       - self-hosted
       - basic_amd64_100GB
     steps:
+
+      - name: Checkout ofirydevops
+        uses: actions/checkout@v4
+        with:
+          repository: ${ofirydevops_repo}
+          ref: $${{ inputs.ofirydevops_ref }}
+          path: ${ofirydevops_dir}
+          token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+
       - name: Test Batch Runner
-        uses: ofirydevops/ofirydevops/.github/actions/batch_runner_test@${ofirydevops_ref}
+        uses: ${ofirydevops_dir}/.github/actions/batch_runner_test
         with:
           profile: $${{ vars.MAIN_AWS_PROFILE }}
           region: $${{ vars.MAIN_AWS_REGION }}
           namespace: $${{ vars.NAMESPACE }}
-          ofirydevops_ref: ${ofirydevops_ref}
+          ofirydevops_dir: ${ofirydevops_dir}
+
 

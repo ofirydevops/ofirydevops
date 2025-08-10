@@ -34,6 +34,11 @@ on:
         type: choice
         options: ${github_runner_labels}
         required: true
+      ofirydevops_ref:
+        type: string
+        required: true
+        empty: false
+        default: ${ofirydevops_ref}
 
 env:
   DOCKER_IMAGE_TAG: $${{ github.run_id }}-$${{ github.run_number }}
@@ -44,13 +49,20 @@ jobs:
       - self-hosted
       - $${{ github.event.inputs.node }}
     steps:
+      - name: Checkout ofirydevops
+        uses: actions/checkout@v4
+        with:
+          repository: ${ofirydevops_repo}
+          ref: $${{ inputs.ofirydevops_ref }}
+          path: ${ofirydevops_dir}
+          token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+
       - name: Python Env Job Runner
-        uses: ofirydevops/ofirydevops/.github/actions/python_env_job_runner@${ofirydevops_ref}
+        uses: ${ofirydevops_dir}/.github/actions/python_env_job_runner
         with:
           profile: $${{ vars.MAIN_AWS_PROFILE }}
           region: $${{ vars.MAIN_AWS_REGION }}
           namespace: $${{ vars.NAMESPACE }}
-          ofirydevops_ref: ${ofirydevops_ref}
           repository: $${{ github.event.inputs.repository }}
           repository_ref: $${{ github.event.inputs.repository_ref }}
           github_token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
@@ -58,4 +70,5 @@ jobs:
           docker_image_tag: $${{ env.DOCKER_IMAGE_TAG }}
           timeout_in_minutes: $${{ github.event.inputs.timeout_in_minutes }}
           command: $${{ github.event.inputs.command }}
+          ofirydevops_dir: ${ofirydevops_dir}
 

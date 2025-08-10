@@ -13,6 +13,11 @@ on:
         type: choice
         options: ${tf_actions}
         required: true
+      ofirydevops_ref:
+        type: string
+        required: true
+        empty: false
+        default: ${ofirydevops_ref}
 
 jobs:
   terraform_projects_mgmt:
@@ -20,14 +25,21 @@ jobs:
       - self-hosted
       - basic_amd64_100GB
     steps:
+
+      - name: Checkout ofirydevops
+        uses: actions/checkout@v4
+        with:
+          repository: ${ofirydevops_repo}
+          ref: $${{ inputs.ofirydevops_ref }}
+          path: ${ofirydevops_dir}
+          token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+
       - name: Terraform Projects Management
-        uses: ofirydevops/ofirydevops/.github/actions/terraform_projects_mgmt@${ofirydevops_ref}
+        uses: ${ofirydevops_dir}/.github/actions/terraform_projects_mgmt
         with:
           profile: $${{ vars.MAIN_AWS_PROFILE }}
           region: $${{ vars.MAIN_AWS_REGION }}
           namespace: $${{ vars.NAMESPACE }}
-          ofirydevops_ref: ${ofirydevops_ref}
           tf_action: $${{ github.event.inputs.tf_action }}
           tf_project: $${{ github.event.inputs.tf_project }}
-
-
+          ofirydevops_dir: ${ofirydevops_dir}

@@ -38,6 +38,11 @@ on:
         type: choice
         options: ${github_runner_labels}
         required: true
+      ofirydevops_ref:
+        type: string
+        required: true
+        empty: false
+        default: ${ofirydevops_ref}
 
 env:
   MAX_UPTIME: 120
@@ -49,13 +54,21 @@ jobs:
       - self-hosted
       - $${{ github.event.inputs.node }}
     steps:
+
+    - name: Checkout ofirydevops
+      uses: actions/checkout@v4
+      with:
+        repository: ${ofirydevops_repo}
+        ref: $${{ inputs.ofirydevops_ref }}
+        path: ${ofirydevops_dir}
+        token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
+
     - name: Python Env Remote Development
-      uses: ofirydevops/ofirydevops/.github/actions/python_env_remote_dev@${ofirydevops_ref}
+      uses: ${ofirydevops_dir}/.github/actions/python_env_remote_dev
       with:
         profile: $${{ vars.MAIN_AWS_PROFILE }}
         region: $${{ vars.MAIN_AWS_REGION }}
         namespace: $${{ vars.NAMESPACE }}
-        ofirydevops_ref: ${ofirydevops_ref}
         repository: $${{ github.event.inputs.repository }}
         repository_ref: $${{ github.event.inputs.repository_ref }}
         github_token: $${{ secrets.OFIRYDEVOPS_GITHUB_TOKEN }}
@@ -65,4 +78,6 @@ jobs:
         git_user_email: $${{ github.event.inputs.git_user_email }}
         authorized_keys_file: $${{ github.event.inputs.authorized_keys_file }}
         max_uptime: $${{ env.MAX_UPTIME }}
+        ofirydevops_dir: ${ofirydevops_dir}
+
 
