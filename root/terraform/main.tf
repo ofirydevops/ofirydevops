@@ -13,7 +13,7 @@ locals {
   namespace                 = local.global_conf["namespace"]
   local_workstation_pub_ip  = trimspace(data.http.my_public_ip.response_body)
   ofirydevops_repo          = try(local.personal_info_and_secrets["ofirydevops"]["repo_full_name"], "ofirydevops/ofirydevops")
-  ofirydevops_ref           = try(local.personal_info_and_secrets["ofirydevops"]["ref"], "main")
+  ofirydevops_ref           = try(local.personal_info_and_secrets["ofirydevops"]["default_git_ref"], "main")
 
 
   ssm_params = {

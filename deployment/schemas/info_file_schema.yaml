@@ -21,7 +21,7 @@ ofirydevops:
       type: string
       required: false
       regex: '^[a-zA-Z0-9-]+\/[a-zA-Z0-9._-]+$'
-    ref:
+    default_git_ref:
       type: string
       required: false
       regex: '^[a-zA-Z0-9._/-]+$'
