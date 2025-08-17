@@ -106,14 +106,14 @@ point to your own `ofirydevops` by defining the `ofirydevops` property, in this 
 ```
 ofirydevops:
   repo_full_name: <your-github-account-name>/<your-ofirydevops-fork-repo-name>
-  ref: <default-git-ref-to-use>
+  default_git_ref: <default-git-ref-to-use>
 ```
 
 For example:  
 ```
 ofirydevops:
   repo_full_name: ofiryy/ofirydevops
-  ref: main
+  default_git_ref: main
 ```
 
 #### 5. Set the `tf_backend_config` property
