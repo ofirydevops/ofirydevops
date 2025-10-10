@@ -17,8 +17,6 @@ services:
     entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
                                                 --tf-action apply \
                                                 --tf-project root"
-    profiles:
-    - all
 
   build_jenkins:
     <<: *main_conf
