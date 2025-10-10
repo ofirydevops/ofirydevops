@@ -1,10 +1,14 @@
-FROM python:3.10-slim
+FROM python:3.10-bookworm
 
-RUN apt update
-RUN apt install -y ca-certificates curl gnupg lsb-release software-properties-common unzip
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install stuff for ssl generating using route53 and lets-encrypt
-RUN apt install -y python3-certbot-dns-route53 certbot openjdk-17-jdk less 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        certbot python3-certbot-dns-route53 \
+        openjdk-17-jdk \
+        less curl unzip ca-certificates gnupg lsb-release \
+        && rm -rf /var/lib/apt/lists/* \
+        && update-ca-certificates
+
 
 # Install docker
 RUN rm -f /etc/apt/sources.list.d/docker.list
@@ -12,7 +16,7 @@ RUN install -m 0755 -d /etc/apt/keyrings
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 RUN chmod a+r /etc/apt/keyrings/docker.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-             https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list
+        https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list
 
 RUN apt update
 
@@ -39,7 +43,7 @@ RUN ./aws/install
 
 RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
-          https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+        https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
 RUN apt update
 RUN apt install -y terraform=1.11.4-1 packer=1.9.5-1
 
