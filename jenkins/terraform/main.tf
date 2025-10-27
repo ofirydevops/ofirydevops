@@ -66,9 +66,9 @@ module "jenkins" {
   github_token                             = local.ssm["/${local.namespace}/secrets/github_token"]
   jenkins_admin_username                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_username"]
   jenkins_admin_password                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_password"]
-  domain_ssl_cert                          = local.ssm["/${local.namespace}/sslcerts/ofirydevops.com/cert"]
-  domain_ssl_chain                         = local.ssm["/${local.namespace}/sslcerts/ofirydevops.com/chain"]
-  domain_ssl_privatekey                    = local.ssm["/${local.namespace}/sslcerts/ofirydevops.com/privateKey"]
+  domain_ssl_cert                          = local.ssm["/${local.namespace}/sslcerts/${local.domain}/cert"]
+  domain_ssl_chain                         = local.ssm["/${local.namespace}/sslcerts/${local.domain}/chain"]
+  domain_ssl_privatekey                    = local.ssm["/${local.namespace}/sslcerts/${local.domain}/privateKey"]
 
   ami_ids = {
     basic_amd64_100GB = local.ssm["/${local.namespace}/ami_id/basic_amd64_100GB"]
