@@ -11,7 +11,7 @@ resource "github_repository_webhook" "github_jenkins_webhook" {
   for_each   = toset(nonsensitive(var.github_repos))
   repository = each.key
   configuration {
-    url          = "https://${aws_route53_record.jenkins_gh_webhook.fqdn}/${local.api_rest_gateways["jenkins_webhook_gw"].resource_path}"
+    url          = local.api_gw_url
     content_type = "json"
     insecure_ssl = false
     secret       = local.github_jenkins_webhook_secret

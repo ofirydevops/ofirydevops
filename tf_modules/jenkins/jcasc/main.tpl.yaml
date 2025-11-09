@@ -2,7 +2,6 @@ x-worker_config: &worker_config
   amiType:
     unixData:
       sshPort: 22
-  associatePublicIp: true
   connectBySSHProcess: false
   connectionStrategy: PRIVATE_IP
   deleteRootOnTermination: true

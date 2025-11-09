@@ -137,6 +137,6 @@ resource "aws_wafv2_web_acl" "main" {
 }
 
 resource "aws_wafv2_web_acl_association" "jgw" {
-  resource_arn = aws_api_gateway_stage.stages["jenkins_webhook_gw"].arn
+  resource_arn = aws_api_gateway_stage.stage.arn
   web_acl_arn  = aws_wafv2_web_acl.main.arn
 }

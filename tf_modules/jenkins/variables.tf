@@ -54,19 +54,14 @@ variable "github_token" {
   sensitive = true
 }
 
-variable "domain_ssl_cert" {
-  type      = string
-  sensitive = true
-}
-
-variable "domain_ssl_chain" {
-  type      = string
-  sensitive = true
-}
-
-variable "domain_ssl_privatekey" {
-  type      = string
-  sensitive = true
+variable "domain_ssl_info" {
+  type = object({
+    domain_ssl_cert       = string
+    domain_ssl_chain      = string
+    domain_ssl_privatekey = string
+    domain                = string
+  })
+  default = null
 }
 
 variable "jenkins_admin_username" {
@@ -80,12 +75,12 @@ variable "jenkins_admin_password" {
   sensitive = true
 }
 
-variable "domain" {
-  type = string
-}
-
-variable "subdomain" {
-  type = string
+variable "route53_domain_info" {
+  type = object({
+    route53_domain = string
+    target_subdomain = string
+  })
+  default = null
 }
 
 variable "ami_ids" {
