@@ -1,5 +1,14 @@
-FROM jenkins/jenkins:2.516-jdk17
+FROM jenkins/jenkins:2.535-jdk21 as base
 
+
+USER jenkins
+COPY ./tf_modules/jenkins/docker/plugins.txt /var/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /var/plugins.txt
+
+ENV JENKINS_OPTS --httpPort=8443 --httpsPort=-1
+
+
+FROM base AS with_ssl_setting
 USER root
 
 ARG DOMAIN
@@ -20,7 +29,7 @@ RUN chmod +x setup_jenkins_ssl.sh
 RUN ./setup_jenkins_ssl.sh
 
 USER jenkins
-COPY ./tf_modules/jenkins/docker/plugins.txt /var/plugins.txt
-RUN jenkins-plugin-cli --plugin-file /var/plugins.txt
-
 ENV JENKINS_OPTS --httpPort=-1 --httpsPort=8443 --httpsKeyStore=/var/jenkins.jks --httpsKeyStorePassword=changeme
+
+
+

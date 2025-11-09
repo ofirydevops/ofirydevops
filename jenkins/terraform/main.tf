@@ -29,7 +29,7 @@ locals {
   namespace               = local.global_conf["namespace"]
   vpc_id                  = data.aws_vpc.default.id
   subnet_id               = data.aws_subnet.jenkins_subnet.id
-  domain                  = local.ssm["/${local.namespace}/secrets/domain"]
+  domain                  = try(local.ssm["/${local.namespace}/secrets/domain"], null)
   jenkins_subnet_id       = data.aws_subnet.jenkins_subnet.id
   batch_envs              = jsondecode(try(local.ssm["/${local.namespace}/batch_envs"], "[null]"))
   all_github_repositories = jsondecode(local.ssm["/${local.namespace}/all_github_repositories"])
@@ -54,8 +54,6 @@ module "jenkins" {
   vpc_id                                   = local.vpc_id
   subnet_id                                = local.subnet_id
   ebs_volume_id                            = local.jenkins_volume_id
-  domain                                   = local.domain
-  subdomain                                = "${local.namespace}jenkins"
   keypair_name                             = local.ssm["/${local.namespace}/main_keypair_name"]
   github_repos                             = jsondecode(local.ssm["/${local.namespace}/github_repos"])
   dsl_config                               = local.dsl_config
@@ -66,13 +64,26 @@ module "jenkins" {
   github_token                             = local.ssm["/${local.namespace}/secrets/github_token"]
   jenkins_admin_username                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_username"]
   jenkins_admin_password                   = local.ssm["/${local.namespace}/secrets/jenkins_admin_password"]
-  domain_ssl_cert                          = local.ssm["/${local.namespace}/sslcerts/${local.domain}/cert"]
-  domain_ssl_chain                         = local.ssm["/${local.namespace}/sslcerts/${local.domain}/chain"]
-  domain_ssl_privatekey                    = local.ssm["/${local.namespace}/sslcerts/${local.domain}/privateKey"]
+  domain_ssl_info                          = local.domain == null ? null : {
+    domain_ssl_cert       = local.ssm["/${local.namespace}/sslcerts/${local.domain}/cert"]
+    domain_ssl_chain      = local.ssm["/${local.namespace}/sslcerts/${local.domain}/chain"]
+    domain_ssl_privatekey = local.ssm["/${local.namespace}/sslcerts/${local.domain}/privateKey"]
+    domain                = local.domain
+  }
+  route53_domain_info = local.domain == null ? null : {
+    route53_domain   = local.domain
+    target_subdomain = "${local.namespace}jenkins"
+  }
 
   ami_ids = {
     basic_amd64_100GB = local.ssm["/${local.namespace}/ami_id/basic_amd64_100GB"]
     basic_arm64_100GB = local.ssm["/${local.namespace}/ami_id/basic_arm64_100GB"]
     gpu_amd64_100GB   = local.ssm["/${local.namespace}/ami_id/gpu_amd64_100GB"]
   }
+}
+
+
+output "jenkins_url" {
+  value = module.jenkins.jenkins_url
+  sensitive = false
 }

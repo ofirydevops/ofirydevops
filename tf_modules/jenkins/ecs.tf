@@ -3,7 +3,8 @@ data "http" "current_workstation_pub_ip" {
 }
 
 data "aws_route53_zone" "domain" {
-  name = var.domain
+  count = var.route53_domain_info == null ? 0 : 1
+  name  = local.route53_domain
 }
 
 locals {
@@ -37,9 +38,27 @@ locals {
   ecr_repo_name                 = split("/", local.jenkins_ecr_repo_url)[1]
   image_url                     = "${local.ecr_registry}/${local.ecr_repo_name}:${local.image_tag}"
   current_workstation_pub_ip    = trimspace(data.http.current_workstation_pub_ip.response_body)
-  domain_route53_hosted_zone_id = data.aws_route53_zone.domain.zone_id
   ofirydevops_ref               = var.dsl_config["ofirydevops_ref"]
   ofirydevops_repo              = var.dsl_config["ofirydevops_repo"]
+
+  domain_ssl_cert       = try(var.domain_ssl_info["domain_ssl_cert"], "")
+  domain_ssl_privatekey = try(var.domain_ssl_info["domain_ssl_privatekey"], "")
+  domain_ssl_chain      = try(var.domain_ssl_info["domain_ssl_chain"], "")
+  ssl_domain            = try(var.domain_ssl_info["domain"], "")
+
+  route53_domain                = try(var.route53_domain_info["route53_domain"], null)
+  route53_target_subdomain      = try(var.route53_domain_info["target_subdomain"], null)
+  domain_route53_hosted_zone_id = var.route53_domain_info == null ? null : data.aws_route53_zone.domain[0].zone_id
+
+  jenkins_private_ip = aws_instance.jenkins.private_ip
+  jenkins_server_url_for_webhook_lambda = var.domain_ssl_info == null ? "http://${local.jenkins_private_ip}:443" : "https://${local.jenkins_private_ip}"
+
+
+  jenkins_url_protocol = var.domain_ssl_info == null ? "http" : "https"
+  jenkins_url_port     = var.domain_ssl_info == null ? ":443" : ""
+  jenkins_url_address  = var.route53_domain_info == null ? aws_instance.jenkins.public_ip : "${aws_route53_record.jenkins[0].name}.${local.route53_domain}"
+  jenkins_url          = "${local.jenkins_url_protocol}://${local.jenkins_url_address}${local.jenkins_url_port}"
+
 
   arch            = "arm64"
   device_to_mount = "/dev/xvdh"
@@ -57,15 +76,15 @@ locals {
   domain_ssl_cert_files_conf = {
     "cert" : {
       path    = "tmp/cert.pem"
-      content = var.domain_ssl_cert
+      content = local.domain_ssl_cert
     }
     "privatekey" : {
       path    = "tmp/privatekey.pem"
-      content = var.domain_ssl_privatekey
+      content = local.domain_ssl_privatekey
     }
     "chain" : {
       path    = "tmp/chain.pem"
-      content = var.domain_ssl_chain
+      content = local.domain_ssl_chain
     }
   }
 
@@ -78,7 +97,7 @@ locals {
 
   docker_dep_files_content      = [for file in local.docker_dep_files : file(file)]
   docker_dep_files_content_hash = sha256(join("", local.docker_dep_files_content))
-  ssl_data_hash                 = sha256(join("", [var.domain_ssl_privatekey, var.domain_ssl_cert, var.domain_ssl_chain]))
+  ssl_data_hash                 = sha256(join("", [local.domain_ssl_privatekey, local.domain_ssl_cert, local.domain_ssl_chain]))
   jenkins_image_dependency_hash = sha256(join("", [local.docker_dep_files_content_hash, local.ssl_data_hash, local.arch]))
   casc_reload_token             = random_password.casc_reload_token.result
 
@@ -186,6 +205,10 @@ locals {
 
 }
 
+output "jenkins_url" {
+  value = nonsensitive(local.jenkins_url)
+}
+
 resource "local_sensitive_file" "dsl_config" {
   filename        = "${path.module}/dsl_config.json"
   file_permission = "0755"
@@ -226,7 +249,8 @@ resource "null_resource" "docker_build_and_push_jenkins_image" {
       DOCKER_REGISTRY              = local.ecr_registry
       DOCKER_IMAGE_REPO            = local.ecr_repo_name
       DOCKER_IMAGE_TAG             = local.image_tag
-      DOMAIN                       = var.domain
+      COMPOSE_BUILD_TARGET         = var.domain_ssl_info == null ? "base" : "with_ssl_setting"
+      DOMAIN                       = local.ssl_domain
       REGION                       = var.region
       PROFILE                      = var.profile
       ARCH                         = local.arch
@@ -417,8 +441,9 @@ resource "aws_ecs_service" "jenkins_service" {
 }
 
 resource "aws_route53_record" "jenkins" {
+  count   = var.route53_domain_info == null ? 0 : 1
   zone_id = local.domain_route53_hosted_zone_id
-  name    = var.subdomain
+  name    = local.route53_target_subdomain
   type    = "A"
   ttl     = 300
   records = [aws_instance.jenkins.public_ip]
@@ -577,12 +602,11 @@ resource "null_resource" "jenkins_dsl_config_update" {
 module "jenkins_github_webhook" {
   source                    = "../../tf_modules/github_jenkins_webhook_gw"
   name                      = var.namespace
-  domain                    = var.domain
-  hosted_zone_id            = local.domain_route53_hosted_zone_id
+  route53_domain            = local.route53_domain
   vpc_id                    = var.vpc_id
   github_repos              = var.github_repos
   jenkins_server_subnet_id  = var.subnet_id
-  jenkins_server_private_ip = aws_instance.jenkins.private_ip
+  jenkins_server_url_for_webhook_lambda        = local.jenkins_server_url_for_webhook_lambda
   jenkins_server_sg_id      = aws_security_group.sgs["jenkins_master"].id
 }
 
@@ -600,3 +624,5 @@ resource "null_resource" "cleanup" {
     command = "rm *.zip ${local_sensitive_file.rendered_jcasc_config.filename} ${local_sensitive_file.dsl_config.filename} || true"
   }
 }
+
+

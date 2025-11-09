@@ -81,6 +81,10 @@ def main():
         utils.run_shell_cmd_without_buffering(f"terraform init -backend-config={os.path.abspath(tf_backend_config_file)}", cwd=project_path)
         utils.run_shell_cmd_without_buffering(f"terraform workspace select -or-create {namespace}",                        cwd=project_path)
         utils.run_shell_cmd_without_buffering(f"terraform {action} {flags}",                                               cwd=project_path)
+        
+        if action == "apply":
+            utils.run_shell_cmd_without_buffering(f"terraform output", cwd=project_path)
+
     finally:
         os.remove(tf_backend_config_file)
 

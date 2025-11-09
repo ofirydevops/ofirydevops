@@ -15,7 +15,7 @@ locals {
       subnet_ids      = [var.jenkins_server_subnet_id]
       env_vars = {
         GITHUB_WEBHOOK_SECRET = local.github_jenkins_webhook_secret
-        JENKINS_URL           = "https://${var.jenkins_server_private_ip}"
+        JENKINS_URL           = var.jenkins_server_url_for_webhook_lambda
       }
     }
   }

@@ -3,6 +3,7 @@ services:
     network_mode: bridge
     build:
       context: ../../
+      target: ${COMPOSE_BUILD_TARGET}
       dockerfile: ./tf_modules/jenkins/docker/Dockerfile
       args:
         DOMAIN_CERT_FILE: ${DOMAIN_CERT_FILE}
