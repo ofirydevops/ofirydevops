@@ -45,3 +45,11 @@ python_env_runner:
     path:
       type: string
       required: true
+
+app_infra:
+  type: dict
+  required: true
+  schema:
+    path:
+      type: string
+      required: true

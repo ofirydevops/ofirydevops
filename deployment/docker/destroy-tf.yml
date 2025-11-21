@@ -65,3 +65,11 @@ services:
     profiles:
     - python_env_runner
     # - all
+
+  destroy_app_infra:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action destroy \
+                                                --tf-project app_infra"
+    profiles:
+    - app_infra

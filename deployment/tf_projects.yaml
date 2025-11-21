@@ -16,3 +16,5 @@ batch_runner:
 python_env_runner:
   path: python_env_runner/terraform
 
+app_infra:
+  path: app_infra/terraform

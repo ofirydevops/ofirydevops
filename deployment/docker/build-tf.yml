@@ -65,3 +65,12 @@ services:
     - jenkins
     - github_actions
     - all
+
+  build_app_infra:
+    <<: *main_conf
+    entrypoint: sh -c "pipenv run python3.10 -m deployment.tf_manager \
+                                                --tf-action apply \
+                                                --tf-project app_infra"
+    profiles:
+    - app_infra
+ 
