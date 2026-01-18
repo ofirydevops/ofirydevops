@@ -215,9 +215,10 @@ and under it define the folowing variables and their values:
 
 - `domain`
 
-  - Required for `jenkins`
-  - It must be a route53 domain that is managed on the AWS account we are working on
-  - The jenkins server address will be: `https://jenkins.<your-domain>`
+  - Optional
+  - If set, it must be a route53 domain that is managed on the AWS account we are working on
+  - If set, will be used to give the Jenkins server an address, and the url would be: `https://<your-namespace>jenkins.<your-domain>`
+  - If not set, the jenkins server url will be: `http://<jenkins-server-public-ip>:443`
 
 - `email`
 
