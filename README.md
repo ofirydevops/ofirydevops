@@ -347,7 +347,7 @@ then it is required for all the subprojects that depend on it.
 #### 2. Build the local deployment dockerfile:
 
 ```
-docker compose -f deployment/docker/build-tf.yml build
+docker compose -f deployment/docker/build-tf.yml build build_root
 ```
 
 #### 3. Build the `root` project:
