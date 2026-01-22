@@ -83,6 +83,7 @@ jenkins:
       - ami: ${deep_learning_100GB_amd64_ami_id}
         description: gpu_amd64_100GB
         labelString: gpu_amd64_100GB
+        subnetId: ${subnet_id}
         type: g4dn.xlarge
         tags:
         - name: Name
@@ -157,3 +158,4 @@ unclassified:
     githubAuth:
     - credentialsId: github_token
     manageWebhooks: false
+
