@@ -1,0 +1,13 @@
+terraform {
+  backend "s3" {
+    key = "app-infra.tfstate"
+  }
+  required_version = ">= 1.5.7"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 6.20"
+    }
+  }
+}
